@@ -1,4 +1,4 @@
-First Price Procurement Auctions
+First-Price Procurement Auctions
 ================
 
 This repository contains my master thesis on first-price sealed-bid

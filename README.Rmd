@@ -1,5 +1,5 @@
 ---
-title: "First Price Procurement Auctions"
+title: "First-Price Procurement Auctions"
 output: 
   github_document:
     pandoc_args: --webtex
