@@ -4,7 +4,7 @@ btab_text_ext <- \(file, regexpr = c("Letting No:(\\s*)(\\d+)",
                                  "Letting Date:(\\s*)(\\D+)(\\s*)(\\d+),(\\s)(\\d+)",
                                  "Counties:(\\s*).*",
                                  "Contract Time:(\\s*)[0-9/\\.]+",
-                                 "Contract Description:(.|\n)+")){
+                                 "Contract Description:(.|\n)+"), print = FALSE){
   
   # pdf text second page
   pdf_text <- pdftools::pdf_text(file)[2]
@@ -15,9 +15,13 @@ btab_text_ext <- \(file, regexpr = c("Letting No:(\\s*)(\\d+)",
     # extrct
     extr <-  stringr::str_extract(pdf_text, x)
     
-    # split by :
-    str_trim(unlist(stringr::str_split(extr, ":"))[[2]])
-    
+    if(is.na(extr)) return(NA) else{
+
+      # split by :
+      stringr::str_trim(unlist(stringr::str_split(extr, ":"))[[2]])
+      
+    }
+  
   })
   
   # Description
@@ -27,7 +31,11 @@ btab_text_ext <- \(file, regexpr = c("Letting No:(\\s*)(\\d+)",
   # add
   tmp <- c(tmp, unlist(descr)[[1]])
   
-  # return
-  tmp |> setNames(c("Letting No", "Contract ID", "Letting Date", "Counties",
+  # names
+  tmp <- tmp |> setNames(c("Letting No", "Contract ID", "Letting Date", "Counties",
                     "Contract Time", "Contract Description"))
+  
+  # return
+  if(print) print(tmp)
+  return(tmp)
 }

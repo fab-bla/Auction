@@ -49,6 +49,9 @@ btab_tbl_ext <- \(file, page = 2, method = "stream", print = FALSE){
   # class of rank
   tab[, "Rank"] <- as.numeric(tab[, "Rank"])
   
+  # fix multi-row names 
+  tab <- tab[complete.cases(tab), ]
+  
   # return
   if(print) print(tab)
   return(tab)
