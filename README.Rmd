@@ -11,3 +11,16 @@ output:
 This repository contains my master thesis on first-price sealed-bid procurement 
 auctions. In particular, the aim is to measure cost
 distributions of firms utilizing data from the [Colorado Department of Transportation](https://codot.gov/business/bidding/bid-tab-archives).
+
+# Installing Tabulizer for R > 4.1 
+Unfortunately, the implementation of the Java library tabula which is a package called tabulizer cannot be installed via *install.packages()* and further the installation [guide](https://github.com/ropensci/tabulizer) is not up to date. However, with a small adaption the installation works almost as described in the installation guide for windows 10.
+
+```{r, echo = FALSE}
+sessionInfo()
+```
+
+Three steps have to be altered:
+
+* When using Chocolately to install Java via the command prompt specify `choco install jdk8 -y` instead of `choco install jdk7 -y` 
+* Within R change `Sys.setenv(JAVA_HOME = "C:/Program Files/Java/jdk1.8.0_92")` to `Sys.setenv(JAVA_HOME = "C:/Program Files/Java/jdk1.8.0_211")`
+* Then install via `remotes::install_github(c("ropensci/tabulizerjars", "ropensci/tabulizer"), INSTALL_opts = "--no-multiarch")`, **after** installing *rJava* the usual way, i.e., via `install.packages()`
