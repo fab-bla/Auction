@@ -132,6 +132,37 @@ auctions_checked <- alt_varT(auctions_checked, "Counties",
 ```
 
 
+## Letting Date 
+
+```{r}
+# pull
+Ldate <- pull_varT(auctions_checked, "Letting Date") 
+
+# date is in a weird format
+head(Ldate)
+
+# transform using lubridate
+auctions_checked <- alt_varT(auctions_checked, "Letting Date", 
+                             Fun = \(x) lubridate::mdy(x) |> as.character()) 
+```
+
+## Contract Time
+
+Unfortunately, contract time is not consistently defined among auctions. Most of the time the amount of working days are provided until the project must be completed. On the website of the Colorado Department for Transportation it is stated that between the letting date and the beginning of construction, 60 days pass. Accordingly, for all cases where the finishing date is given the amount of working days until project completion are calculated as finishing date - letting date + 60. Where the difference between the two dates only business days will be considered.
+
+```{r}
+# pull
+Ctime <- pull_varT(auctions_checked, "Contract Time") 
+
+# glimpse 
+head(Ctime)
+```
+
+## Contract Description
+
+```{r}
+
+```
 
 
 
