@@ -16,9 +16,12 @@ output:
 
 # Load Data
 
-```{r}
+```{r, results = "hide"}
 # source AUX
 source("./../Misc/Auxilliary.R")
+
+# packages
+get.package(c("bizdays", "lubridate"))
 
 # load data
 auctions <- readRDS("./../../Data/Bid Tab RDS/Bid_Tabs.RDS")
@@ -156,12 +159,92 @@ Ctime <- pull_varT(auctions_checked, "Contract Time")
 
 # glimpse 
 head(Ctime)
+
+# create Calender for Colorado (ran once)
+# holidays <- tabulizer::extract_areas("./../../Data/Misc Data/Colorado_Holidays.pdf") |> 
+#             as.data.frame()
+
+# fix two row entries (ran once)
+# sapply(holidays, \(x){
+#   
+#   # paste
+#   x[c(9, 11, 13)] <- mapply(\(y, z) paste(y, z), x[c(9, 11, 13)], x[c(9, 11, 13) + 1])
+#   
+#   # assign 
+#   x <- x[-c(10, 12, 14)]
+# 
+#   # paste year
+#   y <- paste0(x[-1], ", ", x[1])
+# 
+#   # remove *
+#   y <- stringr::str_remove_all(y, "\\*")
+#   
+#   # convert and return
+#   lubridate::mdy(y) |> as.character()
+#   
+# }) -> colorado_holidays
+
+# save (ran once)
+# saveRDS(colorado_holidays, "./../../Data/Misc Data/Colorado_Holidays.RDS")
+
+# read RDS
+holidays <- readRDS("./../../Data/Misc Data/Colorado_Holidays.RDS")
+
+# manually add 2020 (no file available)
+holidays <- cbind(holidays,
+      c("2020-01-01", "2020-01-20", "2020-02-17", "2020-04-25", "2020-07-03",
+        "2020-09-07", "2020-11-11", "2020-11-26", "2019-12-25", "2019-10-05"))
+
+# to date
+holidates <- as.Date(c(holidays))
+
+# create calender
+cal <- bizdays::create.calendar("Colorado",
+                                holidays = holidates,
+                                weekdays = c("saturday", "sunday"))
+
+# test
+bizdays::bizdays("2015-01-01", "2016-01-01", cal) # works great!
+
+# change in place 
+  # over years
+  for(i in seq_along(auctions_checked)){
+    
+    # over contract ID
+    for(j in seq_along(auctions_checked[[i]])){
+  
+      # var
+      inp <- auctions_checked[[i]][[j]][["Text"]]["Contract Time"]
+      tmp <- auctions_checked[[i]][[j]][["Text"]]["Letting Date"]
+      
+      # if string is date not number than 
+      if(stringr::str_detect(inp, "/")){
+        
+        # add 60 days to letting date
+        start <- as.Date(tmp) + 60
+        
+        # convert finishing date
+        stop <- lubridate::mdy(inp)
+        
+        # assign 
+        auctions_checked[[i]][[j]][["Text"]]["Contract Time"] <- bizdays::bizdays(start, 
+                                                                          stop, 
+                                                                          cal)
+      }
+      
+    }
+    
+  }
 ```
 
 ## Contract Description
 
 ```{r}
+# pull
+Cdesc <- pull_varT(auctions_checked, "Contract Description") 
 
+# glimpse 
+# head(Cdesc, 20)
 ```
 
 
