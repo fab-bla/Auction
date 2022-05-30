@@ -1,6 +1,6 @@
 ---
 title: |
-       | 05 Description Clustering
+       | 05 Preperation for Description Clustering
 author: "Fabian Blasch"
 date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
 header-includes:
@@ -21,7 +21,8 @@ output:
 source("./../Misc/Auxilliary.R")
 
 # packages
-get.package(c("bizdays", "lubridate", "tidytext", "stopwords", "stringi"))
+get.package(c("bizdays", "lubridate", "tidytext", "stopwords", "stringi",
+              "SnowballC"))
 
 # load data
 auctions <- readRDS("./../../Data/Bid Tab RDS/Bid_Tabs_Cleaned.RDS")
@@ -175,3 +176,57 @@ desc_tok_r3 <- desc_tok_r3[grepl(".*(\\D).*", desc_tok_r3[, "word"]),]
 ```
 
 ## Stemming
+
+```{r}
+# stemming
+desc_stem <- cbind(desc_tok_r3, 
+                   "Stem" = SnowballC::wordStem(desc_tok_r3[, "word"], 
+                                                language = "en"))
+# unique stems
+uniq_stem <- tapply(desc_stem[, "Stem"], desc_stem[, "Num"], unique)
+
+# length of list in each year
+split_ind <- sapply(auctions, length)
+
+# ind
+split_lst <- list(1:120, 
+                  121:234,
+                  235:339,
+                  340:452,
+                  453:474)
+
+# concatinate
+Map(\(ind, auc){
+  
+  # temp stem
+  tmp <- uniq_stem[ind]
+  
+  # concatinate
+  Map(\(a, s){
+
+    # assign
+    a[["Stem"]] <- s
+    
+    # return 
+    return(a)
+      
+  }, auc, tmp)
+  
+}, split_lst, auctions) |> setNames(2015:2019) -> Bid_Tab_Stem
+
+# write
+# saveRDS(Bid_Tab_Stem, "./../../Data/Bid Tab RDS/Bid_Tab_Stem.RDS")
+
+# glimpse into description and stem
+lapply(Bid_Tab_Stem, \(x){
+  
+  lapply(x, \(y){
+   
+    list(y$Text["Contract Description"],
+    paste(y$Stem, collapse = ","))
+    
+  })
+  
+})
+```
+
