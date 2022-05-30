@@ -16,7 +16,7 @@ output:
 
 # Load Data
 
-```{r, results = "hide"}
+```{r, results = "hide", message = FALSE, warning = FALSE}
 # source AUX
 source("./../Misc/Auxilliary.R")
 

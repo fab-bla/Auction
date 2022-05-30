@@ -1,0 +1,73 @@
+---
+title: |
+       | 05 Description Clustering
+author: "Fabian Blasch"
+date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{float}
+   - \usepackage{titling}
+   - \usepackage{xcolor}
+output: 
+   pdf_document:
+      number_sections: TRUE
+---
+
+# Load Data
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+# source AUX
+source("./../Misc/Auxilliary.R")
+
+# packages
+get.package(c("bizdays", "lubridate"))
+
+# load data
+auctions <- readRDS("./../../Data/Bid Tab RDS/Bid_Tabs_Cleaned.RDS")
+```
+
+# Final Checks before Mining
+
+```{r}
+# check for descriptions that are shorter than 50 characters after cleaning
+lapply(auctions, \(x){
+  
+  # over project ID
+  lapply(x, \(y){
+
+    # Description length
+    Dlen <- y$Text["Contract Description"] |> nchar()
+    
+    # required min char count
+    dlen_check <- Dlen > 50
+    
+    # return
+    list("Description" = Dlen,
+         "Dlcheck" = dlen_check)
+    
+  })
+  
+}) -> filter_dat
+
+# pull index
+
+lapply(filter_dat, \(x){
+  
+  sapply(x, \(x){
+    
+    # extr
+    x[["Dlcheck"]]
+    
+  })
+  
+}) -> ind
+
+# files that will be removed
+(!unlist(ind)) |> sum()
+
+# subset
+Map(\(au, ind) au[ind], auctions, ind) -> auctions
+```
+# 
+
