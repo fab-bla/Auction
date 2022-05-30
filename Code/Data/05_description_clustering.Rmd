@@ -21,7 +21,7 @@ output:
 source("./../Misc/Auxilliary.R")
 
 # packages
-get.package(c("bizdays", "lubridate"))
+get.package(c("bizdays", "lubridate", "tidytext", "stopwords", "stringi"))
 
 # load data
 auctions <- readRDS("./../../Data/Bid Tab RDS/Bid_Tabs_Cleaned.RDS")
@@ -69,5 +69,109 @@ lapply(filter_dat, \(x){
 # subset
 Map(\(au, ind) au[ind], auctions, ind) -> auctions
 ```
-# 
+# Data Mining 
 
+## Tokenization
+
+```{r}
+# exmpl 
+desc <- pull_varT(auctions, "Contract Description")
+
+# obtain Contract ID
+CID <- strsplit(names(desc), "[.]") |> sapply("[[", 2)
+
+# df for tokenization
+desc_tm <- data.frame("Num" = seq_along(CID), "Contract_id" = CID, 
+                      "Description" = desc)
+
+# generate tokens 
+desc_tok <- unnest_tokens(desc_tm, word, Description)
+
+# unique words
+uniq_words <- desc_tok[, "word"] |> unique() 
+
+# num
+uniq_words |> length()
+```
+
+## Mispelled Words and Stopwords
+
+```{r}
+# potentially misspelled words 
+miss <- hunspell::hunspell(uniq_words)
+
+# to vector
+miss_vec <- unlist(unique(miss))
+
+# suggestions
+sugg <- hunspell::hunspell_suggest(miss_vec)
+
+# pick first suggestion and merge
+sugg_1 <- sapply(sugg, "[", 1)
+
+# merge and export
+# openxlsx::write.xlsx(as.data.frame(cbind(miss_vec, sugg_1)), 
+#                      "./../../Data/Misc Data/Word_corr.xlsx")
+
+# import 
+corr <- openxlsx::read.xlsx("./../../Data/Misc Data/Word_corr.xlsx")
+corr[is.na(corr[, "sugg_1"]), "sugg_1"] <- ""
+
+# stopwords
+do.call(c, lapply(c("snowball", "stopwords-iso", 
+                    "smart", "marimo", "nltk"), \(x){
+           
+           # generate stopwords
+           stopwords(language = "en", source = x)
+           
+         })) |> unique() -> stopw
+
+# add stopwords to removal 
+corrs <- rbind(corr, cbind("miss_vec" = stopw,"sugg_1" = ""))
+
+# remove 
+descrm <- stringi::stri_replace_all_regex(desc, 
+                                          paste0("\\b", corrs[, "miss_vec"], "\\b"), 
+                                          corrs[, "sugg_1"], 
+                                          vectorize_all = FALSE)
+
+# this stop word list still results in noisy descriptions
+# look at most frequent words that are not of importance
+
+# df for tokenization
+desc_tm_r2 <- data.frame("Num" = seq_along(CID), "Contract_id" = CID, 
+                         "Description" = descrm)
+
+# generate tokens 
+desc_tok_r2 <- unnest_tokens(desc_tm_r2, word, Description)
+
+# frequ
+f_tab_words <- sort(table(desc_tok_r2$word), decreasing = TRUE)
+
+# write to exceland check
+# openxlsx::write.xlsx(data.frame(names(f_tab_words), f_tab_words),
+#                      "./../../Data/Misc Data/StopWord_corr.xlsx")
+
+# read back
+corr_2 <- openxlsx::read.xlsx("./../../Data/Misc Data/StopWord_corr.xlsx")
+corr_2[is.na(corr_2[, "Replacement"]), "Replacement"] <- ""
+
+# second round of removal
+descrm_2 <- stringi::stri_replace_all_regex(descrm, 
+                                            paste0("\\b", corr_2[, "Word"], "\\b"), 
+                                            corr_2[, "Replacement"], 
+                                            vectorize_all = FALSE)
+# retokenize
+
+# df for tokenization
+desc_tm_r3 <- data.frame("Num" = seq_along(CID), "Contract_id" = CID, 
+                      "Description" = descrm_2)
+
+# generate tokens 
+desc_tok_r3 <- unnest_tokens(desc_tm_r3, word, Description)
+
+# remove digits
+desc_tok_r3 <- desc_tok_r3[grepl(".*(\\D).*", desc_tok_r3[, "word"]),]
+```
+
+## Stemming
