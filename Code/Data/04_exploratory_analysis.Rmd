@@ -239,12 +239,33 @@ bizdays::bizdays("2015-01-01", "2016-01-01", cal) # works great!
 
 ## Contract Description
 
+In order to cluster the contracts at a later stage, the description text needs to be 
+cleaned further, i.e., remove line breaks and repetitive information. 
+
 ```{r}
 # pull
 Cdesc <- pull_varT(auctions_checked, "Contract Description") 
 
 # glimpse 
-# head(Cdesc, 20)
+tmp <- head(Cdesc, 20)
+
+# function to apply to all 
+desc_clean <- \(desc){
+  stringr::str_remove(desc, "Contract Description:\n") |> 
+  stringr::str_remove("Contract Description:\n\n") |>
+  tolower() |>
+  stringr::str_replace_all("\n", " ") |> 
+  stringr::str_replace_all("  ", " ") |>
+  stringr::str_remove("cdot will only be accepting electronic bids.*") |>
+  stringr::str_trim()
+}
+
+# apply to all descriptions
+auctions_checked <- alt_varT(auctions_checked, "Contract Description", 
+                             Fun = desc_clean)
+
+# write cleaned file 
+# saveRDS(auctions_checked, "./../../Data/Bid Tab RDS/Bid_Tabs_Cleaned.RDS")
 ```
 
 
