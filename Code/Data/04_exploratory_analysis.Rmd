@@ -269,7 +269,7 @@ auctions_checked <- alt_varT(auctions_checked, "Contract Description",
                              Fun = desc_clean)
 
 # write cleaned file 
-saveRDS(auctions_checked, "./../../Data/Bid Tab RDS/Bid_Tabs_Cleaned.RDS")
+# saveRDS(auctions_checked, "./../../Data/Bid Tab RDS/Bid_Tabs_Cleaned.RDS")
 ```
 
 

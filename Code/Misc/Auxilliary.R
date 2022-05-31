@@ -22,7 +22,6 @@ invis.rapply <- function(object, f, classes = "ANY", deflt = NULL,
 
 ## Handling Auction Data ##
 
-
 # function for pulling variables across all desired years and auctions
 pull_varT <- \(auctions, var, years = as.character(2015:2019)){
   
@@ -59,6 +58,34 @@ alt_varT <- \(auctions, var, years = as.character(2015:2019), Fun){
   # return
   return(auctions)
   
+}
+
+## Data Transformations ##
+
+# wrap into function
+d_transform <- \(auc){
+  
+  # winning bid
+  auc[["Table"]][, "Win"] <- (auc[["Table"]][, "Rank"] == 1) 
+  
+  # remove unused vars
+  auc[["Table"]][, c("Rank", "Percent_of_Low_Bid", "Percent_of_Estimate")] <- NULL
+  
+  # remove engineers estimate
+  ind_eng <- auc[["Table"]][, "Vendor_ID"] == "-EST-"
+  auc[["Table"]] <- auc[["Table"]][!ind_eng, ]
+  
+  # paste 
+  cbind("Contract_ID" = auc[["Text"]]["Contract ID"] |> unname(), 
+        "County" = auc[["Text"]]["Counties"]|> unname(),
+        "Letting_Month" = lubridate::month(as.Date(auc[["Text"]]["Letting Date"]))|> unname(),
+        "Letting_Year" = lubridate::year(as.Date(auc[["Text"]]["Letting Date"]))|> unname(),
+        "Contract_Time" = auc[["Text"]]["Contract Time"]|> unname(),
+        "N_Comp" = nrow(auc[["Table"]]) - 1,
+        auc[["Table"]]) -> res
+  
+  # return
+  return(res)
 }
 
 

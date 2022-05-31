@@ -1,6 +1,6 @@
 ---
 title: |
-       | 05 Preperation for Description Clustering
+       | 05 Text Mining
 author: "Fabian Blasch"
 date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
 header-includes:
@@ -22,7 +22,7 @@ source("./../Misc/Auxilliary.R")
 
 # packages
 get.package(c("bizdays", "lubridate", "tidytext", "stopwords", "stringi",
-              "SnowballC"))
+              "SnowballC", "wordcloud"))
 
 # load data
 auctions <- readRDS("./../../Data/Bid Tab RDS/Bid_Tabs_Cleaned.RDS")
@@ -218,15 +218,42 @@ Map(\(ind, auc){
 # saveRDS(Bid_Tab_Stem, "./../../Data/Bid Tab RDS/Bid_Tab_Stem.RDS")
 
 # glimpse into description and stem
-lapply(Bid_Tab_Stem, \(x){
-  
-  lapply(x, \(y){
-   
-    list(y$Text["Contract Description"],
-    paste(y$Stem, collapse = ","))
-    
-  })
-  
-})
+
+# lapply(Bid_Tab_Stem, \(x){
+#   
+#   lapply(x, \(y){
+# 
+#     print(y$Text["Contract Description"])
+#     print(paste(y$Stem, collapse = ","))
+#     
+#   })
+#   
+# }) 
 ```
+
+# Some Illustrations
+
+```{r, fig.height = 5, fig.width = 10}
+
+# table of stems
+stem_tab <- sort(table(desc_stem$Stem), decreasing = TRUE)
+
+# align
+par(mfrow = c(1, 2), mar = c(4, 3, 2, 2))
+
+# top 20 most common stemmed words
+barplot(stem_tab[1:40], las = 2,
+        ylim = c(0, 250), cex.names = 0.5, col = 4, main = "Top 40 Stemmed Words")
+
+# wordcloud
+wordcloud(names(stem_tab), stem_tab, max.words = 50, random.order = FALSE, rot.per = 0.35, 
+          colors = brewer.pal(8, "Dark2"))
+
+# tab 
+stem_tab
+
+```
+
+
+
 
