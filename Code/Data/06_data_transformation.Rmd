@@ -149,7 +149,7 @@ dat_bids_split <- list("Train" = dat_bids[!(1:nrow(dat_bids) %in% ind), ],
                        "Test" = dat_bids[ind , ])
 
 # write
-# saveRDS(dat_bids, "./../../Data/Bid Tab RDS/Bids_df_split.RDS")
+# saveRDS(dat_bids_split, "./../../Data/Bid Tab RDS/Bids_df_split.RDS")
 ```
 
 
