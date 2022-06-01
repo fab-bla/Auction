@@ -1,0 +1,51 @@
+---
+title: |
+       | 07 Descriptive Statistics
+author: "Fabian Blasch"
+date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{float}
+   - \usepackage{titling}
+   - \usepackage{xcolor}
+output: 
+   pdf_document:
+      number_sections: TRUE
+---
+
+# Load Data
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+# source AUX
+source("./../Misc/Auxilliary.R")
+
+# packages
+get.package(c("ggplot2", "patchwork"))
+
+# load data
+dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df.RDS")
+```
+# Distributions 
+
+```{r}
+# align
+par(mfrow = c(1, 2), mar = c(2,2,2,2))
+
+# numeric variables (Contract time and Total bid)
+boxplot(dat_bids$Contract_Time, main = "Contract Time (Business Days)", col = 4,
+        pch = 19)
+boxplot(dat_bids$Total_Bid, main = "Total Bid", col = 4, pch = 19)
+
+
+# reset
+par(mfrow = c(1, 1), mar = c(2,4,2,2))
+
+# Bids entered by vendor (top 50 bidders)
+bidders <- (dat_bids$Vendor_ID |> table() |> sort(decreasing = TRUE))[1:50]
+barplot(bidders, las = 2, cex.names = 0.5, col = "forestgreen",
+        ylim = c(0, 100))
+```
+
+
+

@@ -83,46 +83,77 @@ lapply(auctions, \(y){
   
 }) -> stems
 
-# generate all unique words
+# generate all unique words ordered by frequency
 do.call(c, lapply(stems, \(x) do.call(c, x))) |> table() |> 
   sort(decreasing = TRUE) -> stem_tab 
 
-# fill temporary data frame
-do.call(rbind, lapply(auctions, \(y){
-  
-  do.call(rbind, lapply(y, \(a){
+# remove all that occur in only one auction
+stem_tab <- stem_tab[stem_tab > 1] # we don't want those words to be auction identifying
 
+# loop over years
+do.call(rbind, lapply(stems, \(y){
+  
+  # loop over auctions
+  do.call(rbind,lapply(y, \(a){
+    
     # match
-    match <- (names(stem_tab) %in% a[["Stem"]]) |> matrix(ncol = length(stem_tab))
-    
-    # repetitions
-    reps <- nrow(a[["Table"]]) - 1
-    
-    # new matrix
-    match_n <- match[rep(1, times = reps), ]
-    
-    # return 
-    return(match_n)
-    
-  })) |> as.data.frame()
-  
-}))|> as.data.frame() |> setNames(names(stem_tab)) -> tmp
-
-# dimensions dont add up
-lapply(auctions, \(y){
-  
-  do.call(c, lapply(y, \(a){
-
-    # firms
-    nrow(a[["Table"]]) - 1
-    
+    names(stem_tab) %in% a
     
   }))
   
-}) -> ind_firms
+})) |> as.data.frame() |> setNames(names(stem_tab)) -> stem_vars 
 
+# use rownames (contract ID for merging)
+stem_vars <- cbind("Contract_ID" = row.names(stem_vars), stem_vars)
 
+# merge on Contract ID
+dat_bids <- merge(dat_bids, stem_vars, by = "Contract_ID", all.x = TRUE)
 ```
+
+# Variable Classes
+
+```{r}
+# classes
+# sapply(dat_bids, class)
+
+# to factor
+f1 <- names(dat_bids) %in% c("Contract_ID", "County", "Letting_Month", "Letting_Year", 
+                             "Vendor_ID", "Vendor_Name")
+# asssign
+dat_bids[, f1] <- lapply(dat_bids[, f1], as.factor)
+
+# convert all logical to numeric
+dat_bids <- rapply(dat_bids, as.numeric, classes = "logical", how = "replace")
+
+# contract time to numerc
+dat_bids[, "Contract_Time"] <- as.numeric(dat_bids[, "Contract_Time"])
+
+# write
+# saveRDS(dat_bids, "./../../Data/Bid Tab RDS/Bids_df.RDS")
+```
+
+# Training and Test Set
+
+For final out of sample performance evaluation 20% of the bids will be sampled from the
+data set.
+
+```{r}
+# seed
+{set.seed(33)
+ind <- sample(1:nrow(dat_bids), replace = FALSE, 
+              size = floor(nrow(dat_bids) * 0.2))
+}
+
+# train and test
+dat_bids_split <- list("Train" = dat_bids[!(1:nrow(dat_bids) %in% ind), ],
+                       "Test" = dat_bids[ind , ])
+
+# write
+# saveRDS(dat_bids, "./../../Data/Bid Tab RDS/Bids_df_split.RDS")
+```
+
+
+
 
 
 

@@ -1,0 +1,28 @@
+---
+title: |
+       | 08 Feature Engineering
+author: "Fabian Blasch"
+date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{float}
+   - \usepackage{titling}
+   - \usepackage{xcolor}
+output: 
+   pdf_document:
+      number_sections: TRUE
+---
+
+# Load Data
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+# source AUX
+source("./../Misc/Auxilliary.R")
+
+# packages
+get.package(c("ggplot2", "patchwork"))
+
+# load data
+dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df.RDS")
+```
