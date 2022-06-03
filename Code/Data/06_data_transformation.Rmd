@@ -28,7 +28,9 @@ get.package(c("bizdays", "lubridate", "tidytext", "stopwords", "stringi",
 auctions <- readRDS("./../../Data/Bid Tab RDS/Bid_Tab_Stem.RDS")
 ```
 
-# Tabularizing the Data
+# Data Set for Winning Bid Prediction
+
+## Tabularizing the Data
 
 Firstly, we may construct the data that is easily obtainable via the table and text data.
 
@@ -70,7 +72,7 @@ Map(\(au, ind) au[ind], res, ind_slip) -> res
 # rbind to dataframe
 do.call(rbind, lapply(res, \(x) do.call(rbind, x))) -> dat_bids
 ```
-# Adding the Description via Stemwords
+## Adding the Description via Stemwords
 
 To represent the description, each stem word will be added as a factor.
 
@@ -110,7 +112,7 @@ stem_vars <- cbind("Contract_ID" = row.names(stem_vars), stem_vars)
 dat_bids <- merge(dat_bids, stem_vars, by = "Contract_ID", all.x = TRUE)
 ```
 
-# Variable Classes
+## Variable Classes
 
 ```{r}
 # classes
@@ -132,7 +134,7 @@ dat_bids[, "Contract_Time"] <- as.numeric(dat_bids[, "Contract_Time"])
 # saveRDS(dat_bids, "./../../Data/Bid Tab RDS/Bids_df.RDS")
 ```
 
-# Training and Test Set
+## Training and Test Set
 
 For final out of sample performance evaluation 20% of the bids will be sampled from the
 data set.
@@ -151,6 +153,131 @@ dat_bids_split <- list("Train" = dat_bids[!(1:nrow(dat_bids) %in% ind), ],
 # write
 # saveRDS(dat_bids_split, "./../../Data/Bid Tab RDS/Bids_df_split.RDS")
 ```
+
+
+# Data Set for Adjusted Bid Spread Prediction
+
+```{r}
+# apply
+# over years
+lapply(auctions, \(y){
+  
+  lapply(y, \(a){
+    
+    # apply function
+    d_transform_2(a) |> try() # apparently there are three auctions with empty tables
+                            # that slipped through
+  })
+  
+}) -> tmp_a
+
+# dat auc
+do.call(rbind, lapply(tmp_a, \(x) do.call(rbind, x))) |> as.data.frame() -> dat_auc
+
+# fetch bidder ids
+lapply(auctions, \(y){
+  
+  # over auctions
+  lapply(y, \(a){
+
+    # bidders
+    tmp <- a[["Table"]][, "Vendor_ID"]
+    tmp[!grepl(".*EST.*", tmp)]
+     
+  })
+  
+}) -> ids
+
+# to single vector
+do.call(c, lapply(ids, \(x) do.call(c, x))) |> unique() -> id_vec
+
+
+# generate bidder id 
+do.call(rbind, lapply(auctions, \(y){
+  
+  # loop over auctions
+  do.call(rbind,lapply(y, \(a){
+    
+    # ids without est.
+    tmp <- a[["Table"]][, "Vendor_ID"]
+    tmp[!grepl(".*EST.*", tmp)]
+    
+    # match
+    id_vec %in% tmp
+    
+  }))
+  
+})) |> as.data.frame() |> setNames(id_vec) -> id_vars
+
+# generate dataset
+test <- auctions[["2015"]][[41]] # has no second place bid ? - remove
+
+# rm
+dat_auc <- dat_auc[-41, ]
+
+# incomplete cases
+dat_auc_c <- dat_auc[complete.cases(dat_auc), ]
+
+# unrealistic results
+dat_auc_c <- dat_auc_c[as.numeric(dat_auc_c$MLOT) < 1, ]
+```
+## Merge
+
+```{r}
+# use rownames (contract ID for merging)
+id_vars <- cbind("Contract_ID" = row.names(id_vars), id_vars)
+
+# merge on Contract ID
+dat_auc_c <- merge(dat_auc_c, id_vars, by = "Contract_ID", all.x = TRUE)
+
+# merge stems
+dat_auc_c <- merge(dat_auc_c, stem_vars, by = "Contract_ID", all.x = TRUE)
+```
+
+## Classes
+
+```{r}
+# to factor
+f1 <- names(dat_auc_c) %in% c("Contract_ID", "County", "Letting_Month", "Letting_Year")
+
+# asssign
+dat_auc_c[, f1] <- lapply(dat_auc_c[, f1], as.factor)
+
+# convert all logical to numeric
+dat_auc_c <- rapply(dat_auc_c, as.numeric, classes = "logical", how = "replace")
+
+# to numeric
+n1 <- c("Contract_Time", "N_Firm", "Eng_Est", "EW_Diff","MLOT")
+
+# contract time to numerc
+dat_auc_c[, n1] <- lapply(dat_auc_c[, n1], as.numeric)
+
+# write
+saveRDS(dat_auc_c, "./../../Data/Bid Tab RDS/Bids_df_split.RDS")
+
+```
+
+## Save
+
+```{r}
+# write full
+# saveRDS(dat_auc_c, "./../../Data/Bid Tab RDS/Aucs_df.RDS")
+
+# splits
+{set.seed(33)
+ind <- sample(1:nrow(dat_auc_c), replace = FALSE, 
+              size = floor(nrow(dat_auc_c) * 0.2))
+}
+
+# train and test
+dat_aucs_split <- list("Train" = dat_auc_c[!(1:nrow(dat_auc_c) %in% ind), ],
+                       "Test" = dat_auc_c[ind , ])
+
+# write
+# saveRDS(dat_aucs_split, "./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
+```
+
+
 
 
 

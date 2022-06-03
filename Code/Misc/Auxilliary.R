@@ -62,7 +62,7 @@ alt_varT <- \(auctions, var, years = as.character(2015:2019), Fun){
 
 ## Data Transformations ##
 
-# wrap into function
+# data transformation for winning bid prediction
 d_transform <- \(auc){
   
   # winning bid
@@ -86,6 +86,69 @@ d_transform <- \(auc){
   
   # return
   return(res)
+}
+
+# data transformation for eng bid spread
+# transform on a bid basis
+d_transform_2 <- \(auc){
+  
+  # winning bid
+  win_ind <- (auc[["Table"]][, "Rank"] == 1) 
+  win <- auc[["Table"]][win_ind, "Total_Bid"]
+  
+  
+  # engineers estimate
+  eng_ind <- (auc[["Table"]][, "Rank"] == 0) 
+  eng <- auc[["Table"]][eng_ind, "Total_Bid"]
+  
+  if(all(eng_ind == FALSE)){
+    
+    # return NA
+    return(rep(NA, 9))
+    
+  } else {
+    
+    # diff between win and estimate
+    diffest <- (win - eng) 
+    
+    # second place
+    if(nrow(auc[["Table"]]) > 2){
+      
+      # second place
+      sec_ind <- (auc[["Table"]][, "Rank"] == 2)
+      sec <- auc[["Table"]][sec_ind, "Total_Bid"]
+      
+      # spread
+      diff12 <- (sec - win) 
+      
+      # money left on table
+      mlot <- diff12 / eng
+      
+    } else{ 
+      
+      # NA
+      sec <- NA
+      diff12 <- NA
+      mlot <- NA
+      
+    }
+    
+    # bind
+    c("Contract_ID" = auc[["Text"]]["Contract ID"] |> unname(), 
+      "County" = auc[["Text"]]["Counties"]|> unname(),
+      "Letting_Month" = lubridate::month(as.Date(auc[["Text"]]["Letting Date"]))|> unname(),
+      "Letting_Year" = lubridate::year(as.Date(auc[["Text"]]["Letting Date"]))|> unname(),
+      "Contract_Time" = auc[["Text"]]["Contract Time"]|> unname(),
+      "N_Firm" = nrow(auc[["Table"]]) - 1,
+      "Eng_Est" = eng,
+      "EW_Diff" = diffest,
+      "MLOT" = mlot) -> res
+    
+    # return
+    return(res)
+    
+  }
+  
 }
 
 ## Plotting ##
@@ -115,7 +178,6 @@ Dens_norm_plot <- \(data = dat_bids, y, bg_alt = FALSE){
                                                       colour = "white"))}
   
 }
-
 
 
 
