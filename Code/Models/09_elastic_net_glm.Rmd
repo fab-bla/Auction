@@ -27,6 +27,7 @@ get.package(c("lubridate", "glmnet", "glmnetUtils", "tidyverse"))
 # load data
 dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df_split.RDS")
 dat_aucs <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
+dat_bids_ind <- readRDS("./../../Data/Bid Tab RDS/Bids_id_df_split.RDS")
 ```
 
 # Bid Level
@@ -62,13 +63,13 @@ dat_train <- dat_bids_mod[["Train"]]
 # cross validation
 
 ## RAN ONCE ## 
-cvfit <- glmnetUtils::cva.glmnet(Win ~., data = dat_train,
-                                 family = binomial(link = "logit"),
-                                 type.measure = "deviance", nfolds = 10,
-                                 alpha = seq(0, 1, 0.05), nlambda = 100)
+# cvfit <- glmnetUtils::cva.glmnet(Win ~., data = dat_train,
+#                                  family = binomial(link = "logit"),
+#                                  type.measure = "deviance", nfolds = 10,
+#                                  alpha = seq(0, 1, 0.05), nlambda = 100)
 
 # save
-saveRDS(cvfit, "./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
+# saveRDS(cvfit, "./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
 
 # read file 
 cvfit <- readRDS("./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
@@ -146,6 +147,127 @@ plot_varimp
 knitr::kable(ifelse(signum < 0, "-", "+"), col.names = "Sign")
 ```
 
+
+## Data Including Rival Bidders (No FeatEng)
+
+### Variable Removal
+
+```{r}
+# exclude variables that are not supposed to be in the model
+lapply(dat_bids_ind, \(x){
+
+  # remove
+  x$Vendor_Name <- NULL
+  # x$Contract_ID <- NULL
+  
+  # for now remove vendor ID to reduce training time
+  # x$Vendor_ID <- NULL
+  
+  # return
+  return(x)
+  
+}) -> dat_bids_ind_mod
+
+# training set
+dat_train_ind <- dat_bids_ind_mod[["Train"]]
+```
+
+
+### Cross Validation
+
+```{r}
+# cross validation
+
+## RAN ONCE ## 
+cvfit <- glmnetUtils::cva.glmnet(Win ~., data = dat_train_ind,
+                                 family = binomial(link = "logit"),
+                                 type.measure = "deviance", nfolds = 10,
+                                 alpha = seq(0, 1, 0.05), nlambda = 100)
+beepr::beep(sound = 4)
+# save
+saveRDS(cvfit, "./../../Data/Models/Glmnets/Raw/cvfitid.RDS")
+
+# read file 
+cvfit <- readRDS("./../../Data/Models/Glmnets/Raw/cvfitid.RDS")
+
+# plot fit
+plot(cvfit, c.legend = 0.5, main = "Cross Validation Results")
+```
+
+### Best Model
+
+```{r}
+# obtain best model
+per_matrix <- do.call(rbind, Map(function(x, y){
+
+ cbind("Per" = x$cvm,
+       "Lambda" = x$lambda,
+       "Alpha" = rep(y, length(x$lambda)))
+
+}, cvfit$modlist, cvfit$alpha))
+
+# best performing paremeters
+best_para <- per_matrix[which.min(per_matrix[, "Per"]), ]
+
+# fit model using best parameters
+fit_fin <- glmnetUtils::glmnet(Win ~., data = dat_train_ind, 
+                               family = binomial(link = "logit"),
+                               alpha = best_para["Alpha"], 
+                               lambda = best_para["Lambda"])
+
+# predict
+pred_vals <- predict(fit_fin, dat_train_ind, type = "response")
+
+# pred
+Eval_Curve_prel(list(pred_vals), 
+                dat_train_ind[["Win"]]) -> prelim
+
+# curbe
+par(mfrow = c(1, 2))
+Eval_Curve(prelim, col = "forestgreen", leg_text = "Glmnet")
+Eval_Curve(prelim, col = 4, leg_text = "Glmnet", RoC = FALSE, 
+           act_label = dat_train_ind[["Win"]])
+```
+
+### Variable Importance
+
+```{r}
+# coefficients
+coefft <- coef(fit_fin, s = "lambda.min")
+coef_ordered <- coefft[order(abs(coefft[, 1]), decreasing = TRUE), ]
+signum <- coef_ordered[-1] |> sign()
+
+# print est model parameters
+knitr::kable(best_para, col.names = c("Final Model"))
+
+# generate data for varImp plot
+TopvarImp <- varImp(fit_fin, lambda = fit_fin$lambda)  %>%
+   dplyr::filter(Overall != 0) %>% 
+   arrange(desc(Overall)) %>% 
+   slice_max(Overall, n = 10)
+
+# Plot
+plot_varimp <- ggplot2::ggplot(TopvarImp, aes(x = reorder(rownames(TopvarImp), Overall), y = Overall)) +
+  geom_point(color = "blue", size = 4, alpha = 0.6) +
+  geom_segment(aes(x = rownames(TopvarImp), xend = rownames(TopvarImp), y = 0, yend = Overall), 
+               color = "skyblue") +
+  xlab("Variable") +
+  ylab("Overall Importance") +
+  theme_light() +
+  coord_flip() 
+
+# plot
+plot_varimp
+
+# signs
+knitr::kable(ifelse(signum < 0, "-", "+"), col.names = "Sign")
+```
+
+
+
+
+
+
 # Auction Level
 
 ## No Feature Engineering
@@ -176,16 +298,16 @@ dat_train_aucs <- dat_aucs_mod[["Train"]]
 # cross validation
 
 ## RAN ONCE ## 
-cvfit_auc <- glmnetUtils::cva.glmnet(EW_Diff ~., data = dat_train_aucs,
-                                 family = gaussian(link = "identity"),
-                                 type.measure = "mse", nfolds = 5,
-                                 alpha = c(0.1, 1), nlambda = 15)
+# cvfit_auc <- glmnetUtils::cva.glmnet(EW_Diff ~., data = dat_train_aucs,
+#                                  family = gaussian(link = "identity"),
+#                                  type.measure = "mse", nfolds = 5,
+#                                  alpha = c(0.1, 1), nlambda = 15)
 
 # save
 # saveRDS(cvfit, "./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
 
 # read file 
-# cvfit <- readRDS("./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
+cvfit <- readRDS("./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
 
 # plot fit
 plot(cvfit_auc, c.legend = 0.5, main = "Cross Validation Results")

@@ -253,8 +253,7 @@ n1 <- c("Contract_Time", "N_Firm", "Eng_Est", "EW_Diff","MLOT")
 dat_auc_c[, n1] <- lapply(dat_auc_c[, n1], as.numeric)
 
 # write
-saveRDS(dat_auc_c, "./../../Data/Bid Tab RDS/Bids_df_split.RDS")
-
+# saveRDS(dat_auc_c, "./../../Data/Bid Tab RDS/Bids_df_split.RDS")
 ```
 
 ## Save
@@ -277,7 +276,64 @@ dat_aucs_split <- list("Train" = dat_auc_c[!(1:nrow(dat_auc_c) %in% ind), ],
 # saveRDS(dat_aucs_split, "./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
 ```
 
+# Competitor Extension to Bids Data Set
 
+```{r}
+# set logical to numeric
+id_vars_c <- data.frame("Contract_ID" = id_vars[, 1], 
+                        lapply(id_vars[, -1], as.numeric))
+# rm x 
+colnames(id_vars_c) <- stringr::str_remove(colnames(id_vars_c), "X")
+
+
+# add identification to bids dataset
+dat_bids_id <- merge(dat_bids, id_vars_c, by = "Contract_ID", all.x = TRUE)
+
+# remove bidders from competition factors
+sub <- dat_bids_id[, c(279:ncol(dat_bids_id))]
+VID <- dat_bids_id[, "Vendor_ID"]
+
+# correct foactor levels
+Map(\(x, n){
+  
+  # if VID is col.name then remove Vendor ID as this is the bidder and not
+  # a competition
+  ifelse(VID == n, 0, x)
+  
+}, sub, colnames(sub)) |> as.data.frame() -> cor_id
+
+# rm x 
+colnames(cor_id) <- stringr::str_remove(colnames(cor_id), "X")
+
+# check 
+data.frame(VID[which(VID == "1557A")], sub[which(VID == "1557A"), 1], 
+           cor_id[which(VID == "1557A"), 1])
+# merge
+dat_bids_id <- data.frame(dat_bids, cor_id)
+
+# colnames again ...
+colnames(dat_bids_id)[279:ncol(dat_bids_id)] <- stringr::str_remove(colnames(dat_bids_id)[279:ncol(dat_bids_id)], "X")
+
+# write 
+# saveRDS(dat_bids_id, "./../../Data/Bid Tab RDS/Bids_id_df.RDS")
+```
+
+## Split Train and Test
+
+```{r}
+# splits
+{set.seed(33)
+ind <- sample(1:nrow(dat_bids_id), replace = FALSE, 
+              size = floor(nrow(dat_bids_id) * 0.2))
+}
+
+# train and test
+dat_bids_id_split <- list("Train" = dat_bids_id[!(1:nrow(dat_bids_id) %in% ind), ],
+                       "Test" = dat_bids_id[ind , ])
+
+# write
+# saveRDS(dat_bids_id_split, "./../../Data/Bid Tab RDS/Bids_id_df_split.RDS")
+```
 
 
 
