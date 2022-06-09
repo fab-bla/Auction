@@ -17,6 +17,13 @@ output:
 # Load Data
 
 ```{r, results = "hide", message = FALSE, warning = FALSE}
+# knitr options
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.pos = "center",
+                      fig.width = 8,
+                      fig.height = 4,
+                      fig.pos = "H")
+
 # source AUX
 source("./../Misc/Auxilliary.R")
 source("./../Misc/model_eval.R")
