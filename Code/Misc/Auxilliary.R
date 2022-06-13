@@ -141,6 +141,7 @@ d_transform_2 <- \(auc){
       "Contract_Time" = auc[["Text"]]["Contract Time"]|> unname(),
       "N_Firm" = nrow(auc[["Table"]]) - 1,
       "Eng_Est" = eng,
+      "Winning_Bid" = win,
       "EW_Diff" = diffest,
       "MLOT" = mlot) -> res
     

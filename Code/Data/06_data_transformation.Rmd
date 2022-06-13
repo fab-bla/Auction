@@ -34,7 +34,7 @@ auctions <- readRDS("./../../Data/Bid Tab RDS/Bid_Tab_Stem.RDS")
 
 Firstly, we may construct the data that is easily obtainable via the table and text data.
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 
 # over years
 lapply(auctions, \(y){
@@ -72,6 +72,7 @@ Map(\(au, ind) au[ind], res, ind_slip) -> res
 # rbind to dataframe
 do.call(rbind, lapply(res, \(x) do.call(rbind, x))) -> dat_bids
 ```
+
 ## Adding the Description via Stemwords
 
 To represent the description, each stem word will be added as a factor.
@@ -247,21 +248,18 @@ dat_auc_c[, f1] <- lapply(dat_auc_c[, f1], as.factor)
 dat_auc_c <- rapply(dat_auc_c, as.numeric, classes = "logical", how = "replace")
 
 # to numeric
-n1 <- c("Contract_Time", "N_Firm", "Eng_Est", "EW_Diff","MLOT")
+n1 <- c("Contract_Time", "N_Firm", "Eng_Est", "EW_Diff","MLOT", "Winning_Bid")
 
 # contract time to numerc
 dat_auc_c[, n1] <- lapply(dat_auc_c[, n1], as.numeric)
 
-# write
-# saveRDS(dat_auc_c, "./../../Data/Bid Tab RDS/Bids_df_split.RDS")
+# write full
+# saveRDS(dat_auc_c, "./../../Data/Bid Tab RDS/Aucs_df.RDS")
 ```
 
 ## Save
 
 ```{r}
-# write full
-# saveRDS(dat_auc_c, "./../../Data/Bid Tab RDS/Aucs_df.RDS")
-
 # splits
 {set.seed(33)
 ind <- sample(1:nrow(dat_auc_c), replace = FALSE, 
@@ -306,8 +304,9 @@ Map(\(x, n){
 colnames(cor_id) <- stringr::str_remove(colnames(cor_id), "X")
 
 # check 
-data.frame(VID[which(VID == "1557A")], sub[which(VID == "1557A"), 1], 
-           cor_id[which(VID == "1557A"), 1])
+# data.frame(VID[which(VID == "1557A")], sub[which(VID == "1557A"), 1], 
+#            cor_id[which(VID == "1557A"), 1])
+
 # merge
 dat_bids_id <- data.frame(dat_bids, cor_id)
 

@@ -37,8 +37,51 @@ dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df_split.RDS")
 dat_aucs <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
 dat_bids_ind <- readRDS("./../../Data/Bid Tab RDS/Bids_id_df.RDS")
 
-# bid amount counted in thousands
+# bid amount in thousands
 dat_bids_ind[, "Total_Bid"] <- dat_bids_ind[, "Total_Bid"] / 1000
+
+# log of bids
+within(dat_bids_ind,{
+  
+  # log of bids
+  Total_Bid_Log <- log(Total_Bid)
+  
+}) -> dat_bids_ind
+
+# Differ between regular and fringe bidders
+# as in KRASNOKUTSKAYA 2010, firms that secured contracts in excess of 10 million 
+# for all years
+
+# split by firm
+split_f <- split(dat_bids_ind, dat_bids_ind$Vendor_ID)
+
+# calc fringe and regular bidders
+sapply(split_f, \(x){
+  
+  # only contracts won 
+  tmp <- x[x[, "Win"] == 1, ]
+
+  # handle firms that did not win a single contract
+  if(nrow(tmp) == 0){
+    
+    # return false
+    return(FALSE)
+    
+  }
+  
+  # aggregate over years and see if a vendor obtained contracts > 10e6 for each year
+  (aggregate(Total_Bid ~ Letting_Year, tmp, sum)[, "Total_Bid"] > 10e3) |> all()
+
+}) -> bidder_type 
+
+# df for merging
+df_merge <- t(data.frame(as.list(bidder_type))) |> as.data.frame()
+df_merge[, "Vendor_ID"] <- stringr::str_remove(rownames(df_merge), "X")
+df_merge[, "Bidder_Type"] <- as.numeric(df_merge[, "V1"])
+df_merge[, "V1"] <- NULL
+
+# merge
+merge(dat_bids_ind, df_merge, by = "Vendor_ID", all.x = TRUE) -> dat_bids_ind
 ```
 
 # ECDFS
@@ -56,7 +99,7 @@ invis.Map(\(x, n){
   # ecdf
   df <- ecdf(x[, "Total_Bid"])
   
-  # plot
+  # plo
   plot(df, main = paste0("Competitors = ", n), col = 4) 
   
   # ret
@@ -132,11 +175,11 @@ par(mfrow = c(5, 2), mar = c(5, 4, 4, 2) + 0.1)
 invis.Map(\(inp, n){
 
   # ecdf
-  dens <- kdensity(inp[, "Total_Bid"], start = "exponential", kernel = "triweight", 
-                   support = c(0, Inf))
+  dens <- kdensity(log(inp[, "Total_Bid"]), start = "gaussian", kernel = "gaussian", 
+                   support = c(-5, Inf))
   
   # plot
-  hist(inp[, "Total_Bid"], main = paste0("Competitors = ", n), col = 4, ylab = "",
+  hist(log(inp[, "Total_Bid"]), main = paste0("Competitors = ", n), col = 4, ylab = "",
        prob = TRUE, breaks = length(inp[, "Total_Bid"]) / 2, 
        xlab = "")
   
