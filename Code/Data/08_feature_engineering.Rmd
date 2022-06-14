@@ -69,9 +69,10 @@ barplot(sm[1:100], ylim = c(0, 50), las = 2, cex.names = 0.2, col = 4,
 
 # Sum of Auctions Won
 
-Since the Data does not contain any firm specific information and estimating cost functions is not feasible on firm level with the small data set at hand, we may sum up the cumulative sum over years of contracts won by all firms that participate in an auction. Given that firms have no other advantage than their constr structure this should account for potential difference in cost structure among participating companies.
+Since the Data does not contain any firm specific information and estimating cost functions is not feasible on firm level with the small data set at hand, we may sum up the cumulative volume of contracts won by all firms that participate in an auction. Given that firms have no other advantage than their const structure this should account for potential difference in cost structure among participating companies.
 
 ```{r}
+# find sum of auctions won grouped by year and Vendor ID
 
 ```
 
