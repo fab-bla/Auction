@@ -21,8 +21,64 @@ output:
 source("./../Misc/Auxilliary.R")
 
 # packages
-get.package(c("ggplot2", "patchwork"))
+get.package(c("ggplot2", "patchwork", "modeldata", "recipes"))
 
 # load data
 dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df.RDS")
+dat_aucs <- readRDS("./../../Data/Bid Tab RDS/Aucs_df.RDS")
 ```
+
+# Bidder Interactions
+
+Given that some bidders may interact when finding prices it makes sense to create a dummy that represents bidder groups. 
+Accordingly, we may first identify the column via a prefix *Vend_* to then find all the pairwise interactions utilizing the package *recipes*.
+
+```{r}
+# change vendor ID names to subset easier with starts_with
+indlv <- which(names(dat_aucs) == "969A")
+names(dat_aucs)[11:indlv] <- paste0("Vend_", names(dat_aucs)[11:indlv])
+
+# now use recipes to create vendor interactions 
+recip <- recipe(Winning_Bid ~., data = dat_aucs)
+
+# interactions
+recip |> step_interact(terms = ~ starts_with("Vend"):starts_with("Vend")) |>
+         prep(dat_aucs) |>
+         bake(dat_aucs) -> dat_aucs_vend_int
+
+# sapply over cols remove all columns that contain only 0, i.e., all interactions
+# of firms that never bid in the same auction
+sapply(dat_aucs_vend_int, \(x){
+  
+  # check if amount of occurrences is larger than
+  (sum(abs(x)) > 0) |> tryCatch(error = \(e) TRUE) # catch all cases where summing 
+                                                  # makes no sense and return TRUE
+  
+}) -> tmp
+
+# use to subset our data set
+dat_aucs_vend_int <- dat_aucs_vend_int[, tmp]
+```
+
+# Sum of Auctions Won 
+
+# Train and Test
+
+```{r}
+# splits
+{set.seed(33)
+ind <- sample(1:nrow(dat_aucs_vend_int), replace = FALSE, 
+              size = floor(nrow(dat_aucs_vend_int) * 0.2))
+}
+
+# train and test
+dat_aucs_vend_split <- list("Train" = dat_aucs_vend_int[!(1:nrow(dat_aucs_vend_int) %in% ind), ],
+                            "Test" = dat_aucs_vend_int[ind , ])
+
+# write split
+# saveRDS(dat_aucs_vend_split, "./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
+# saveRDS(dat_aucs_vend_int, "./../../Data/Bid Tab RDS/Aucs_df_feateng.RDS")
+```
+
+
+
