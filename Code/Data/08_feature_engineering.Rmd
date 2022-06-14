@@ -21,7 +21,7 @@ output:
 source("./../Misc/Auxilliary.R")
 
 # packages
-get.package(c("ggplot2", "patchwork", "modeldata", "recipes"))
+get.package(c("ggplot2", "patchwork", "modeldata", "recipes", "stringr"))
 
 # load data
 dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df.RDS")
@@ -58,9 +58,23 @@ sapply(dat_aucs_vend_int, \(x){
 
 # use to subset our data set
 dat_aucs_vend_int <- dat_aucs_vend_int[, tmp]
+
+
+# display which bidders interact most
+ind <- str_detect(names(dat_aucs_vend_int), "_x_")
+sm <- sapply(dat_aucs_vend_int[, ind], sum) |> sort(decreasing = TRUE)
+barplot(sm[1:100], ylim = c(0, 50), las = 2, cex.names = 0.2, col = 4,
+        main = "# of Vendor Interactions Across Auctions")
 ```
 
-# Sum of Auctions Won 
+# Sum of Auctions Won
+
+Since the Data does not contain any firm specific information and estimating cost functions is not feasible on firm level with the small data set at hand, we may sum up the cumulative sum over years of contracts won by all firms that participate in an auction. Given that firms have no other advantage than their constr structure this should account for potential difference in cost structure among participating companies.
+
+```{r}
+
+```
+
 
 # Train and Test
 
