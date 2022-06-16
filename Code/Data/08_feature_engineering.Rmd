@@ -93,6 +93,12 @@ dat_aucs_vend_split <- list("Train" = dat_aucs_vend_int[!(1:nrow(dat_aucs_vend_i
 # write split
 # saveRDS(dat_aucs_vend_split, "./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
 # saveRDS(dat_aucs_vend_int, "./../../Data/Bid Tab RDS/Aucs_df_feateng.RDS")
+
+# write train and test separately for RF training in python
+# saveRDS(dat_aucs_vend_split[["Train"]], 
+#         "./../../Data/Bid Tab RDS/Colab Transfer/Aucs_df_feateng_train.RDS")
+# saveRDS(dat_aucs_vend_split[["Test"]],
+#         "./../../Data/Bid Tab RDS/Colab Transfer/Aucs_df_feateng_test.RDS")
 ```
 
 

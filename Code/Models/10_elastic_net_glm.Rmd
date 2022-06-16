@@ -33,8 +33,9 @@ get.package(c("lubridate", "glmnet", "glmnetUtils", "tidyverse"))
 
 # load data
 dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df_split.RDS")
-dat_aucs <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
 dat_bids_ind <- readRDS("./../../Data/Bid Tab RDS/Bids_id_df_split.RDS")
+dat_aucs <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
+dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
 ```
 
 # Bid Level
@@ -481,4 +482,113 @@ plot_varimp_auc2
 knitr::kable(ifelse(signum_auc2 < 0, "-", "+"), col.names = "Sign")
 ```
 
+## Feature Engineering
+
+```{r}
+# exclude variables that are not supposed to be in the model
+lapply(dat_aucs_eng, \(x){
+
+  # remove
+  x$Contract_ID <- NULL
+  x$MLOT <- NULL
+  x$Eng_Est <- x$Eng_Est / 1e3
+  x$EW_Diff <- NULL
+  # x$Winning_Bid_Log <- log(x$Winning_Bid)
+  x$Winning_Bid <-   x$Winning_Bid / 1e3
+  
+  # return
+  return(x)
+  
+}) -> dat_aucs_mod_eng
+
+# assign training set
+dat_train_aucs_eng <- dat_aucs_mod_eng[["Train"]]
+```
+
+### Cross Validation
+
+#### Winning Bid
+
+```{r}
+# cross validation
+
+## RAN ONCE ## 
+cvfit_auc_eng <- glmnetUtils::cva.glmnet(Winning_Bid ~., data = dat_train_aucs_eng,
+                                 family = gaussian(link = "identity"),
+                                 type.measure = "mse", nfolds = 5,
+                                 alpha = c(0.99, 1),
+                                 lambda = seq(0.5, 10000, 50))
+
+# save
+# saveRDS(cvfit_auc_eng, "./../../Data/Models/Glmnets/Raw/cvfiteng.RDS")
+
+# read file 
+# cvfit_auc_eng <- readRDS("./../../Data/Models/Glmnets/Raw/cvfiteng.RDS")
+
+# plot fit
+plot(cvfit_auc_eng, c.legend = 0.5, main = "Cross Validation Results")
+```
+
+```{r}
+# obtain best model
+per_matrix_auc3 <- do.call(rbind, Map(function(x, y){
+
+ cbind("Per" = x$cvm,
+       "Lambda" = x$lambda,
+       "Alpha" = rep(y, length(x$lambda)))
+
+}, cvfit_auc_eng$modlist, cvfit_auc_eng$alpha))
+
+# best performing parameters
+best_para_auc3 <- per_matrix_auc3[which.min(per_matrix_auc3[, "Per"]), ]
+
+# fit model using best parameters
+fit_fin_auc3 <- glmnetUtils::glmnet(Winning_Bid~., data = dat_train_aucs_eng,
+                               family = gaussian(link = "identity"),
+                               alpha = best_para_auc3["Alpha"], 
+                               lambda = best_para_auc3["Lambda"])
+
+# predict
+pred_vals_auc3 <- predict(fit_fin_auc3, dat_train_aucs_eng)
+
+# check preds
+par(mfrow = c(1, 2))
+boxplot(dat_train_aucs_eng[["Winning_Bid"]], ylim = c(0, 40e3))
+boxplot(pred_vals_auc3, ylim = c(0, 40e3))
+
+# rmse
+sqrt(sum((dat_train_aucs_eng[["Winning_Bid"]] - pred_vals_auc3)^2) / length(pred_vals_auc3))
+```
+
+```{r}
+# coefficients
+coefft_auc3 <- coef(fit_fin_auc3, s = "lambda.min")
+coef_ordered_auc3 <- coefft_auc3[order(abs(coefft_auc3[, 1]), decreasing = TRUE), ]
+signum_auc3 <- coef_ordered_auc3[-1] |> sign()
+
+# print est model parameters
+knitr::kable(best_para_auc3, col.names = c("Final Model"))
+
+# generate data for varImp plot
+TopvarImp_auc3 <- varImp(fit_fin_auc3, lambda = fit_fin_auc3$lambda)  %>%
+   dplyr::filter(Overall != 0) %>% 
+   arrange(desc(Overall)) %>% 
+   slice_max(Overall, n = 10)
+
+# Plot
+plot_varimp_auc3 <- ggplot2::ggplot(TopvarImp_auc3, aes(x = reorder(rownames(TopvarImp_auc3), Overall), y = Overall)) +
+  geom_point(color = "blue", size = 4, alpha = 0.6) +
+  geom_segment(aes(x = rownames(TopvarImp_auc3), xend = rownames(TopvarImp_auc3), y = 0, yend = Overall), 
+               color = "skyblue") +
+  xlab("Variable") +
+  ylab("Overall Importance") +
+  theme_light() +
+  coord_flip() 
+
+# plot
+plot_varimp_auc3
+
+# signs
+knitr::kable(ifelse(signum_auc2 < 0, "-", "+"), col.names = "Sign")
+```
 
