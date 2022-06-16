@@ -14,9 +14,15 @@ Map(\(x, n){
 
     # write csv
     write.csv(imp, 
-              paste0("./../Data/Bid Tab RDS/Colab Transfer/csv/", n, ".csv"))
+              paste0("./../Data/Bid Tab RDS/Colab Transfer/csv/", n, ".csv"),
+              row.names = FALSE)
     
+    # excel
+    openxlsx::write.xlsx(imp, 
+                         paste0("./../Data/Bid Tab RDS/Colab Transfer/csv/", n, 
+                                ".xlsx"))
   }
   
 }, files, file_names)
+
 
