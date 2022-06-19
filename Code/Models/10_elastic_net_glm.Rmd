@@ -29,12 +29,13 @@ source("./../Misc/Auxilliary.R")
 source("./../Misc/model_eval.R")
 
 # packages
-get.package(c("lubridate", "glmnet", "glmnetUtils", "tidyverse"))
+get.package(c("lubridate", "glmnet", "glmnetUtils", "tidyverse", "patchwork"))
 
 # load data
 dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df_split.RDS")
 dat_bids_ind <- readRDS("./../../Data/Bid Tab RDS/Bids_id_df_split.RDS")
 dat_aucs <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
+dat_aucs_tot <- readRDS("./../../Data/Bid Tab RDS/Aucs_df.RDS")
 dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
 ```
 
@@ -46,7 +47,7 @@ dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
 
 ```{r}
 # exclude variables that are not supposed to be in the model
-lapply(dat_bids, \(x){
+lapply(dat_bids_ind, \(x){
 
   # remove
   x$Vendor_Name <- NULL
@@ -187,13 +188,14 @@ dat_train_ind <- dat_bids_ind_mod[["Train"]]
 # cross validation
 
 ## RAN ONCE ## 
-cvfit <- glmnetUtils::cva.glmnet(Win ~., data = dat_train_ind,
-                                 family = binomial(link = "logit"),
-                                 type.measure = "deviance", nfolds = 10,
-                                 alpha = seq(0, 1, 0.05), nlambda = 100)
-beepr::beep(sound = 4)
+# cvfit <- glmnetUtils::cva.glmnet(Win ~., data = dat_train_ind,
+#                                  family = binomial(link = "logit"),
+#                                  type.measure = "deviance", nfolds = 10,
+#                                  alpha = seq(0, 1, 0.05), nlambda = 100)
+# beepr::beep(sound = 4)
+
 # save
-saveRDS(cvfit, "./../../Data/Models/Glmnets/Raw/cvfitid.RDS")
+# saveRDS(cvfit, "./../../Data/Models/Glmnets/Raw/cvfitid.RDS")
 
 # read file 
 cvfit <- readRDS("./../../Data/Models/Glmnets/Raw/cvfitid.RDS")
@@ -273,6 +275,19 @@ knitr::kable(ifelse(signum < 0, "-", "+"), col.names = "Sign")
 
 # Auction Level
 
+## Finding the correct link
+
+```{r}
+# train 
+train <- dat_aucs[["Train"]]
+train$Winning_Bid <- train$Winning_Bid / 1e3
+
+# check fit
+print(Dens_hist_plot(train, "Winning_Bid", dist = "exponential", distFUN = dexp, bins = 100, bg_alt = TRUE) +
+Dens_hist_plot(train, "Winning_Bid", dist = "normal", distFUN = dnorm, bins = 100) /
+Dens_hist_plot(train, "Winning_Bid", dist = "gamma", distFUN = dgamma, lower_b = 0.005, bins = 100))
+```
+
 ## No Feature Engineering
 
 ### Variable Removal
@@ -285,7 +300,7 @@ lapply(dat_aucs, \(x){
   x$Contract_ID <- NULL
   x$MLOT <- NULL
   x$Eng_Est <- NULL
-  x$EW_Diff <- NULL
+  # x$EW_Diff <- NULL
   x$Winning_Bid_Log <- log(x$Winning_Bid)
   x$Winning_Bid <- NULL
   
@@ -306,16 +321,16 @@ dat_train_aucs <- dat_aucs_mod[["Train"]]
 # cross validation
 
 ## RAN ONCE ## 
-cvfit_auc <- glmnetUtils::cva.glmnet(EW_Diff ~., data = dat_train_aucs,
-                                 family = gaussian(link = "identity"),
-                                 type.measure = "mse", nfolds = 5,
-                                 alpha = c(0.1, 1), nlambda = 15)
+# cvfit_auc <- glmnetUtils::cva.glmnet(EW_Diff ~., data = dat_train_aucs,
+#                                  family = gaussian(link = "identity"),
+#                                  type.measure = "mse", nfolds = 5,
+#                                  alpha = c(0.1, 1), nlambda = 15)
 
 # save
 # saveRDS(cvfit, "./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
 
 # read file 
-cvfit <- readRDS("./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
+cvfit_auc <- readRDS("./../../Data/Models/Glmnets/Raw/cvfitnI.RDS")
 
 # plot fit
 plot(cvfit_auc, c.legend = 0.5, main = "Cross Validation Results")
@@ -355,7 +370,7 @@ per_matrix_auc <- do.call(rbind, Map(function(x, y){
        "Lambda" = x$lambda,
        "Alpha" = rep(y, length(x$lambda)))
 
-}, cvfit$modlist, cvfit$alpha))
+}, cvfit_auc$modlist, cvfit_auc$alpha))
 
 # best performing paremeters
 best_para_auc <- per_matrix_auc[which.min(per_matrix_auc[, "Per"]), ]
@@ -513,17 +528,17 @@ dat_train_aucs_eng <- dat_aucs_mod_eng[["Train"]]
 # cross validation
 
 ## RAN ONCE ## 
-cvfit_auc_eng <- glmnetUtils::cva.glmnet(Winning_Bid ~., data = dat_train_aucs_eng,
-                                 family = gaussian(link = "identity"),
-                                 type.measure = "mse", nfolds = 5,
-                                 alpha = c(0.99, 1),
-                                 lambda = seq(0.5, 10000, 50))
+# cvfit_auc_eng <- glmnetUtils::cva.glmnet(Winning_Bid ~., data = dat_train_aucs_eng,
+#                                  family = gaussian(link = "identity"),
+#                                  type.measure = "mse", nfolds = 5,
+#                                  alpha = c(0.99, 1),
+#                                  lambda = seq(0.5, 10000, 50))
 
 # save
 # saveRDS(cvfit_auc_eng, "./../../Data/Models/Glmnets/Raw/cvfiteng.RDS")
 
 # read file 
-# cvfit_auc_eng <- readRDS("./../../Data/Models/Glmnets/Raw/cvfiteng.RDS")
+cvfit_auc_eng <- readRDS("./../../Data/Models/Glmnets/Raw/cvfiteng.RDS")
 
 # plot fit
 plot(cvfit_auc_eng, c.legend = 0.5, main = "Cross Validation Results")
