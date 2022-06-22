@@ -38,6 +38,16 @@ Accordingly, we may first identify the column via a prefix *Vend_* to then find 
 indlv <- which(names(dat_aucs) == "969A")
 names(dat_aucs)[11:indlv] <- paste0("Vend_", names(dat_aucs)[11:indlv])
 
+# consolidate vendors that only appear combined
+auc_cols_log <- names(dat_aucs) |> stringr::str_detect("Vend_") 
+convend <- remove_dups_keep_name(dat_aucs[, auc_cols_log])
+
+# remove 
+dat_aucs[, auc_cols_log] <- NULL
+
+# add corrected factors
+dat_aucs <- cbind(dat_aucs, convend)
+
 # now use recipes to create vendor interactions 
 recip <- recipe(Winning_Bid ~., data = dat_aucs)
 
@@ -67,6 +77,52 @@ barplot(sm[1:100], ylim = c(0, 50), las = 2, cex.names = 0.2, col = 4,
         main = "# of Vendor Interactions Across Auctions")
 ```
 
+# Remove Identical Factors
+
+```{r}
+# relocate
+dat_aucs_vend_int <- relocate(dat_aucs_vend_int, Winning_Bid, .after = Eng_Est)
+
+# consolidate identical columns
+vend_cols_log <- names(dat_aucs_vend_int) |> stringr::str_detect("Vend_") 
+interact_cols <- names(dat_aucs_vend_int) |> stringr::str_detect("_x_")
+descr_words <- which(!vend_cols_log)[-c(1:10)]
+Vend_not_int <- vend_cols_log & (!interact_cols)
+  
+stringr::str_detect(names(dat_aucs_vend_int), "Winning") |> sum()
+
+# list for removal
+lst_rem <- list(dat_aucs_vend_int[, descr_words], 
+                dat_aucs_vend_int[, interact_cols])
+
+# check if all went well
+do.call(cbind, lapply(lst_rem, \(x){
+  
+  # consolidate
+  tmp <- remove_dups_keep_name(x)
+  dups <- x[, duplicated(as.list(x))]
+  
+  # print
+  cat(names(tmp)[stringr::str_detect(names(tmp), "&")], "\n",
+      names(dups), "\n\n\n")
+  
+  # return
+  return(tmp)
+  
+})) -> new_dum
+
+# create new df
+dat_aucs_vend_int <- cbind(dat_aucs_vend_int[, 1:10], dat_aucs_vend_int[, Vend_not_int], new_dum)
+```
+
+# Dimension reduction 
+
+## Contract Description
+
+```{r}
+
+```
+
 # Sum of Auctions Won
 
 Since the Data does not contain any firm specific information and estimating cost functions is not feasible on firm level with the small data set at hand, we may sum up the cumulative volume of contracts won by all firms that participate in an auction. Given that firms have no other advantage than their const structure this should account for potential difference in cost structure among participating companies.
@@ -75,7 +131,6 @@ Since the Data does not contain any firm specific information and estimating cos
 # find sum of auctions won grouped by year and Vendor ID
 
 ```
-
 
 # Train and Test
 
@@ -95,7 +150,7 @@ dat_aucs_vend_split <- list("Train" = dat_aucs_vend_int[!(1:nrow(dat_aucs_vend_i
 # saveRDS(dat_aucs_vend_int, "./../../Data/Bid Tab RDS/Aucs_df_feateng.RDS")
 
 # write train and test separately for RF training in python
-# saveRDS(dat_aucs_vend_split[["Train"]], 
+# saveRDS(dat_aucs_vend_split[["Train"]],
 #         "./../../Data/Bid Tab RDS/Colab Transfer/Aucs_df_feateng_train.RDS")
 # saveRDS(dat_aucs_vend_split[["Test"]],
 #         "./../../Data/Bid Tab RDS/Colab Transfer/Aucs_df_feateng_test.RDS")

@@ -152,6 +152,45 @@ d_transform_2 <- \(auc){
   
 }
 
+# function for removing duplicates and pasting names
+remove_dups_keep_name <- \(data){
+  
+  # convert to matrix
+  nam <- names(data)
+  mat <- as.matrix(data)
+  
+  # storage
+  mat_new <- matrix(rep(999, nrow(data)), nrow = nrow(data))
+  
+  # col names
+  nom <- c()
+  
+  # over columns
+  for(i in 1:ncol(data)){
+    
+    if(any(colSums((mat_new - mat[, i])^2) == 0)){
+      
+      # skip
+      next
+      
+    }
+    
+    # all cols that result in 0
+    diff <- (mat - mat[, i])^2
+    
+    # zero colsum
+    ind <- colSums(diff) == 0
+    
+    # save name and column
+    mat_new <- cbind(mat_new, mat[, i])
+    nom <- c(nom, paste(nam[ind], collapse = "&"))
+    
+  }
+  
+  # return df new
+  data.frame(mat_new[, -1]) |> setNames(nom)
+}
+
 ## Plotting ##
 
 # normal with hist

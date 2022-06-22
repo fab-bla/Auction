@@ -156,7 +156,6 @@ plot_varimp
 knitr::kable(ifelse(signum < 0, "-", "+"), col.names = "Sign")
 ```
 
-
 ## Data Including Rival Bidders (No FeatEng)
 
 ### Variable Removal
@@ -278,10 +277,6 @@ knitr::kable(ifelse(signum < 0, "-", "+"), col.names = "Sign")
 ## Finding the correct link
 
 ```{r}
-# train 
-train <- dat_aucs[["Train"]]
-train$Winning_Bid <- train$Winning_Bid / 1e3
-
 # check fit
 print(Dens_hist_plot(train, "Winning_Bid", dist = "exponential", distFUN = dexp, bins = 100, bg_alt = TRUE) +
 Dens_hist_plot(train, "Winning_Bid", dist = "normal", distFUN = dnorm, bins = 100) /
@@ -508,8 +503,9 @@ lapply(dat_aucs_eng, \(x){
   x$MLOT <- NULL
   x$Eng_Est <- x$Eng_Est / 1e3
   x$EW_Diff <- NULL
+  x$Winning_Bid <- x$Winning_Bid / 1e3
   # x$Winning_Bid_Log <- log(x$Winning_Bid)
-  x$Winning_Bid <-   x$Winning_Bid / 1e3
+  # x$Winning_Bid <- NULL
   
   # return
   return(x)
@@ -530,15 +526,16 @@ dat_train_aucs_eng <- dat_aucs_mod_eng[["Train"]]
 ## RAN ONCE ## 
 # cvfit_auc_eng <- glmnetUtils::cva.glmnet(Winning_Bid ~., data = dat_train_aucs_eng,
 #                                  family = gaussian(link = "identity"),
-#                                  type.measure = "mse", nfolds = 5,
-#                                  alpha = c(0.99, 1),
-#                                  lambda = seq(0.5, 10000, 50))
+#                                  type.measure = "mse", nfolds = 10,
+#                                  alpha = c(0.01, seq(0, 1, 0.05),0.99),
+#                                  nlambda = 100)
+beepr::beep(sound = 1)
 
 # save
-# saveRDS(cvfit_auc_eng, "./../../Data/Models/Glmnets/Raw/cvfiteng.RDS")
+# saveRDS(cvfit_auc_eng, "./../../Data/Models/Glmnets/Raw/cvfiteng_norm.RDS")
 
 # read file 
-cvfit_auc_eng <- readRDS("./../../Data/Models/Glmnets/Raw/cvfiteng.RDS")
+cvfit_auc_eng <- readRDS("./../../Data/Models/Glmnets/Raw/cvfiteng_norm.RDS")
 
 # plot fit
 plot(cvfit_auc_eng, c.legend = 0.5, main = "Cross Validation Results")
@@ -576,6 +573,28 @@ sqrt(sum((dat_train_aucs_eng[["Winning_Bid"]] - pred_vals_auc3)^2) / length(pred
 ```
 
 ```{r}
+# fit model using best parameters
+fit_fin_test <- glmnetUtils::glmnet(Winning_Bid ~ ., data =  dat_aucs_mod_eng[[2]],
+                               family = gaussian(link = "identity"),
+                               alpha = best_para_auc3["Alpha"], 
+                               lambda = best_para_auc3["Lambda"])
+
+# predict
+pred_vals_test <- predict(fit_fin_test, dat_aucs_mod_eng[[2]])
+
+# vals
+par(mfrow = c(1, 2))
+boxplot(dat_aucs_mod_eng[[2]][["Winning_Bid"]], ylim = c(0, 20e3), main = "Actual",
+        pch = 19, outcol = "darkblue", col = "cornflowerblue")
+boxplot(pred_vals_test , ylim = c(0, 20e3), main = "Predicted", pch = 19, outcol = "darkblue",
+        col = "cornflowerblue")
+
+# rmse
+sqrt(sum((dat_aucs_mod_eng[[2]][["Winning_Bid"]] - pred_vals_test)^2) / length(pred_vals_test))
+sqrt(sum((dat_aucs_mod_eng[[2]][["Winning_Bid"]] - dat_aucs_mod_eng[[2]][["Eng_Est"]])^2) / length(pred_vals_test))
+```
+
+```{r}
 # coefficients
 coefft_auc3 <- coef(fit_fin_auc3, s = "lambda.min")
 coef_ordered_auc3 <- coefft_auc3[order(abs(coefft_auc3[, 1]), decreasing = TRUE), ]
@@ -604,6 +623,6 @@ plot_varimp_auc3 <- ggplot2::ggplot(TopvarImp_auc3, aes(x = reorder(rownames(Top
 plot_varimp_auc3
 
 # signs
-knitr::kable(ifelse(signum_auc2 < 0, "-", "+"), col.names = "Sign")
+knitr::kable(ifelse(signum_auc3 < 0, "-", "+"), col.names = "Sign")
 ```
 

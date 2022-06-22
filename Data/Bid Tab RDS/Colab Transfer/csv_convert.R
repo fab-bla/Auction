@@ -1,4 +1,5 @@
 # files 
+setwd("C:/Users/blasc/OneDrive/Documents/GitHub/Auction/Code")
 files <- list.files("./../Data/Bid Tab RDS/Colab Transfer")
 files <- files[stringr::str_detect(files, ".RDS")]
 file_names <- stringr::str_remove(files, ".RDS")
@@ -8,9 +9,9 @@ Map(\(x, n){
   
   # import
   imp <- readRDS(paste0("./../Data/Bid Tab RDS/Colab Transfer/", x))
-
+  
   # if data.frame then
-  if(class(imp)[3] == "data.frame"){
+  if(class(imp) == "data.frame" | class(imp)[3] == "data.frame"){
 
     # write csv
     write.csv(imp, 
