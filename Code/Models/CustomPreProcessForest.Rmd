@@ -1,0 +1,209 @@
+---
+title: |
+       | Pre-Process Forest
+author: "Fabian Blasch"
+date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{float}
+   - \usepackage{titling}
+   - \usepackage{xcolor}
+output: 
+   pdf_document:
+      number_sections: TRUE
+---
+
+# Load Data
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+# knitr options
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.pos = "center",
+                      fig.width = 8,
+                      fig.height = 4,
+                      fig.pos = "H")
+
+# source AUX
+source("./../Misc/Auxilliary.R")
+source("./../Misc/model_eval.R")
+
+# packages
+get.package(c("lubridate", "ranger", "tidyverse", "patchwork", "logisticPCA", "Metrics"))
+
+# load data
+dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
+```
+
+# Custom Preprocessed CV
+
+Unfortunately, the cross-validation procedure that utilizes logistic PCA on groups of the CV-folds is not implemented, neither in R's caret or mlr3 nor in ptyhon's scikit-learn. Accordingly, we will implement a custom CV function for grouped logistics PCA followed by a random forest fit.
+
+```{r}
+# separate train
+aucs_train <- dat_aucs_eng[["Train"]]
+```
+
+```{r}
+# write CV function
+log_PCA_rf_CV <- \(data, nfolds = 10, m_nest_CV = seq(1, 13, 2), 
+                   k_desc_CV = seq(2, 20, 2), k_ven_CV = seq(2, 20, 2), 
+                   k_vendInt_CV = seq(2, 20, 2), splitrule_CV = "variance",
+                   min_node_size_CV = 1:4, max_depth_CV = seq(5, 70, 5), mtry_incr = 5,
+                   num_trees_CV = 1000, eval_fun = Metrics::rmse){
+      
+  # rm unwanted cols
+  within(data,{
+    Contract_ID <- NULL
+    MLOT <- NULL
+    EW_Diff <- NULL
+    Winning_Bid <- Winning_Bid / 1e3
+    Eng_Est <- Eng_Est / 1e3
+  }) -> data
+
+  
+  # bools
+  vend_cols_log <- names(data) |> stringr::str_detect("Vend_") 
+  interact_cols <- names(data) |> stringr::str_detect("_x_")
+  descr_words <- which(!vend_cols_log)[-c(1:10)]
+  Vend_not_int <- vend_cols_log & (!interact_cols)
+  
+  # generate CV folds
+  folds <- sample(nrow(data), nrow(data), replace = FALSE) |> 
+            split(as.factor(1:nfolds)) |> setNames(1:nfolds) |> suppressWarnings()
+
+  # tuning grid init
+  tgrid_PC <- expand.grid("nPCA_Desc" = k_desc_CV,
+                          "nPCA_Vend" = k_ven_CV,
+                          "nPCA_VendInt" = k_vendInt_CV)
+
+    # loop over folds each is used as test set once
+    lapply(names(folds), \(f_ind){
+  
+      # test - bool 
+      test_bool <- names(folds) %in% f_ind
+
+      # train and test
+      train <- data[do.call(c, folds[!test_bool]), ]
+      test <- data[folds[test_bool] |> unlist(), ]
+      
+      # separate into desc / Vend / Vend_int
+      grps <- list("Train" = list("Description" = train[, descr_words], 
+                                  "Vendor" = train[, Vend_not_int],
+                                  "Vendor_Interaction" = train[, interact_cols]),
+                   "Test" = list("Description" = test[, descr_words], 
+                                  "Vendor" = test[, Vend_not_int],
+                                  "Vendor_Interaction" = test[, interact_cols]))
+      # nested CV
+      apply(tgrid_PC, 1, \(x){
+
+        # Over all 3 binary subsets
+        Map(\(dat_train, dat_test, kk){
+
+          # CV for m of logistic PCA
+          cv_PCA <- cv.lpca(dat_train, ms = m_nest_CV, ks = kk)
+        
+          # fit
+          fit_PCA <- logisticPCA(dat_train, k = kk, 
+                                 m = colnames(cv_PCA)[which.min(cv_PCA)] |> as.numeric())
+            
+          # predict 
+          pred_PCA <- predict(fit_PCA, dat_test, type = "PCs") # name this (variable importance)
+          
+          # return
+          return(list("Fit_PCA" = fit_PCA,
+                      "Pred_PCA" = pred_PCA))
+          
+        }, grps[["Train"]], grps[["Test"]], x) -> fitted_PCs
+
+        # assemble PCA dataset
+        PC_dfs <- Map(\(tt, PCAtt, bool){
+    
+          # bool for supset
+          if(bool){
+            
+            # subset from fit
+            PCs <- lapply(fitted_PCs, "[[", PCAtt) |> lapply(\(x) as.data.frame(x[["PCs"]])) 
+              
+          } else {
+            
+            PCs <- lapply(fitted_PCs, \(x) as.data.frame(x[[PCAtt]]))
+            
+          }
+    
+          # assemble new test and train set
+          cbind(tt[1:7], do.call(cbind, PCs))
+          
+        }, list(train, test), 
+        c("Fit_PCA", "Pred_PCA"), c(TRUE, FALSE)) |> setNames(c("Train", "Test"))
+
+        # mtry value depending on number of PCs and thus added now
+        mtry_CV <- seq(1, ncol(PC_dfs[["Train"]]), mtry_incr)
+        
+        # RF tuning grid 
+        tgrid_RF <- expand.grid("mtry" = mtry_CV,
+                                "splitrule" = splitrule_CV,
+                                "min_node_size" = min_node_size_CV,
+                                "max_depth" = max_depth_CV, 
+                                "num_trees" = num_trees_CV)
+        
+        ## Random forest ##
+        apply(tgrid_RF, 1, \(cv_inp){
+    
+          # fit
+          ranger::ranger(Winning_Bid ~., mtry = as.numeric(cv_inp[1]),
+                         splitrule = cv_inp[2],
+                         min.node.size = as.numeric(cv_inp[3]),
+                         max.depth = as.numeric(cv_inp[4]), 
+                         num.trees = as.numeric(cv_inp[5]),
+                         data = PC_dfs[["Train"]]) -> fit_rf
+          
+          # predict 
+          pred <- predict(fit_rf, PC_dfs[["Test"]])
+          
+          # calc RMSE
+          eval_res <- eval_fun(actual = PC_dfs[["Test"]][, "Winning_Bid"], predicted = pred[["predictions"]])
+          
+          # return result and inputs
+          return(c("mtry" = cv_inp[1],
+                   "splitrule" = cv_inp[2],
+                   "min_node_size" = cv_inp[3],
+                   "max_depth" = cv_inp[4],
+                   "num_trees" = cv_inp[5],
+                   "Per" = eval_res))
+          
+      }) |> setNames(paste0("RF_", nrow(tgrid_RF)))
+    }) |> setNames(paste0("PCA_", nrow(tgrid_PC)))
+  }) |> setNames(1:nfolds)
+}
+
+# db
+debugonce(log_PCA_rf_CV)
+
+# ex
+log_PCA_rf_CV(dat_aucs_eng[["Train"]], nfolds = 5, m_nest_CV = 10, 
+                   k_desc_CV = 20, k_ven_CV = 20, 
+                   k_vendInt_CV = 20, splitrule_CV = "variance",
+                   min_node_size_CV = 3, max_depth_CV = 67, mtry_incr = 10) -> test1
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

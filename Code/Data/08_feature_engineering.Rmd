@@ -21,7 +21,7 @@ output:
 source("./../Misc/Auxilliary.R")
 
 # packages
-get.package(c("ggplot2", "patchwork", "modeldata", "recipes", "stringr"))
+get.package(c("ggplot2", "patchwork", "modeldata", "recipes", "stringr", "logisticPCA"))
 
 # load data
 dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df.RDS")
@@ -103,8 +103,8 @@ do.call(cbind, lapply(lst_rem, \(x){
   dups <- x[, duplicated(as.list(x))]
   
   # print
-  cat(names(tmp)[stringr::str_detect(names(tmp), "&")], "\n",
-      names(dups), "\n\n\n")
+  # cat(names(tmp)[stringr::str_detect(names(tmp), "&")], "\n",
+  #     names(dups), "\n\n\n")
   
   # return
   return(tmp)
@@ -128,9 +128,26 @@ dat_aucs_vend_int <- cbind(dat_aucs_vend_int[, 1:10], dat_aucs_vend_int[, Vend_n
 Since the Data does not contain any firm specific information and estimating cost functions is not feasible on firm level with the small data set at hand, we may sum up the cumulative volume of contracts won by all firms that participate in an auction. Given that firms have no other advantage than their const structure this should account for potential difference in cost structure among participating companies.
 
 ```{r}
-# find sum of auctions won grouped by year and Vendor ID
 
 ```
+
+# Dimension Reduction via Binary PCA
+
+```{r}
+## Datasets ##
+
+# recreate indices on corrected dataframe
+vend_cols_log <- names(dat_aucs_vend_int) |> stringr::str_detect("Vend_") 
+interact_cols <- names(dat_aucs_vend_int) |> stringr::str_detect("_x_")
+descr_words <- which(!vend_cols_log)[-c(1:10)]
+Vend_not_int <- vend_cols_log & (!interact_cols)
+
+# PCA Seperately
+PCA_Dat <- list("Description" = dat_aucs_vend_int[, descr_words], 
+                "Vendor_Interaction" = dat_aucs_vend_int[, interact_cols],
+                "Vendor" = dat_aucs_vend_int[, Vend_not_int])
+```
+
 
 # Train and Test
 
@@ -153,7 +170,7 @@ dat_aucs_vend_split <- list("Train" = dat_aucs_vend_int[!(1:nrow(dat_aucs_vend_i
 list("Train_ind" = (!(1:nrow(dat_aucs_vend_int) %in% ind)) |> which(),
      "Test_ind" = ind) -> indices
 
-#saveRDS(indices, "./../../Data/Bid Tab RDS/Colab Transfer/split_indices.RDS")
+# saveRDS(indices, "./../../Data/Bid Tab RDS/Colab Transfer/split_indices.RDS")
 ```
 
 
