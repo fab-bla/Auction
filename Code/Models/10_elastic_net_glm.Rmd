@@ -569,12 +569,13 @@ boxplot(dat_train_aucs_eng[["Winning_Bid"]], ylim = c(0, 40e3))
 boxplot(pred_vals_auc3, ylim = c(0, 40e3))
 
 # rmse
-sqrt(sum((dat_train_aucs_eng[["Winning_Bid"]] - pred_vals_auc3)^2) / length(pred_vals_auc3))
+Metrics::rmse(dat_train_aucs_eng[["Winning_Bid"]], pred_vals_auc3)
+Metrics::mae(dat_train_aucs_eng[["Winning_Bid"]], pred_vals_auc3)
 ```
 
 ```{r}
 # fit model using best parameters
-fit_fin_test <- glmnetUtils::glmnet(Winning_Bid ~ ., data =  dat_aucs_mod_eng[[2]],
+fit_fin_test <- glmnetUtils::glmnet(Winning_Bid ~ ., data = dat_aucs_mod_eng[[2]],
                                family = gaussian(link = "identity"),
                                alpha = best_para_auc3["Alpha"], 
                                lambda = best_para_auc3["Lambda"])
@@ -583,15 +584,24 @@ fit_fin_test <- glmnetUtils::glmnet(Winning_Bid ~ ., data =  dat_aucs_mod_eng[[2
 pred_vals_test <- predict(fit_fin_test, dat_aucs_mod_eng[[2]])
 
 # vals
-par(mfrow = c(1, 2))
+par(mfrow = c(1, 3))
 boxplot(dat_aucs_mod_eng[[2]][["Winning_Bid"]], ylim = c(0, 20e3), main = "Actual",
         pch = 19, outcol = "darkblue", col = "cornflowerblue")
 boxplot(pred_vals_test , ylim = c(0, 20e3), main = "Predicted", pch = 19, outcol = "darkblue",
         col = "cornflowerblue")
+boxplot(dat_aucs_mod_eng[[2]][["Eng_Est"]], ylim = c(0, 20e3), main = "Eng_Est", pch = 19, outcol = "darkblue",
+        col = "cornflowerblue")
 
 # rmse
-sqrt(sum((dat_aucs_mod_eng[[2]][["Winning_Bid"]] - pred_vals_test)^2) / length(pred_vals_test))
-sqrt(sum((dat_aucs_mod_eng[[2]][["Winning_Bid"]] - dat_aucs_mod_eng[[2]][["Eng_Est"]])^2) / length(pred_vals_test))
+sapply(list(pred_vals_test, dat_aucs_mod_eng[[2]][["Eng_Est"]]), \(x){
+  
+  sapply(list(Metrics::rmse, Metrics::mae), \(fun){
+    
+      fun(dat_aucs_mod_eng[[2]][["Winning_Bid"]], x)
+    
+  }) |> setNames(c("RMSE", "MAE"))
+
+}) |> knitr::kable(col.names = c("Lasso Model", "Eng. Estimate"))
 ```
 
 ```{r}

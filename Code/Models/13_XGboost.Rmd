@@ -1,0 +1,152 @@
+---
+title: |
+       | Pre-Process Forest
+author: "Fabian Blasch"
+date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{float}
+   - \usepackage{titling}
+   - \usepackage{xcolor}
+output: 
+   pdf_document:
+      number_sections: TRUE
+---
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+# knitr options
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.pos = "center",
+                      fig.width = 8,
+                      fig.height = 4,
+                      fig.pos = "H")
+
+# source AUX
+source("./../Misc/Auxilliary.R")
+source("./../Misc/model_eval.R")
+
+# packages
+get.package(c("tidyverse", "patchwork", "Metrics",
+              "xgboost", "caret"))
+
+# load data
+dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
+```
+
+# Data Prep
+
+```{r}
+# rm vars
+lapply(dat_aucs_eng, \(x){
+
+  # remove
+  x$Contract_ID <- NULL
+  x$MLOT <- NULL
+  x$EW_Diff <- NULL
+  Label <- x$Winning_Bid / 1e3
+  x$Winning_Bid <- NULL
+  x$Eng_Est <- x$Eng_Est /1e3
+  
+  # feature model matrix
+  mod_mat <-  model.matrix(~. + 0, data = x)
+  
+  # Label and hot encoded features
+  list("Label" = Label,
+       "Features" = mod_mat,
+       "XGB_Matrix" = xgb.DMatrix(data = mod_mat, label = Label))
+  
+}) -> dat_aucs_mod
+```
+
+## Cross Validation
+
+```{r}
+# parameters
+XGgrid <- expand.grid("objective" = "reg:squarederror",
+                      "booster" = "gbtree",
+                      "eta" = c(0.01, 0.05, seq(0.1, 0.3, 0.1)), 
+                      "gamma" = seq(0, 10, 2),
+                      "max_depth" = seq(5, 100, 25),
+                      "min_child_weight" = seq(0, 10, 2),
+                      "subsample" = seq(0.4, 1, 0.2),
+                      "colsample_bytree" = seq(0.4, 1, 0.2),
+                      "lambda" = seq(0, 10, 2),
+                      "alpha" = seq(0, 10, 2))
+
+# test 
+param_lst <- as.list(XGgrid[1, ])
+
+# seed
+set.seed(33)
+
+# cv
+xgbcv <- xgb.cv(params = param_lst, 
+                data = dat_aucs_mod[["Train"]][["XGB_Matrix"]], 
+                nrounds = 1e3, nfold = 5, 
+                print_every_n = 250, early_stopping_rounds = 10, maximize = FALSE, 
+                metrics = c("mae", "rmse"),
+                verbosity = 0)
+
+# extract
+cbind(xgbcv[["evaluation_log"]][xgbcv[["best_iteration"]], ], XGgrid[1, ])
+```
+
+```{r}
+
+# parameter optimization CV
+xgb.cv_opt <- \(nrounds = 1e3, print_every_n = 2e3, nfold = 5, 
+                early_stopping_rounds = 10, maximize = FALSE, metrics = c("mae", "rmse"), 
+                verbosity = 0, seed = 33, data, tuning_grid){
+  
+  # nmodels
+  nmod <- nrow(tuning_grid)
+  
+  # metric subset vector
+  sub_pst <- paste0("test_", metrics, "_mean")
+  
+  # print 
+  cat(paste0(Sys.time(), ", starting CV: ", nmod, " models to fit!\n\n"))
+  
+  # counter
+  count <- 1
+  
+  # over tuning grid rows
+  apply(tuning_grid, 1, \(row){
+    
+    # parameters to list 
+    param_lst <- as.list(row)
+    
+    # seed (s.t. we may compare the different models across the same folds)
+    set.seed(seed)
+    
+    # cv 
+    cv_tmp <- xgb.cv(params = param_lst, nrounds = nrounds, 
+                     nfold = nfold, print_every_n = print_every_n,
+                     early_stopping_rounds = early_stopping_rounds,
+                     maximize = maximize, metrics = metrics, verbosity = verbosity,
+                     data = data)
+    
+    # print current State
+    cat(paste0("\n", count, "/", nmod, " fit!\n"))
+    
+    # count
+    count <<- count + 1
+
+    # extract best iteration + input parameters
+    cbind(cv_tmp[["evaluation_log"]][cv_tmp[["best_iteration"]], c("iter", sub_pst), with = FALSE] |> 
+          data.matrix(),
+          t(data.matrix(row)))
+    
+  }) -> tmp
+  
+  # rownames
+  rownames(tmp) <- c("iter", sub_pst, colnames(tuning_grid))
+  
+  # return
+  return(tmp)
+}
+
+xgb.cv_opt(data = dat_aucs_mod[["Train"]][["XGB_Matrix"]], tuning_grid = XGgrid[1:2, ])
+```
+
