@@ -581,16 +581,34 @@ fit_fin_test <- glmnetUtils::glmnet(Winning_Bid ~ ., data = dat_aucs_mod_eng[[2]
                                lambda = best_para_auc3["Lambda"])
 
 # predict
-pred_vals_test <- predict(fit_fin_test, dat_aucs_mod_eng[[2]])
+pred_vals_test <- predict(fit_fin_test, dat_aucs_mod_eng[[2]], ylim = c(0, 20e3))
 
-# vals
-par(mfrow = c(1, 3))
-boxplot(dat_aucs_mod_eng[[2]][["Winning_Bid"]], ylim = c(0, 20e3), main = "Actual",
-        pch = 19, outcol = "darkblue", col = "cornflowerblue")
-boxplot(pred_vals_test , ylim = c(0, 20e3), main = "Predicted", pch = 19, outcol = "darkblue",
-        col = "cornflowerblue")
-boxplot(dat_aucs_mod_eng[[2]][["Eng_Est"]], ylim = c(0, 20e3), main = "Eng_Est", pch = 19, outcol = "darkblue",
-        col = "cornflowerblue")
+# long dataset for boxplot
+rbind(cbind(dat_aucs_mod_eng[[2]][["Winning_Bid"]], "Act."),
+      cbind(pred_vals_test, "Lasso Reg."),
+      cbind(dat_aucs_mod_eng[[2]][["Eng_Est"]], "Eng. Est."))|> as.data.frame()|> 
+      setNames(c("Award_Price", "Model")) -> dat_box
+
+
+# change 
+within(dat_box,{
+        Award_Price <- as.numeric(Award_Price)
+        Model <- factor(Model, levels = c("Act.", "Lasso Reg.", "Eng. Est."))
+        }) -> dat_box
+
+# save data
+# saveRDS(dat_box, "./../../Data/Misc Data/Figure_Data/Lasso_Performance.RDS")
+
+# save
+# pdf("./../../Data/Misc Data/Figures/Actual_Lasso_Eng_Est.pdf")
+
+# datbox
+boxplot(as.numeric(dat_box[, 1]) ~ dat_box[, 2], xlab = "", ylab = "Award Price",
+        ylim = c(0, 20e3), pch = 19, outcol = "darkorchid", 
+        col = c("cornflowerblue", "forestgreen", "firebrick"), main = "Quality of Prediction")
+
+# plot device
+# dev.off()
 
 # rmse
 sapply(list(pred_vals_test, dat_aucs_mod_eng[[2]][["Eng_Est"]]), \(x){

@@ -2,10 +2,25 @@ First-Price Procurement Auctions
 ================
 
 This repository contains my master thesis on first-price sealed-bid
-procurement auctions. In particular, the aim is to predict winning bid prices using data from the [Colorado Department of
-Transportation](https://codot.gov/business/bidding/bid-tab-archives).
+procurement auctions. In particular, the aim is to predict award prices
+of auctions held by the [Colorado Department of
+Transportation](https://codot.gov/business/bidding/bid-tab-archives). To
+date, the following models with varying pre-processing schedules have
+been compared:
 
-# Installing Tabulizer for R &gt; 4.1
+-   Elastic Net
+-   Random Forest
+    -   [including logistic PCA
+        preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
+-   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
+
+# Best Model (07/04/2022)
+
+![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+# Required Software
+
+## Installing Tabulizer for R \> 4.1
 
 Unfortunately, the implementation of the Java library tabula which is a
 package called tabulizer cannot be installed via *install.packages()*
@@ -29,10 +44,10 @@ described in the installation guide for windows 10.
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] compiler_4.1.2    magrittr_2.0.1    tools_4.1.2       htmltools_0.5.1.1
-    ##  [5] yaml_2.2.1        stringi_1.6.1     rmarkdown_2.8     knitr_1.33       
-    ##  [9] stringr_1.4.0     xfun_0.23         digest_0.6.27     rlang_0.4.11     
-    ## [13] evaluate_0.14
+    ##  [1] compiler_4.1.2    magrittr_2.0.1    cli_3.0.1         tools_4.1.2      
+    ##  [5] htmltools_0.5.1.1 rstudioapi_0.13   yaml_2.2.1        stringi_1.6.1    
+    ##  [9] rmarkdown_2.14    highr_0.9         knitr_1.33        stringr_1.4.0    
+    ## [13] xfun_0.23         digest_0.6.27     rlang_1.0.2       evaluate_0.14
 
 Three steps have to be altered:
 

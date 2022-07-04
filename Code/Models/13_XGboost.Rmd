@@ -65,14 +65,14 @@ lapply(dat_aucs_eng, \(x){
 # parameters
 XGgrid <- expand.grid("objective" = "reg:squarederror",
                       "booster" = "gbtree",
-                      "eta" = c(0.01, 0.05, seq(0.1, 0.3, 0.1)), 
-                      "gamma" = seq(0, 10, 2),
+                      "eta" = seq(0.05, 0.25, 0.1), 
+                      "gamma" = seq(0.1, 9, 3),
                       "max_depth" = seq(5, 100, 25),
-                      "min_child_weight" = seq(0, 10, 2),
-                      "subsample" = seq(0.4, 1, 0.2),
-                      "colsample_bytree" = seq(0.4, 1, 0.2),
-                      "lambda" = seq(0, 10, 2),
-                      "alpha" = seq(0, 10, 2))
+                      "min_child_weight" = seq(3, 9, 3),
+                      "subsample" = seq(0.6, 1, 0.3),
+                      "colsample_bytree" = seq(0.6, 1, 0.3),
+                      "lambda" = seq(0.1, 9, 3),
+                      "alpha" = seq(0.1, 9, 3))
 
 # test 
 param_lst <- as.list(XGgrid[1, ])
