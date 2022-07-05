@@ -25,23 +25,71 @@ auctions. In particular, the aim is to predict award prices of auctions held by 
   - [including logistic PCA preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
 * [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/04/2022)
+# Best Model (`r Sys.Date() |> format("%D")`)
+
+The boxplots below display the out of sample predicted values for the lasso regression and the random forest with logistic PCA pre-processing. Further, as the Engineers Estimate may be considered as a benchmark for prediction it is also included in the plot.
 
 ```{r, echo = FALSE}
 # data
-dat_per_plot <- readRDS("./Data/Misc Data/Figure_Data/Lasso_Performance.RDS")
+per_lasso <- readRDS("./Data/Misc Data/Figure_Data/Lasso_Performance.RDS")
+per_RF <- readRDS("./Data/Misc Data/Figure_Data/logPCA_RF_pred.RDS")
+
+# bind
+do.call(rbind, lapply(list(per_lasso, per_RF), \(df){
+  
+  # names to na
+  names(df) <- rep(NA,ncol(df))
+  
+  # ret
+  return(df)
+  
+})) |> setNames(c("Award_Price", "Model")) -> dat_per_plot
+
+# class
+dat_per_plot$Award_Price <- as.numeric(dat_per_plot$Award_Price)
+
+# relevel
+dat_per_plot$Model <- factor(dat_per_plot$Model, 
+                             levels = c("Act.", "Lasso Reg.", "RF", "Eng. Est."))
+
+#align
+par(mar = c(2, 2, 2, 2) + 0.1)
 
 # boxplot
 boxplot(Award_Price ~ Model, xlab = "", ylab = "Award Price",
-        ylim = c(0, 20e3), pch = 19, outcol = "darkorchid", 
-        col = c("cornflowerblue", "forestgreen", "firebrick"), main = "Quality of Prediction",
+        ylim = c(0, 20e3), pch = 19, outcol = "darksalmon", 
+        col = c("cornflowerblue", "darkgoldenrod1", "firebrick", "forestgreen"), 
+        main = "Quality of Prediction",
         data = dat_per_plot)
 ```
 
+The boxplot shows that the Lasso regression seems to be able to predict the outliers the best when compared to the random forest and the Engineers Estimate.
+
+```{r, echo = FALSE}
+# split
+sp_DF <- split(dat_per_plot, dat_per_plot[, "Model"]) |> lapply("[[", 1)
+Actual <- sp_DF[[1]]
+sp_DF[[1]] <- NULL
+
+
+# calc RMSE and MAE
+sapply(sp_DF, \(x){
+
+  sapply(list(Metrics::rmse, Metrics::mae), \(fun){
+  
+      fun(Actual, x)
+    
+  }) |> setNames(c("RMSE", "MAE"))
+
+}) |> knitr::kable(col.names = c("Lasso", "RF","Eng. Est."))
+```
+
+The performance comparison utilizing linear and quadratic loss functions further emphasizes the dominance of the Lasso model.
 
 # Required Software
 
 ## Installing Tabulizer for R > 4.1 
+
 Unfortunately, the implementation of the Java library tabula which is a package called tabulizer cannot be installed via *install.packages()* and further the installation [guide](https://github.com/ropensci/tabulizer) is not up to date. However, with a small adaption the installation works almost as described in the installation guide for windows 10.
 
 ```{r, echo = FALSE}

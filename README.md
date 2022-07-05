@@ -14,9 +14,26 @@ been compared:
         preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/04/2022)
+# Best Model (07/05/22)
+
+The boxplots below display the out of sample predicted values for the
+lasso regression and the random forest with logistic PCA pre-processing.
+Further, as the Engineers Estimate may be considered as a benchmark for
+prediction it is also included in the plot.
 
 ![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+The boxplot shows that the Lasso regression seems to be able to predict
+the outliers the best when compared to the random forest and the
+Engineers Estimate.
+
+|      |    Lasso |       RF | Eng. Est. |
+|:-----|---------:|---------:|----------:|
+| RMSE | 326.1261 | 509.7934 |  497.0567 |
+| MAE  | 241.7894 | 348.2869 |  327.9388 |
+
+The performance comparison utilizing linear and quadratic loss functions
+further emphasizes the dominance of the Lasso model.
 
 # Required Software
 
@@ -47,7 +64,8 @@ described in the installation guide for windows 10.
     ##  [1] compiler_4.1.2    magrittr_2.0.1    cli_3.0.1         tools_4.1.2      
     ##  [5] htmltools_0.5.1.1 rstudioapi_0.13   yaml_2.2.1        stringi_1.6.1    
     ##  [9] rmarkdown_2.14    highr_0.9         knitr_1.33        stringr_1.4.0    
-    ## [13] xfun_0.23         digest_0.6.27     rlang_1.0.2       evaluate_0.14
+    ## [13] xfun_0.23         digest_0.6.27     Metrics_0.1.4     rlang_1.0.2      
+    ## [17] evaluate_0.14
 
 Three steps have to be altered:
 

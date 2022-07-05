@@ -229,7 +229,7 @@ do.call(cbind, lapply(1:length(CV_lst[[1]]), \(ind){
   #maes <- do.call(rbind, lst_pick(pers, 2)) |> colMeans()
 
   # return back data frame with inputs
-  mods[[1]][c(9, 10) ,] <- rmses#rbind(rmses, maes)
+  mods[[1]][c(9) ,] <- rmses#rbind(rmses, maes)
   
   # return
   mods[[1]]
@@ -337,6 +337,9 @@ ranger::ranger(Winning_Bid ~., mtry = as.numeric(best_fit[1, 1]),
 
 # predict training set
 predicted_vals <- predict(fit_train, PC_dfs[["Test"]])[["predictions"]]
+
+# write rds
+# saveRDS(as.data.frame(cbind(predicted_vals, "RF")), "./../../Data/Misc Data/logPCA_RF_pred.RDS")
 
 # eval
 par(mfrow = c(1, 3))
