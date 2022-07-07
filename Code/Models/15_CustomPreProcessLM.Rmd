@@ -1,0 +1,202 @@
+---
+title: |
+       | Pre-Process Linear Model
+author: "Fabian Blasch"
+date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{float}
+   - \usepackage{titling}
+   - \usepackage{xcolor}
+output: 
+   pdf_document:
+      number_sections: TRUE
+---
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+# knitr options
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.pos = "center",
+                      fig.width = 8,
+                      fig.height = 4,
+                      fig.pos = "H")
+
+# source AUX
+source("./../Misc/Auxilliary.R")
+source("./../Misc/model_eval.R")
+
+# packages
+get.package(c("lubridate", "lmvar", "patchwork", "logisticPCA", "Metrics",
+              "parallel", "caret", "lme4"))
+
+# load data
+dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
+```
+
+# LogPCA Pre-Process CV Function for LM
+
+```{r}
+# write CV function
+log_PCA_lm_CV <- \(data, nfolds = 5, m_nest_CV = seq(1, 13, 2), 
+                   k_desc_CV = seq(2, 20, 2), k_ven_CV = seq(2, 20, 2), 
+                   k_vendInt_CV = seq(2, 20, 2), eval_fun = Metrics::rmse, 
+                   ncore = NULL, seed = 33){
+  
+  # rm unwanted cols
+  within(data,{
+    Contract_ID <- NULL
+    MLOT <- NULL
+    EW_Diff <- NULL
+    Winning_Bid <- Winning_Bid / 1e3
+    Eng_Est <- Eng_Est / 1e3
+  }) -> data
+  
+  # bools
+  vend_cols_log <- names(data) |> stringr::str_detect("Vend_") 
+  interact_cols <- names(data) |> stringr::str_detect("_x_")
+  descr_words <- which(!vend_cols_log)[-c(1:7)]
+  Vend_not_int <- vend_cols_log & (!interact_cols)
+  
+  # seed
+  set.seed(seed)
+
+  # generate CV folds
+  folds <- sample(nrow(data), nrow(data), replace = FALSE) |> 
+            split(as.factor(1:nfolds)) |> setNames(1:nfolds) |> suppressWarnings()
+
+  # tuning grid init
+  tgrid_PC <- expand.grid("nPCA_Desc" = k_desc_CV,
+                          "nPCA_Vend" = k_ven_CV,
+                          "nPCA_VendInt" = k_vendInt_CV)
+
+  # fold count
+  fold_count <- 1
+  
+  # set up parallel compute cluster
+  if(is.null(ncore)){
+    
+    # set amount of cores to the max available and leave one out
+    ncore <- parallel::detectCores() - 1
+    
+    # we parallelize over folds - the maximum number of occupied cores should thus be
+    ncore <- min(ncore, nfolds)
+    
+  } else {
+    
+    # find min of ncore and folds
+    ncore <- min(ncore, nfolds)
+    
+  }
+
+  # set up cluster
+ # clust <- parallel::makeCluster(ncore)
+
+  # print cores that will be occupied
+  #warning(paste0(length(clust), " cores will be occupied by this process!"))
+  
+  # loop over folds each is used as test set once
+  #parallel::parLapply(clust, names(folds), \(f_ind){
+  lapply(names(folds), \(f_ind){
+  
+      # test - bool 
+      test_bool <- names(folds) %in% f_ind
+
+      # train and test
+      train <- data[do.call(c, folds[!test_bool]), ]
+      test <- data[folds[test_bool] |> unlist(), ]
+      
+      # separate into desc / Vend / Vend_int
+      grps <- list("Train" = list("Description" = train[, descr_words], 
+                                  "Vendor" = train[, Vend_not_int],
+                                  "Vendor_Interaction" = train[, interact_cols]),
+                   "Test" = list("Description" = test[, descr_words], 
+                                  "Vendor" = test[, Vend_not_int],
+                                  "Vendor_Interaction" = test[, interact_cols]))
+      
+      # Print Fold Start
+      cat(paste0(Sys.time(), ", starting CV for fold: ", fold_count, "/", nfolds, "\n"))
+      fold_count <<- fold_count + 1
+      
+      # nested CV
+      apply(tgrid_PC, 1, \(x){
+
+        # Over all 3 binary subsets
+        Map(\(dat_train, dat_test, kk){
+
+          # CV for m of logistic PCA
+          cv_PCA <- logisticPCA::cv.lpca(dat_train, ms = m_nest_CV, ks = kk)
+        
+          # fit
+          fit_PCA <- logisticPCA::logisticPCA(dat_train, k = kk, 
+                                 m = colnames(cv_PCA)[which.min(cv_PCA)] |> as.numeric())
+            
+          # predict 
+          pred_PCA <- predict(fit_PCA, dat_test, type = "PCs") # name this (variable importance)
+          
+          # return
+          return(list("Fit_PCA" = fit_PCA,
+                      "Pred_PCA" = pred_PCA))
+          
+        }, grps[["Train"]], grps[["Test"]], x) -> fitted_PCs
+
+        # assemble PCA dataset
+        PC_dfs <- Map(\(tt, PCAtt, bool){
+    
+          # bool for supset
+          if(bool){
+            
+            # subset from fit
+            PCs <- lapply(fitted_PCs, "[[", PCAtt) |> lapply(\(z) as.data.frame(z[["PCs"]])) 
+              
+          } else {
+            
+            PCs <- lapply(fitted_PCs, \(t) as.data.frame(t[[PCAtt]]))
+            
+          }
+    
+          # assemble new test and train set
+          dat <- cbind(tt[1:7], do.call(cbind, PCs))
+          
+          # return model matrix
+          model.matrix(~. + 0, data = dat)
+
+        }, list(train, test), 
+        c("Fit_PCA", "Pred_PCA"), c(TRUE, FALSE)) |> setNames(c("Train", "Test"))
+
+        browser()
+        # fit LM
+        model <- lm(Winning_Bid ~., data = PC_dfs[["Train"]])
+        
+        # predict on testset
+        pred <- predict(model, PC_dfs[["Test"]])
+        
+        # eval res
+        eval_res <- eval_fun(actual = PC_dfs[["Test"]][, "Winning_Bid"], 
+                             predicted = pred[["predictions"]])
+        
+        # return
+        return(x[1], # nPCA Desc
+               x[2], # nPCA Vend
+               x[3], # nPCA VendInt
+               "performance" = eval_res)
+        
+    }) |> setNames(paste0("PCA_", 1:nrow(tgrid_PC)))
+  }) |> setNames(1:nfolds) -> tmp
+  
+  # release cores 
+  #on.exit(parallel::stopCluster(clust))
+  
+}
+```
+
+```{r}
+# run
+log_PCA_lm_CV(dat_aucs_eng[["Train"]][1:50,], m_nest_CV = 3, 
+              k_desc_CV = 2, k_ven_CV = 2, 
+              k_vendInt_CV = 2)
+
+```
+
+
+

@@ -146,7 +146,150 @@ xgb.cv_opt <- \(nrounds = 1e3, print_every_n = 2e3, nfold = 5,
   # return
   return(tmp)
 }
+```
 
-xgb.cv_opt(data = dat_aucs_mod[["Train"]][["XGB_Matrix"]], tuning_grid = XGgrid[1:2, ])
+## Eval. CV Results from Colab Run 1
+
+```{r}
+# CV results
+XGB_CV_res <- readRDS("./../../Data/Models/XGB/Raw/CV_XGBoost_feateng.RDS")
+
+# order
+# obtain performance ranking
+per_rank <- XGB_CV_res[, order(XGB_CV_res[3, ])]
+
+# best model
+best_fit <- per_rank[, 1, drop = FALSE]
+
+```
+
+## Update Tuning Grid 
+
+For all hyper parameters for which the lowest or highest value was chosen for the best fit in CV
+we will update the tuning sequence.
+
+```{r}
+# updated hyperparameters
+XGgrid_r2 <- expand.grid("objective" = "reg:squarederror",
+                      "booster" = "gbtree",
+                      "eta" = seq(0.01, 0.05, 0.02), 
+                      "gamma" = c(0.05, 0.1, 0.5, 1),
+                      "max_depth" = c(3, 5, 10),
+                      "min_child_weight" = seq(1, 5, 2),
+                      "subsample" = seq(0.9, 1, 0.1),
+                      "colsample_bytree" = seq(0.9, 1, 0.1),
+                      "lambda" = seq(5, 10, 2),
+                      "alpha" = seq(2, 4, 2))
+```
+
+## Results from Colab Run 2
+
+```{r}
+# CV results
+XGB_CV_res_r2 <- readRDS("./../../Data/Models/XGB/Raw/CV_XGBoost_feateng_r2.RDS")
+
+# order
+# obtain performance ranking
+per_rank_r2 <- XGB_CV_res_r2[, order(XGB_CV_res_r2[3, ])]
+
+# best model
+best_fit_r2 <- per_rank_r2[, 1, drop = FALSE]
+
+# again update tuning grid for run 3
+XGgrid_r3 <- expand.grid("objective" = "reg:squarederror",
+                         "booster" = "gbtree",
+                         "eta" = seq(0.04, 0.06, 0.01), 
+                         "gamma" = c(0.03, 0.05, 0.1),
+                         "max_depth" = c(4, 5, 6),
+                         "min_child_weight" = 1,
+                         "subsample" = seq(0.85, 0.95, 0.05),
+                         "colsample_bytree" = seq(0.85, 0.95, 0.05),
+                         "lambda" = seq(6, 8, 1),
+                         "alpha" = seq(3, 7, 2))
+
+```
+
+## Results from Colab Run 3
+
+```{r}
+# CV results
+XGB_CV_res_r3 <- readRDS("./../../Data/Models/XGB/Raw/CV_XGBoost_feateng_r3.RDS")
+
+# order
+# obtain performance ranking
+per_rank_r3 <- XGB_CV_res_r3[, order(XGB_CV_res_r3[3, ])]
+
+# best model
+best_fit_r3 <- per_rank_r3[, 1, drop = FALSE]
+
+# again update tuning grid for run 4
+XGgrid_r4 <- expand.grid("objective" = "reg:squarederror",
+                         "booster" = "gbtree",
+                         "eta" = seq(0.02, 0.04, 0.01), 
+                         "gamma" = c(0.03, 0.04, 0.01),
+                         "max_depth" = c(6, 7),
+                         "min_child_weight" = 1,
+                         "subsample" = 0.9,
+                         "colsample_bytree" = 0.9,
+                         "lambda" = seq(8, 11, 1),
+                         "alpha" = seq(2, 4, 1))
+```
+
+## Results from Colab Run 4
+
+```{r}
+# CV results
+XGB_CV_res_r4 <- readRDS("./../../Data/Models/XGB/Raw/CV_XGBoost_feateng_r4.RDS")
+
+# order
+# obtain performance ranking
+per_rank_r4 <- XGB_CV_res_r4[, order(XGB_CV_res_r4[3, ])]
+
+# best model
+best_fit_r4 <- per_rank_r4[, 1, drop = FALSE]
+
+# final tuning grid for run 5
+XGgrid_r5 <- expand.grid("objective" = "reg:squarederror",
+                         "booster" = "gbtree",
+                         "eta" = 0.04, 
+                         "gamma" = c(0.01, 0.02),
+                         "max_depth" = seq(7, 10, 1),
+                         "min_child_weight" = 1,
+                         "subsample" = 0.9,
+                         "colsample_bytree" = 0.9,
+                         "lambda" = seq(8, 11, 1),
+                         "alpha" = seq(3, 4, 1))
+```
+
+
+## Results from Colab Run 5
+
+```{r}
+# CV results
+XGB_CV_res_r5 <- readRDS("./../../Data/Models/XGB/Raw/CV_XGBoost_feateng_r5.RDS")
+
+# order
+# obtain performance ranking
+per_rank_r5 <- XGB_CV_res_r5[, order(XGB_CV_res_r5[3, ])]
+
+# best model
+best_fit_r5 <- per_rank_r5[, 1, drop = FALSE]
+```
+
+# Fit on testset
+
+```{r}
+# params of best model
+params_fin <- as.list(best_fit_r5[4:nrow(best_fit_r5), ])
+
+# fit
+fit_xgb <- xgboost::xgboost(nrounds = 338, data = dat_aucs_mod[["Train"]][["XGB_Matrix"]],
+                            params = params_fin)
+
+# predicted vals on testset
+pred_xgb <- predict(fit_xgb, dat_aucs_mod[["Test"]][["XGB_Matrix"]])
+
+# write 
+# saveRDS(pred_xgb, "./../../Data/Misc Data/Figure_Data/xgb_pred.RDS")
 ```
 

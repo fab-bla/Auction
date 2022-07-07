@@ -33,12 +33,19 @@ The boxplots below display the out of sample predicted values for the lasso regr
 # data
 per_lasso <- readRDS("./Data/Misc Data/Figure_Data/Lasso_Performance.RDS")
 per_RF <- readRDS("./Data/Misc Data/Figure_Data/logPCA_RF_pred.RDS")
+per_xgb <- readRDS("./Data/Misc Data/Figure_Data/xgb_pred.RDS")
+
+# add model name to xgb
+per_xgb <- cbind(per_xgb, "XGB") |> data.frame()
+
+# lst
+lst <- list(per_lasso, per_RF, per_xgb)
 
 # bind
-do.call(rbind, lapply(list(per_lasso, per_RF), \(df){
-  
+do.call(rbind, lapply(lst, \(df){
+
   # names to na
-  names(df) <- rep(NA,ncol(df))
+  names(df) <- rep(NA, ncol(df))
   
   # ret
   return(df)
@@ -50,7 +57,7 @@ dat_per_plot$Award_Price <- as.numeric(dat_per_plot$Award_Price)
 
 # relevel
 dat_per_plot$Model <- factor(dat_per_plot$Model, 
-                             levels = c("Act.", "Lasso Reg.", "RF", "Eng. Est."))
+                             levels = c("Act.", "Lasso Reg.", "RF", "XGB","Eng. Est."))
 
 #align
 par(mar = c(2, 2, 2, 2) + 0.1)
@@ -81,7 +88,7 @@ sapply(sp_DF, \(x){
     
   }) |> setNames(c("RMSE", "MAE"))
 
-}) |> knitr::kable(col.names = c("Lasso", "RF","Eng. Est."))
+}) |> knitr::kable(col.names = c("Lasso", "RF", "XGB", "Eng. Est."))
 ```
 
 The performance comparison utilizing linear and quadratic loss functions further emphasizes the dominance of the Lasso model.

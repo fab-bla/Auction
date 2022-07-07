@@ -249,6 +249,25 @@ Dens_hist_plot <- \(data = dat_bids, y, dist = "gamma", distFUN = dgamma, bg_alt
   
 }
 
+## CV AUX ##
+
+# source lmvar
+make_matrix_full_rank <- \(X){
+
+  # qr decomp
+  qX <- qr(X)
+  
+  # remove as many cols as necessary to obtain full rank
+  if (qX$rank != 1){
+    X = X[, qX$pivot[1:qX$rank]]
+  }
+  else {
+    name = colnames(X)[qX$pivot[1]]
+    X = as.matrix(X[, qX$pivot[1]])
+    colnames(X) = name
+  }
+  return(X)
+}
 
 
 
