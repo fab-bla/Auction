@@ -28,7 +28,7 @@ source("./../Misc/model_eval.R")
 
 # packages
 get.package(c("lubridate", "lmvar", "patchwork", "logisticPCA", "Metrics",
-              "parallel", "caret", "lme4"))
+              "parallel", "caret"))
 
 # load data
 dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
@@ -69,9 +69,6 @@ log_PCA_lm_CV <- \(data, nfolds = 5, m_nest_CV = seq(1, 13, 2),
   tgrid_PC <- expand.grid("nPCA_Desc" = k_desc_CV,
                           "nPCA_Vend" = k_ven_CV,
                           "nPCA_VendInt" = k_vendInt_CV)
-
-  # fold count
-  fold_count <- 1
   
   # set up parallel compute cluster
   if(is.null(ncore)){
@@ -90,15 +87,14 @@ log_PCA_lm_CV <- \(data, nfolds = 5, m_nest_CV = seq(1, 13, 2),
   }
 
   # set up cluster
- # clust <- parallel::makeCluster(ncore)
+  clust <- parallel::makeCluster(ncore)
 
   # print cores that will be occupied
-  #warning(paste0(length(clust), " cores will be occupied by this process!"))
+  warning(paste0(length(clust), " cores will be occupied by this process!"))
   
   # loop over folds each is used as test set once
-  #parallel::parLapply(clust, names(folds), \(f_ind){
-  lapply(names(folds), \(f_ind){
-  
+  parallel::parLapply(clust, names(folds), \(f_ind){
+    
       # test - bool 
       test_bool <- names(folds) %in% f_ind
 
@@ -113,11 +109,7 @@ log_PCA_lm_CV <- \(data, nfolds = 5, m_nest_CV = seq(1, 13, 2),
                    "Test" = list("Description" = test[, descr_words], 
                                   "Vendor" = test[, Vend_not_int],
                                   "Vendor_Interaction" = test[, interact_cols]))
-      
-      # Print Fold Start
-      cat(paste0(Sys.time(), ", starting CV for fold: ", fold_count, "/", nfolds, "\n"))
-      fold_count <<- fold_count + 1
-      
+
       # nested CV
       apply(tgrid_PC, 1, \(x){
 
@@ -164,7 +156,18 @@ log_PCA_lm_CV <- \(data, nfolds = 5, m_nest_CV = seq(1, 13, 2),
         }, list(train, test), 
         c("Fit_PCA", "Pred_PCA"), c(TRUE, FALSE)) |> setNames(c("Train", "Test"))
 
-        browser()
+        # ind for all vars that are not const. and 0 - aim to remove factors not available in the current fold
+        ind1 <- apply(PC_dfs[["Train"]], 2, \(x) any(x != 0))
+        
+        # identical cols
+        ind2 <- !duplicated(as.list(PC_dfs[["Train"]] |> as.data.frame()))
+        
+        # fin ind
+        ind <- ind1 & ind2
+        
+        # rm
+        PC_dfs <- lapply(PC_dfs, \(df) df[, ind] |> as.data.frame())
+
         # fit LM
         model <- lm(Winning_Bid ~., data = PC_dfs[["Train"]])
         
@@ -173,28 +176,30 @@ log_PCA_lm_CV <- \(data, nfolds = 5, m_nest_CV = seq(1, 13, 2),
         
         # eval res
         eval_res <- eval_fun(actual = PC_dfs[["Test"]][, "Winning_Bid"], 
-                             predicted = pred[["predictions"]])
+                             predicted = pred)
         
         # return
-        return(x[1], # nPCA Desc
-               x[2], # nPCA Vend
-               x[3], # nPCA VendInt
-               "performance" = eval_res)
+        return(c(x[1], # nPCA Desc
+                 x[2], # nPCA Vend
+                 x[3], # nPCA VendInt
+                 "performance" = eval_res))
         
-    }) |> setNames(paste0("PCA_", 1:nrow(tgrid_PC)))
+    }) 
   }) |> setNames(1:nfolds) -> tmp
   
   # release cores 
-  #on.exit(parallel::stopCluster(clust))
+  on.exit(parallel::stopCluster(clust), add = TRUE)
   
+  # return
+  return(tmp)
 }
 ```
 
 ```{r}
 # run
-log_PCA_lm_CV(dat_aucs_eng[["Train"]][1:50,], m_nest_CV = 3, 
+log_PCA_lm_CV(dat_aucs_eng[["Train"]][1:50, ], m_nest_CV = 3, 
               k_desc_CV = 2, k_ven_CV = 2, 
-              k_vendInt_CV = 2)
+              k_vendInt_CV = 2) -> a
 
 ```
 
