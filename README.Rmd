@@ -63,7 +63,7 @@ dat_per_plot$Award_Price <- as.numeric(dat_per_plot$Award_Price)
 dat_per_plot$Model <- factor(dat_per_plot$Model, 
                              levels = c("Act.", "Lasso Reg.", "LM","RF", "XGB","Eng. Est."))
 
-#align
+# align
 par(mar = c(2, 2, 2, 2) + 0.1)
 
 # boxplot
