@@ -9,12 +9,15 @@ date, the following models with varying pre-processing schedules have
 been compared:
 
 -   Elastic Net
+-   Linear Model
+    -   [with logistic PCA
+        preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_PreProcess_LM.ipynb)
 -   Random Forest
-    -   [including logistic PCA
+    -   [with logistic PCA
         preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/07/22)
+# Best Model (07/09/22)
 
 The boxplots below display the out of sample predicted values for the
 lasso regression and the random forest with logistic PCA pre-processing.
@@ -27,10 +30,10 @@ The boxplot shows that the Lasso regression seems to be able to predict
 the outliers the best when compared to the random forest and the
 Engineers Estimate.
 
-|      |    Lasso |       RF |      XGB | Eng. Est. |
-|:-----|---------:|---------:|---------:|----------:|
-| RMSE | 326.1261 | 509.7934 | 671.6634 |  497.0567 |
-| MAE  | 241.7894 | 348.2869 | 376.3191 |  327.9388 |
+|      |    Lasso |       LM |       RF |      XGB | Eng. Est. |
+|:-----|---------:|---------:|---------:|---------:|----------:|
+| RMSE | 326.1261 | 609.4673 | 509.7934 | 671.6634 |  497.0567 |
+| MAE  | 241.7894 | 448.2662 | 348.2869 | 376.3191 |  327.9388 |
 
 The performance comparison utilizing linear and quadratic loss functions
 further emphasizes the dominance of the Lasso model.

@@ -21,8 +21,10 @@ This repository contains my master thesis on first-price sealed-bid procurement
 auctions. In particular, the aim is to predict award prices of auctions held by the [Colorado Department of Transportation](https://codot.gov/business/bidding/bid-tab-archives). To date, the following models with varying pre-processing schedules have been compared:
 
 * Elastic Net
+* Linear Model
+  - [with logistic PCA preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_PreProcess_LM.ipynb)
 * Random Forest
-  - [including logistic PCA preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
+  - [with logistic PCA preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
 * [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
 # Best Model (`r Sys.Date() |> format("%D")`)
@@ -34,12 +36,14 @@ The boxplots below display the out of sample predicted values for the lasso regr
 per_lasso <- readRDS("./Data/Misc Data/Figure_Data/Lasso_Performance.RDS")
 per_RF <- readRDS("./Data/Misc Data/Figure_Data/logPCA_RF_pred.RDS")
 per_xgb <- readRDS("./Data/Misc Data/Figure_Data/xgb_pred.RDS")
+per_LM <- readRDS("./Data/Misc Data/Figure_Data/logPCA_LM_pred.RDS")
 
 # add model name to xgb
 per_xgb <- cbind(per_xgb, "XGB") |> data.frame()
+per_LM <- cbind(per_LM, "LM") |> data.frame()
 
 # lst
-lst <- list(per_lasso, per_RF, per_xgb)
+lst <- list(per_lasso, per_RF, per_xgb, per_LM)
 
 # bind
 do.call(rbind, lapply(lst, \(df){
@@ -57,7 +61,7 @@ dat_per_plot$Award_Price <- as.numeric(dat_per_plot$Award_Price)
 
 # relevel
 dat_per_plot$Model <- factor(dat_per_plot$Model, 
-                             levels = c("Act.", "Lasso Reg.", "RF", "XGB","Eng. Est."))
+                             levels = c("Act.", "Lasso Reg.", "LM","RF", "XGB","Eng. Est."))
 
 #align
 par(mar = c(2, 2, 2, 2) + 0.1)
@@ -66,7 +70,7 @@ par(mar = c(2, 2, 2, 2) + 0.1)
 boxplot(Award_Price ~ Model, xlab = "", ylab = "Award Price",
         ylim = c(0, 20e3), pch = 19, outcol = "darksalmon", 
         col = c("cornflowerblue", "darkgoldenrod1", "firebrick", "forestgreen",
-                "darkmagenta"), 
+                "darkmagenta", "wheat3"), 
         main = "Quality of Prediction",
         data = dat_per_plot)
 ```
@@ -89,7 +93,7 @@ sapply(sp_DF, \(x){
     
   }) |> setNames(c("RMSE", "MAE"))
 
-}) |> knitr::kable(col.names = c("Lasso", "RF", "XGB", "Eng. Est."))
+}) |> knitr::kable(col.names = c("Lasso", "LM", "RF", "XGB", "Eng. Est."))
 ```
 
 The performance comparison utilizing linear and quadratic loss functions further emphasizes the dominance of the Lasso model.

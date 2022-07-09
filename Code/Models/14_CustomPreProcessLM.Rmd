@@ -195,13 +195,145 @@ log_PCA_lm_CV <- \(data, nfolds = 5, m_nest_CV = seq(1, 13, 2),
 }
 ```
 
-```{r}
-# run
-log_PCA_lm_CV(dat_aucs_eng[["Train"]][1:50, ], m_nest_CV = 3, 
-              k_desc_CV = 2, k_ven_CV = 2, 
-              k_vendInt_CV = 2) -> a
+# CV Results
 
+```{r}
+# Results
+res <- readRDS("./../../Data/Models/LM/Raw/CV_LM_logPCA.RDS")
+
+
+# get cv error over all folds
+do.call(rbind, lapply(res, \(x){
+  
+  # pick only rmse
+  x[4, ]
+  
+})) |> colMeans() -> CV_error
+
+# bind back
+per <- res[[1]] 
+
+# assign
+per[4, ] <- CV_error
+
+# obtain performance ranking
+per <- per[, order(per[4, ])]
+
+# best model
+best_fit <- per[, 1, drop = FALSE]
 ```
 
+# Datasets Out of Sample Prediction
+
+```{r}
+# rm
+lapply(dat_aucs_eng, \(dat){
+
+  # rm vars
+  within(dat, {
+    Contract_ID <- NULL
+    MLOT <- NULL
+    EW_Diff <- NULL
+    Winning_Bid <- Winning_Bid / 1e3
+    Eng_Est <- Eng_Est / 1e3
+  })
+
+}) -> dat_aucs_mod
+
+# train and test
+train <- dat_aucs_mod[["Train"]]
+test <- dat_aucs_mod[["Test"]]
+
+
+# bools
+vend_cols_log <- names(train) |> stringr::str_detect("Vend_")
+interact_cols <- names(train) |> stringr::str_detect("_x_")
+descr_words <- which(!vend_cols_log)[-c(1:7)]
+Vend_not_int <- vend_cols_log & (!interact_cols)
+
+# separate into desc / Vend / Vend_int
+grps <- list("Train" = list("Description" = train[, descr_words],
+                            "Vendor" = train[, Vend_not_int],
+                            "Vendor_Interaction" = train[, interact_cols]),
+             "Test" = list("Description" = test[, descr_words],
+                            "Vendor" = test[, Vend_not_int],
+                            "Vendor_Interaction" = test[, interact_cols]))
+
+# fitting log PCA
+Map(\(train, test, nPCA){
+
+  # CV for m of logistic PCA
+  cv_PCA <- cv.lpca(train, ms = c(2, 4, 8, 12), ks = nPCA)
+
+  # fit
+  fit_PCA <- logisticPCA(train, k = nPCA,
+                         m = colnames(cv_PCA)[which.min(cv_PCA)] |> as.numeric())
+
+  # predict
+  pred_PCA <- predict(fit_PCA, test, type = "PCs")
+
+  # return
+  return(list("Fit_PCA" = fit_PCA,
+              "Pred_PCA" = pred_PCA))
+
+}, grps[[1]], grps[[2]], c(10, 10, 5)) -> fitted_PCs
+
+# assemble PCA dataset
+PC_dfs <- Map(\(tt, PCAtt, bool){
+
+  # bool for supset
+  if(bool){
+
+    # subset from fit
+    PCs <- lapply(fitted_PCs, "[[", PCAtt) |> lapply(\(z) as.data.frame(z[["PCs"]]))
+
+  } else {
+
+    PCs <- lapply(fitted_PCs, \(t) as.data.frame(t[[PCAtt]]))
+
+  }
+
+  # assemble new test and train set
+  cbind(tt[1:7], do.call(cbind, PCs))
+
+}, list(train, test),
+c("Fit_PCA", "Pred_PCA"), c(TRUE, FALSE)) |> setNames(c("Train", "Test"))
+
+# write file 
+# saveRDS(PC_dfs, "./../../Data/Misc Data/rf_logPCA_dfs_LM_split.RDS")
+```
+
+# Results
+
+```{r}
+# model matrix
+lapply(PC_dfs, \(df){
+
+  # model mat
+  dat <- model.matrix(~. + 0, data = df)
+  
+}) -> PC_mod_mat
+
+# rm factors unavailable in training
+ind1 <- apply(PC_mod_mat[["Train"]], 2, \(x) any(x != 0))
+      
+# identical cols
+ind2 <- !duplicated(as.list(PC_mod_mat[["Train"]] |> as.data.frame()))
+
+# fin ind
+ind <- ind1 & ind2
+
+# rm
+PC_dfs <- lapply(PC_mod_mat, \(df) df[, ind] |> as.data.frame())
+
+# fit LM
+model <- lm(Winning_Bid ~., data = PC_dfs[["Train"]])
+
+# predict on testset
+pred <- predict(model, PC_dfs[["Test"]])
+
+# write 
+# saveRDS(pred, "./../../Data/Misc Data/Figure_Data/logPCA_LM_pred.RDS")
+```
 
 
