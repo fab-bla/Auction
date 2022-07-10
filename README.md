@@ -32,7 +32,7 @@ Engineers Estimate.
 
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-The plots above display the actual vs. predicted values. These plots can
+The plots above display the actual vs. predicted values. These plots may
 be used to assess whether certain models just predict the outliers
 better, which is evident from the boxplots of predicted values. We
 observe that the Lasso model seems to outperform the other models across
