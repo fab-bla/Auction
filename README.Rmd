@@ -104,16 +104,17 @@ Map(\(Pred, title, bool, fill){
   
 }, AWPs, c("Lasso Regression", "LM with logPCA Preprocessing", 
            "RF with logPCA Preprocessing", "eXtreme Gradient Boosting",
-           "Engineers Estimate"), c(T, F, F, F, F), 
+           "Engineer's Estimate"), c(T, F, F, F, F), 
           c("darkgoldenrod1", "firebrick", "forestgreen",
                 "darkmagenta", "wheat3")) -> plots 
 
 # print plots
-print(plots[[1]] / 
-     (plots[[3]] + plots[[4]]) /
-     (plots[[2]] + plots[[5]]))
+print((plots[[1]] + plots[[2]]) /
+      (plots[[3]] + plots[[4]]) /
+       plots[[5]])
 ```
 
+The plots above display the actual vs. predicted values. Those plots can be used to assess whether certain models just predict the outliers better, which is evident from the boxplots of predicted values. We observe that the Lasso model seems to outperform the other models across most of the observations in the validation set.
 
 ```{r, echo = FALSE}
 # split
