@@ -5,7 +5,7 @@ This repository contains my master thesis on first-price sealed-bid
 procurement auctions. In particular, the aim is to predict award prices
 of auctions held by the [Colorado Department of
 Transportation](https://codot.gov/business/bidding/bid-tab-archives). To
-date, the following models with varying pre-processing schedules have
+date, the following models with varying preprocessing schedules have
 been compared:
 
 -   Elastic Net
