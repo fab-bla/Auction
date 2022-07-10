@@ -17,7 +17,7 @@ been compared:
         preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/09/22)
+# Best Model (07/10/22)
 
 The boxplots below display the out of sample predicted values for the
 lasso regression and the random forest with logistic PCA pre-processing.
@@ -29,6 +29,8 @@ prediction it is also included in the plot.
 The boxplot shows that the Lasso regression seems to be able to predict
 the outliers the best when compared to the random forest and the
 Engineers Estimate.
+
+![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 |      |    Lasso |       LM |       RF |      XGB | Eng. Est. |
 |:-----|---------:|---------:|---------:|---------:|----------:|
@@ -63,12 +65,21 @@ described in the installation guide for windows 10.
     ## attached base packages:
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
+    ## other attached packages:
+    ## [1] ggplot2_3.3.6   Metrics_0.1.4   patchwork_1.1.1 lubridate_1.8.0
+    ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] compiler_4.1.2    magrittr_2.0.1    cli_3.0.1         tools_4.1.2      
-    ##  [5] htmltools_0.5.1.1 rstudioapi_0.13   yaml_2.2.1        stringi_1.6.1    
-    ##  [9] rmarkdown_2.14    highr_0.9         knitr_1.33        stringr_1.4.0    
-    ## [13] xfun_0.23         digest_0.6.27     Metrics_0.1.4     rlang_1.0.2      
-    ## [17] evaluate_0.14
+    ##  [1] highr_0.9         pillar_1.7.0      compiler_4.1.2    tools_4.1.2      
+    ##  [5] digest_0.6.27     evaluate_0.14     lifecycle_1.0.1   tibble_3.1.7     
+    ##  [9] gtable_0.3.0      pkgconfig_2.0.3   rlang_1.0.2       cli_3.0.1        
+    ## [13] DBI_1.1.1         rstudioapi_0.13   yaml_2.2.1        xfun_0.23        
+    ## [17] withr_2.5.0       stringr_1.4.0     dplyr_1.0.9       knitr_1.33       
+    ## [21] generics_0.1.2    vctrs_0.4.1       grid_4.1.2        tidyselect_1.1.2 
+    ## [25] glue_1.4.2        R6_2.5.1          fansi_1.0.3       rmarkdown_2.14   
+    ## [29] farver_2.1.0      purrr_0.3.4       magrittr_2.0.1    scales_1.2.0     
+    ## [33] ellipsis_0.3.2    htmltools_0.5.1.1 assertthat_0.2.1  colorspace_2.0-3 
+    ## [37] labeling_0.4.2    utf8_1.2.2        stringi_1.6.1     munsell_0.5.0    
+    ## [41] crayon_1.5.1
 
 Three steps have to be altered:
 

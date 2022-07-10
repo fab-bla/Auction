@@ -102,6 +102,37 @@ Eval_Curve <- function(E_Curve_Prel, col, leg_text, RoC = TRUE, act_label = NULL
   }
 }
 
+# Actual vs Predicted
+Act_vs_Pred <- \(Act, Pred, bg_alt = FALSE, fill = "cornflowerblue", 
+                 outcol = "firebrick", size = 2, shape = 23, 
+                 title = "Actual vs. Predicted", alpha = 1){
+  
+  # init. plot
+  ggplot() +
+    
+    # X = Y line
+    geom_abline(slope = 1, intercept = 0, lwd = 1.5, col = "darksalmon") +
+    
+    # scatterplot 
+    geom_point(aes(x = Act, y = Pred),
+               shape = shape, fill = fill, color = outcol, size = size,
+               alpha = alpha) +
+    
+    # theme
+    theme_bw() +
+    
+    labs(title = title, x = "Actual", y = "Predicted") +
+    
+    # add colored grid optionally
+    {if(bg_alt) theme(panel.background = element_rect(fill = "#90EE90",
+                                                      size = 2, linetype = "solid"),
+                      panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                                      colour = "white"), 
+                      panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                                      colour = "white"))}
+  
+}
+
 ## Variable Importance ##
 
 varImp <- function (object, lambda = NULL, ...){
@@ -124,5 +155,5 @@ varImp <- function (object, lambda = NULL, ...){
   out <- abs(out[rownames(out) != "(Intercept)",,drop = FALSE])
   out <- out/max(out)
   out[order(out$Overall, decreasing = TRUE),,drop=FALSE]
-  
 }
+
