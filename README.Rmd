@@ -14,7 +14,8 @@ knitr::opts_chunk$set(echo = TRUE,
                       fig.pos = "center",
                       fig.width = 9,
                       fig.height = 6,
-                      fig.pos = "H")
+                      fig.pos = "H",
+                      dev.args = list(png = list(type = "cairo")))
 
 # aux 
 source("./Code/Misc/Auxilliary.R")
