@@ -12,7 +12,7 @@ output:
 # knitr options
 knitr::opts_chunk$set(echo = TRUE,
                       fig.pos = "center",
-                      fig.width = 8,
+                      fig.width = 9,
                       fig.height = 6,
                       fig.pos = "H")
 
