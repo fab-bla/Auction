@@ -199,8 +199,8 @@ log_PCA_lm_CV <- \(data, nfolds = 5, m_nest_CV = seq(1, 13, 2),
 
 ```{r}
 # Results
-res <- readRDS("./../../Data/Models/LM/Raw/CV_LM_logPCA.RDS")
-
+# res <- readRDS("./../../Data/Models/LM/LogPCAPP/CV_LM_logPCA.RDS")
+res <- readRDS("./../../Data/Models/LM/LogPCAPP/CV_LM_logPCA_r2.RDS")
 
 # get cv error over all folds
 do.call(rbind, lapply(res, \(x){

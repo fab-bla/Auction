@@ -31,9 +31,10 @@ auctions. In particular, the aim is to predict award prices of auctions held by 
 
 * Elastic Net
 * Linear Model
-  - [with logistic PCA preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_PreProcess_LM.ipynb)
+  - [with logistic PCA preprocessing (parallel CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_PreProcess_LM.ipynb)
 * Random Forest
   - [with logistic PCA preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
+  - [with logistic PCA preprocessing (parallel CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 * [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
 # Best Model (`r Sys.Date() |> format("%D")`)
