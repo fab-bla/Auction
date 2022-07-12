@@ -19,7 +19,7 @@ been compared:
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/11/22)
+# Best Model (07/12/22)
 
 The boxplots below display the out of sample predicted values for the
 lasso regression and the random forest with logistic PCA pre-processing.

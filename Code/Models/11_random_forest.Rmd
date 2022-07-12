@@ -31,172 +31,34 @@ dat_bids_id <- readRDS("./../../Data/Bid Tab RDS/Bids_id_df_split.RDS")
 dat_aucs <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
 ```
 
-# Bid Level
-
-## No Feature Engineering
-
-### Variable Removal
-
-```{r}
-# exclude variables that are not supposed to be in the model
-lapply(dat_bids_id, \(x){
-
-  # remove
-  x$Vendor_Name <- NULL
-
-  # return
-  return(x)
-  
-}) -> dat_bids_id_mod
-
-# final changes to data
-lapply(dat_bids_id_mod, \(x){
-
-  # colnames
-  nom <- names(x)
-  nom[stringr::str_starts(nom, "[0-9]")] <- paste0("X", 
-                                          nom[stringr::str_starts(nom, "[0-9]")])
-  # rerassign
-  names(x) <- nom
-
-  # win to factor as range doesnt allow numeric dependent var
-  x[, "Win"] <- as.factor(x[, "Win"])
-  
-  # ret
-  return(x)
-
-}) -> dat_bids_id_mod
-
-# assign training set
-dat_train_id <- dat_bids_id_mod[["Train"]]
-dat_test_id <- dat_bids_id_mod[["Test"]]
-```
-
-### Best Model
-
-CV was executed on Google Colab.
-
-```{r}
-# import CV optimized parameters
-besTrf <- readRDS("./../../Data/Models/RF/Raw/cvfit_bid_id.RDS")$bestTune 
-
-# fit using opt paras
-ranger::ranger(Win ~ ., data = dat_train_id,
-               mtry = 453, splitrule = besTrf[ , "splitrule"],
-               min.node.size = besTrf[, "min.node.size"], probability = T) -> besTrf_mod
-
-# predict
-Pred_val_mod_rf <- predict(besTrf_mod, dat_train_id)$predictions[, 2]
-
-# pred
-Eval_Curve_prel(list(Pred_val_mod_rf), 
-                as.numeric(dat_train_id[["Win"]]) - 1) -> prelim
-# curbe
-par(mfrow = c(1, 2))
-Eval_Curve(prelim, col = "forestgreen", leg_text = "RF")
-Eval_Curve(prelim, col = 4, leg_text = "RF", RoC = FALSE, 
-           act_label = dat_train_id[["Win"]])
-
-# something went wrong in training - repeat
-
-# control
-ctrl <- caret::trainControl(method = "repeatedcv", number = 5, repeats = 2)
-
-# tuning grid
-tgrid <- expand.grid("mtry" = seq(25, 450, 25),
-                     "splitrule" = "gini",
-                     "min.node.size" = 1:3,
-                     "max.depth" = seq(1, 30, 4))
-
-# cross validation
-rf <- caret::train(Win ~ ., data = dat_train_id, method = "ranger",
-                   metric = "Kappa", tuneGrid = tgrid, trControl = ctrl)
-
-# best tune rf2
-rfbt <- rf$bestTune
-
-# fit using opt paras
-ranger::ranger(Win ~ ., data = dat_train_id,
-               mtry = rfbt[, "mtry"], splitrule = rfbt[ , "splitrule"],
-               min.node.size = rfbt[, "min.node.size"], probability = T) -> besTrf_mod2
-
-# predict
-Pred_val_mod_rf2 <- predict(besTrf_mod2, dat_train_id)$predictions[, 2]
-
-# pred
-Eval_Curve_prel(list(Pred_val_mod_rf2), 
-                as.numeric(dat_train_id[["Win"]]) - 1) -> prelim2
-# curbe
-par(mfrow = c(1, 2))
-Eval_Curve(prelim2, col = "forestgreen", leg_text = "RF")
-Eval_Curve(prelim2, col = 4, leg_text = "RF", RoC = FALSE, 
-           act_label = dat_train_id[["Win"]])
-?ranger
-```
-
-# Test
-
-```{r}
-# fit using opt paras
-ranger::ranger(Win ~ ., data = dat_test_id,
-               mtry = rfbt[, "mtry"], splitrule = rfbt[ , "splitrule"],
-               min.node.size = rfbt[, "min.node.size"], probability = T) -> besTrf_mod_test
-
-# predict
-Pred_val_mod_rf <- predict(besTrf_mod_test, dat_train_id)$predictions[, 2]
-
-# pred
-Eval_Curve_prel(list(Pred_val_mod_rf), 
-                as.numeric(dat_train_id[["Win"]]) - 1) -> prelim
-# curbe
-par(mfrow = c(1, 2))
-Eval_Curve(prelim, col = "forestgreen", leg_text = "RF")
-Eval_Curve(prelim, col = 4, leg_text = "RF", RoC = FALSE, 
-           act_label = dat_train_id[["Win"]])
-```
-
-
-# Auction Level
-
-## No Feature Engineering
-
-### Variable Removal
-
+# Data
 
 ```{r}
 # exclude variables that are not supposed to be in the model
 lapply(dat_aucs, \(x){
 
   # remove
-  x$Contract_ID <- NULL
-  x$MLOT <- NULL
-  
+  within(x, {
+    Contract_ID <- NULL
+    MLOT <- NULL
+    EW_Diff <- NULL
+    Winning_Bid <- Winning_Bid / 1e3
+    Eng_Est <- Eng_Est / 1e3
+  }) -> tmp
+
   # return
-  return(x)
+  return(tmp)
   
 }) -> dat_aucs_mod
-
-# assign training set
-dat_train_aucs <- dat_aucs_mod[["Train"]]
 ```
 
-### Cross Validation
+# Variable Selection
+
+The data set contains a lot of binary variables that are highly correlated. Accordingly, to allow for a good prediction we need to perform variable selection before using the data. Thus, 
 
 ```{r}
-# control
-ctrl <- caret::trainControl(method = "repeatedcv", number = 5, repeats = 2)
+# nested VarSel C
+?ranger::ranger()
 
-# tuning grid
-tgrid <- expand.grid("mtry" = seq(25, 500, 50),
-                     "splitrule" = "variance",
-                     "min.node.size" = 1:3)
-
-# CV RAN ONCE ''
-# rf <- caret::train(EW_Diff ~ ., data = dat_train_aucs, method = "ranger",
-#                    metric = "RMSE", tuneGrid = tgrid, trControl = ctrl,
-#                    num.threads = 8, verbose = TRUE)
-
-# save
-# saveRDS(rf, "./../../Data/Models/RF/Raw/cvfitRF.RDS")
 ```
 

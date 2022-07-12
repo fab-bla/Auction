@@ -78,7 +78,9 @@ par(mar = c(2, 2, 2, 2) + 0.1)
 
 # boxplot
 boxplot(Award_Price ~ Model, xlab = "", ylab = "Award Price",
-        ylim = c(0, 20e3), pch = 19, outcol = "darksalmon", 
+        ylim = c(0, 20e3), pch = 19, 
+        outcol = c("cornflowerblue", "darkgoldenrod1", "firebrick", "forestgreen",
+                "darkmagenta", "wheat3"), 
         col = c("cornflowerblue", "darkgoldenrod1", "firebrick", "forestgreen",
                 "darkmagenta", "wheat3"), 
         main = "Quality of Prediction",
