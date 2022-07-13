@@ -377,29 +377,12 @@ log_PCA_rf_CV_par(dat_aucs_eng[["Train"]], nfolds = 5, m_nest_CV = c(3, 8, 12),
 
 ```
 
-# Variable Selection 
-
-```{r}
-# write CV function
-Vsel_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
-                   min_node_size_CV = 1:4, max_depth_CV = seq(5, 70, 5), mtry_incr = 5,
-                   num_trees_CV = 1500, var_share = seq(0.5, 0.8, 0.1), nrounds = seq(2, 5),
-                   mtry_incr_start = 5, 
-                   eval_fun = Metrics::rmse,
-                   ncore = NULL){
-  
-  # 
-  
-}
-?ranger::ranger
-```
-
-
 # Evaluate Tuning Results From Colab
 
 ```{r}
 # cross validation results list
 CV_lst <- readRDS("./../../Data/Models/RF/PCA/NestedCV_logPCA_rf.RDS")
+# CV_lst <- readRDS("./../../Data/Models/RF/PCA/NestedCV_logPCA_rf_r3.RDS")
 
 # function for list picking
 lst_pick <- \(lst, where) lapply(lst, "[[", where)

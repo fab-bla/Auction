@@ -33,6 +33,7 @@ auctions. In particular, the aim is to predict award prices of auctions held by 
 * Linear Model
   - [with logistic PCA preprocessing (parallel CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_PreProcess_LM.ipynb)
 * Random Forest
+  - [with recursive feature elimination (parallel CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_RecursiveFeatureElimination_RF.ipynb)
   - [with logistic PCA preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
   - [with logistic PCA preprocessing (parallel CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 * [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
@@ -87,7 +88,7 @@ boxplot(Award_Price ~ Model, xlab = "", ylab = "Award Price",
         data = dat_per_plot)
 ```
 
-The boxplot shows that the Lasso regression seems to be able to predict the outliers the best when compared to the random forest and the Engineers Estimate.
+The boxplot shows that the Lasso regression seems to be able to predict the outliers the best when compared to the random forest and the Engineer's Estimate.
 
 ```{r, echo = FALSE, fig.height = 8}
 # split data
@@ -126,7 +127,6 @@ The plots above display the actual vs. predicted values. These plots may be used
 sp_DF <- split(dat_per_plot, dat_per_plot[, "Model"]) |> lapply("[[", 1)
 Actual <- sp_DF[[1]]
 sp_DF[[1]] <- NULL
-
 
 # calc RMSE and MAE
 sapply(sp_DF, \(x){

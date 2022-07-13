@@ -26,16 +26,15 @@ get.package(c("lubridate", "glmnet", "glmnetUtils", "tidyverse",
               "ranger", "caret", "beepr"))
 
 # load data
-dat_bids <- readRDS("./../../Data/Bid Tab RDS/Bids_df_split.RDS")
-dat_bids_id <- readRDS("./../../Data/Bid Tab RDS/Bids_id_df_split.RDS")
 dat_aucs <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_split.RDS")
+dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
 ```
 
 # Data
 
 ```{r}
 # exclude variables that are not supposed to be in the model
-lapply(dat_aucs, \(x){
+lapply(dat_aucs_eng, \(x){
 
   # remove
   within(x, {
@@ -45,7 +44,7 @@ lapply(dat_aucs, \(x){
     Winning_Bid <- Winning_Bid / 1e3
     Eng_Est <- Eng_Est / 1e3
   }) -> tmp
-
+  
   # return
   return(tmp)
   
@@ -54,11 +53,180 @@ lapply(dat_aucs, \(x){
 
 # Variable Selection
 
-The data set contains a lot of binary variables that are highly correlated. Accordingly, to allow for a good prediction we need to perform variable selection before using the data. Thus, 
+The data set contains a lot of binary variables that are highly correlated. Accordingly, to allow for a good prediction we need to perform variable selection within our cross validation procedure, commonly refered to as recursive feature elimination.
+
+# Variable Selection 
 
 ```{r}
-# nested VarSel C
-?ranger::ranger()
+# write CV function for recursive feature elimination
+Vsel_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
+                   min_node_size_CV = 1:4, max_depth_CV = seq(5, 70, 5),
+                   num_trees_CV = 1500, var_share = 0.75, 
+                   nrounds = seq(2, 6),
+                   feat_share_CV = seq(0.3, 1, 0.2),
+                   eval_fun = Metrics::rmse,
+                   ncore = NULL,
+                   seed = 33){
+
+  # hot encode data
+  data <- model.matrix(~. + 0, data = data) |> as.data.frame()
+  
+  # ensure viable colnames
+  names(data) <- make.names(names(data))
+  
+  # reprod
+  set.seed(seed)
+
+  # generate CV folds
+  folds <- sample(nrow(data), nrow(data), replace = FALSE) |> 
+            split(as.factor(1:nfolds)) |> setNames(1:nfolds) |> suppressWarnings()
+  
+  # set up parallel compute cluster
+  if(is.null(ncore)){
+    
+    # set amount of cores to the max available and leave one out
+    ncore <- parallel::detectCores() - 1
+    
+    # we parallelize over folds - the maximum number of occupied cores should thus be
+    ncore <- min(ncore, nfolds)
+    
+  } else {
+    
+    # find min of ncore and folds
+    ncore <- min(ncore, nfolds)
+    
+  }
+  
+  # set up cluster
+  clust <- parallel::makeCluster(ncore, outfile = "")
+
+  # tuning grid for forest
+  tgrid_RF <- expand.grid("feat_share" = feat_share_CV,
+                          "splitrule" = splitrule_CV,
+                          "min_node_size" = min_node_size_CV,
+                          "max_depth" = max_depth_CV, 
+                          "num_trees" = num_trees_CV,
+                          "nrounds" = nrounds)
+
+  # print cores that will be occupied
+  cat(paste0(Sys.time(), " starting CV.\n", 
+             (nrow(tgrid_RF) + sum(tgrid_RF[, "nrounds"])) * nfolds, " forests to fit!\n",
+             length(clust)," cores will be occupied by this process!"))
+  
+   # loop over folds each is used as test set once
+   parallel::parLapply(clust, names(folds), \(f_ind){
+
+    # test - bool 
+    test_bool <- names(folds) %in% f_ind
+
+    # train and test
+    train_init <- data[do.call(c, folds[!test_bool]), ]
+    test_init <- data[folds[test_bool] |> unlist(), ]
+    
+    # train model using all features and CV input
+     apply(tgrid_RF, 1, \(cv_inp){
+
+      # fit
+      ranger::ranger(Winning_Bid ~., mtry = floor(as.numeric(cv_inp[1]) * ncol(train_init)),
+                     splitrule = cv_inp[2],
+                     min.node.size = as.numeric(cv_inp[3]),
+                     max.depth = as.numeric(cv_inp[4]), 
+                     num.trees = as.numeric(cv_inp[5]),
+                     data = train_init,
+                     importance = "permutation") -> fit_rf
+       
+       # importance
+       importance <- fit_rf[["variable.importance"]]
+       
+       # sort and choose
+       names_sub <- sort(importance, 
+                         decreasing = TRUE)[1:floor(length(importance) * var_share)] |> names()
+          
+       # data to be overwritten (we will remove features from this object)
+       # first we take var_share * columns of the most important variables
+       dat_it <- train_init[, c("Winning_Bid", names_sub)] 
+       
+       # recursive feature elimination
+       for(i in 1:cv_inp[6]){
+         
+         # fit rf
+         ranger::ranger(Winning_Bid ~., mtry = floor(as.numeric(cv_inp[1]) * ncol(dat_it)),
+                        splitrule = cv_inp[2],
+                        min.node.size = as.numeric(cv_inp[3]),
+                        max.depth = as.numeric(cv_inp[4]), 
+                        num.trees = as.numeric(cv_inp[5]),
+                        data = dat_it,
+                        importance = "permutation") -> fit_rf_it
+         
+         # importance 
+         importance_it <- fit_rf_it[["variable.importance"]]
+      
+         # sort and choose
+         names_sub_it <- sort(importance_it, 
+                              decreasing = TRUE)[1:floor(length(importance_it) * var_share)] |> names()
+         
+         # overwrite data 
+         dat_it <- dat_it[, c("Winning_Bid", names_sub_it)]
+
+         # in last recursive call write performance into storage
+         if(i == as.numeric(cv_inp[6])){
+
+           # final rf
+           ranger::ranger(Winning_Bid ~., mtry = floor(as.numeric(cv_inp[1]) * ncol(dat_it)),
+                          splitrule = cv_inp[2],
+                          min.node.size = as.numeric(cv_inp[3]),
+                          max.depth = as.numeric(cv_inp[4]), 
+                          num.trees = as.numeric(cv_inp[5]),
+                          data = dat_it,
+                          importance = "permutation") -> fit_rf_it
+            
+           # generate test set with all chosen variables
+           dat_test <- test_init[, c("Winning_Bid", names_sub_it)]
+           
+           # predict on test set
+           pred <- predict(fit_rf_it, dat_test)
+ 
+           # eval
+           eval_res <- eval_fun(actual = dat_test[, "Winning_Bid"],
+                                predicted = pred[["predictions"]])
+           
+           # save and return performance 
+           return(c(cv_inp[1], # feat_share
+                    cv_inp[2], # splitrule
+                    cv_inp[3], # min.node.size
+                    cv_inp[4], # max.depth
+                    cv_inp[5], # ntrees
+                    cv_inp[6], # nrounds 
+                    "var_share" = var_share,
+                    "performance" = eval_res))
+        }
+ 
+       }
+    
+      }) |> as.data.frame() |> setNames(paste0("RF_", 1:nrow(tgrid_RF)))
+    
+  }) |> setNames(1:nfolds) -> tmp
+  
+  # release cores 
+  on.exit(parallel::stopCluster(clust), add = TRUE)
+  
+  # return
+  return(tmp)
+  
+}
+```
+
+# Execute
+
+```{r}
+Vsel_rf_CV_par(data = dat_aucs_mod[["Train"]], nfolds = 5, splitrule_CV = "variance",
+               min_node_size_CV = seq(1, 5, 2), max_depth_CV = seq(5, 35, 10),
+               num_trees_CV = c(1000, 1500), var_share = 0.6, 
+               nrounds = seq(2, 10, 2),
+               feat_share = seq(0.7, 0.9, 0.1),
+               eval_fun = Metrics::rmse,
+               ncore = NULL,
+               seed = 33) -> a
 
 ```
 

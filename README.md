@@ -13,13 +13,15 @@ been compared:
     -   [with logistic PCA preprocessing (parallel
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_PreProcess_LM.ipynb)
 -   Random Forest
+    -   [with recursive feature elimination (parallel
+        CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_RecursiveFeatureElimination_RF.ipynb)
     -   [with logistic PCA
         preprocessing](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Nested_CV_PCA_RF.ipynb)
     -   [with logistic PCA preprocessing (parallel
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/12/22)
+# Best Model (07/13/22)
 
 The boxplots below display the out of sample predicted values for the
 lasso regression and the random forest with logistic PCA pre-processing.
@@ -30,7 +32,7 @@ prediction it is also included in the plot.
 
 The boxplot shows that the Lasso regression seems to be able to predict
 the outliers the best when compared to the random forest and the
-Engineers Estimate.
+Engineer’s Estimate.
 
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
@@ -59,16 +61,16 @@ and further the installation
 However, with a small adaption the installation works almost as
 described in the installation guide for windows 10.
 
-    ## R version 4.1.2 (2021-11-01)
+    ## R version 4.2.1 (2022-06-23 ucrt)
     ## Platform: x86_64-w64-mingw32/x64 (64-bit)
     ## Running under: Windows 10 x64 (build 19044)
     ## 
     ## Matrix products: default
     ## 
     ## locale:
-    ## [1] LC_COLLATE=German_Austria.1252  LC_CTYPE=German_Austria.1252   
-    ## [3] LC_MONETARY=German_Austria.1252 LC_NUMERIC=C                   
-    ## [5] LC_TIME=German_Austria.1252    
+    ## [1] LC_COLLATE=German_Austria.utf8  LC_CTYPE=German_Austria.utf8   
+    ## [3] LC_MONETARY=German_Austria.utf8 LC_NUMERIC=C                   
+    ## [5] LC_TIME=German_Austria.utf8    
     ## 
     ## attached base packages:
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
@@ -77,17 +79,17 @@ described in the installation guide for windows 10.
     ## [1] ggplot2_3.3.6   Metrics_0.1.4   patchwork_1.1.1 lubridate_1.8.0
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] highr_0.9         pillar_1.7.0      compiler_4.1.2    tools_4.1.2      
-    ##  [5] digest_0.6.27     evaluate_0.14     lifecycle_1.0.1   tibble_3.1.7     
-    ##  [9] gtable_0.3.0      pkgconfig_2.0.3   rlang_1.0.2       cli_3.0.1        
-    ## [13] DBI_1.1.1         rstudioapi_0.13   yaml_2.2.1        xfun_0.23        
-    ## [17] withr_2.5.0       stringr_1.4.0     dplyr_1.0.9       knitr_1.33       
-    ## [21] generics_0.1.2    vctrs_0.4.1       grid_4.1.2        tidyselect_1.1.2 
-    ## [25] glue_1.4.2        R6_2.5.1          fansi_1.0.3       rmarkdown_2.14   
-    ## [29] farver_2.1.0      purrr_0.3.4       magrittr_2.0.1    scales_1.2.0     
-    ## [33] ellipsis_0.3.2    htmltools_0.5.1.1 assertthat_0.2.1  colorspace_2.0-3 
-    ## [37] labeling_0.4.2    utf8_1.2.2        stringi_1.6.1     munsell_0.5.0    
-    ## [41] crayon_1.5.1
+    ##  [1] highr_0.9        pillar_1.7.0     compiler_4.2.1   tools_4.2.1     
+    ##  [5] digest_0.6.29    evaluate_0.15    lifecycle_1.0.1  tibble_3.1.7    
+    ##  [9] gtable_0.3.0     pkgconfig_2.0.3  rlang_1.0.3      cli_3.3.0       
+    ## [13] DBI_1.1.3        rstudioapi_0.13  yaml_2.3.5       xfun_0.31       
+    ## [17] fastmap_1.1.0    withr_2.5.0      stringr_1.4.0    dplyr_1.0.9     
+    ## [21] knitr_1.39       generics_0.1.3   vctrs_0.4.1      grid_4.2.1      
+    ## [25] tidyselect_1.1.2 glue_1.6.2       R6_2.5.1         fansi_1.0.3     
+    ## [29] rmarkdown_2.14   farver_2.1.1     purrr_0.3.4      magrittr_2.0.3  
+    ## [33] scales_1.2.0     ellipsis_0.3.2   htmltools_0.5.2  assertthat_0.2.1
+    ## [37] colorspace_2.0-3 labeling_0.4.2   utf8_1.2.2       stringi_1.7.8   
+    ## [41] munsell_0.5.0    crayon_1.5.1
 
 Three steps have to be altered:
 
