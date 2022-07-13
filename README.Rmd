@@ -74,16 +74,17 @@ dat_per_plot$Award_Price <- as.numeric(dat_per_plot$Award_Price)
 dat_per_plot$Model <- factor(dat_per_plot$Model, 
                              levels = c("Act.", "Lasso Reg.", "LM","RF", "XGB","Eng. Est."))
 
+# col
+col <- c("cornflowerblue", "darkgoldenrod1", "firebrick", "forestgreen",
+                "darkmagenta", "darkslategrey")
 # align
 par(mar = c(2, 2, 2, 2) + 0.1)
 
 # boxplot
 boxplot(Award_Price ~ Model, xlab = "", ylab = "Award Price",
         ylim = c(0, 20e3), pch = 19, 
-        outcol = c("cornflowerblue", "darkgoldenrod1", "firebrick", "forestgreen",
-                "darkmagenta", "wheat3"), 
-        col = c("cornflowerblue", "darkgoldenrod1", "firebrick", "forestgreen",
-                "darkmagenta", "wheat3"), 
+        outcol = col, 
+        col = col, 
         main = "Quality of Prediction",
         data = dat_per_plot)
 ```
@@ -111,8 +112,7 @@ Map(\(Pred, title, bool, fill){
 }, AWPs, c("Lasso Regression", "LM with logPCA Preprocessing", 
            "RF with logPCA Preprocessing", "eXtreme Gradient Boosting",
            "Engineer's Estimate"), c(T, F, F, F, F), 
-          c("darkgoldenrod1", "firebrick", "forestgreen",
-                "darkmagenta", "wheat3")) -> plots 
+            col[-1]) -> plots 
 
 # print plots
 print((plots[[1]] + plots[[2]]) /
