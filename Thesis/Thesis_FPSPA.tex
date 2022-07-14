@@ -1,5 +1,6 @@
 \documentclass[a4paper,12pt, headsepline]{scrartcl}
 
+\usepackage[a4paper, total={6in, 8in}]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \pagestyle{plain}
@@ -14,33 +15,10 @@
 \usepackage{filecontents}
 \usepackage{titling}
 \usepackage{csquotes}
-
+\usepackage[objectset = centering]{floatrow}
 \usepackage{moreverb}
 \usepackage{varioref}
 \usepackage{setspace}
-\makeatletter
-\newcommand{\MSonehalfspacing}{%
-  \setstretch{1.44}%  default
-  \ifcase \@ptsize \relax % 10pt
-    \setstretch {1.448}%
-  \or % 11pt
-    \setstretch {1.399}%
-  \or % 12pt
-    \setstretch {1.433}%
-  \fi
-}
-\newcommand{\MSdoublespacing}{%
-  \setstretch {1.92}%  default
-  \ifcase \@ptsize \relax % 10pt
-    \setstretch {1.936}%
-  \or % 11pt
-    \setstretch {1.866}%
-  \or % 12pt
-    \setstretch {1.902}%
-  \fi
-}
-\makeatother
-
 \usepackage{graphicx}
 \usepackage{tabularx}
 \usepackage{dcolumn}
@@ -77,7 +55,6 @@ style = apa]
 % Schrift
 \setkomafont{sectioning}{\rmfamily\bfseries\boldmath}
 
-
 \setcapindent{0em} % kein Einrücken der Caption von Figures und Tabellen
 \setcapwidth{0.9\textwidth} % Breite der Caption nur 90% der Textbreite, damit sie sich vom restlichen Text abhebt
 \setlength{\abovecaptionskip}{0.2cm} % Abstand der zwischen Bild- und Bildunterschrift
@@ -96,47 +73,35 @@ style = apa]
 \section{Introduction}\label{sec:int}
 
 \section{Data}\label{sec:data}
-	\subsection{Source}\label{subsec:sour}
-	\subsection{Scraping}\label{subsec:scrap}
-	\subsection{Descriptive Statistics}\label{subsec:desc}
+
+\subsection{Source}\label{subsec:sour}
+\subsection{Scraping}\label{subsec:scrap}
+\subsubsection{Contract Description}\label{subsubsec:descr}
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. 
+\begin{figure}[H]
+	\includegraphics[width = 14cm]{figures/description_words.pdf}
+	\caption{Top 40 Stemmed Description Words}
+\end{figure}
+Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. 
+\subsection{Descriptive Statistics}\label{subsec:desc}
 \section{Economic Operationalization}\label{sec:op}
-	\subsection{Auctioneer}\label{subsec:auc}
-	\subsection{Firms}\label{subsec:firms}
+\subsection{Auctioneer}\label{subsec:auc}
+\subsection{Firms}\label{subsec:firms}
 
 \section{Methods}\label{sec:meth}
-	\subsection{Elastic Nets}\label{subsec:net}
-	\subsection{Ensemble Methods}\label{subsec:ens}
-		\subsubsection{Random Forests}\label{subsubsec:rf}
-		\subsubsection{eXtreme Gradient Boosting}\label{subsubsec:xgb}
-	\subsection{Nested Cross Validation}\label{subsec:nest}
-		\subsubsection{Logistic PCA}\label{subsubsec:logp}
-		\subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
+\subsection{Elastic Nets}\label{subsec:net}
+\subsection{Ensemble Methods}\label{subsec:ens}
+\subsubsection{Random Forests}\label{subsubsec:rf}
+\subsubsection{eXtreme Gradient Boosting}\label{subsubsec:xgb}
+\subsection{Nested Cross Validation}\label{subsec:nest}
+\subsubsection{Logistic PCA}\label{subsubsec:logp}
+\subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
 \section{Results}\label{sec:res}
-	\subsection{Prediction}\label{subsec:pred}
-	\subsection{Unsupervised Colusion Detection}\label{subsec:col}
+\subsection{Prediction}\label{subsec:pred}
+\subsection{Unsupervised Colusion Detection}\label{subsec:col}
 \section{Conclusion}\label{sec:con}
  
 \newpage
 \printbibliography
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 \end{document}
