@@ -1,0 +1,131 @@
+\documentclass[a4paper,12pt, headsepline]{scrartcl}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\pagestyle{plain}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage[official]{eurosym}
+\usepackage{ntheorem}
+\newtheorem{hyp}{Hypothesis}
+\usepackage{pdfpages}
+\usepackage{adjustbox}
+\usepackage{footnote}
+\usepackage{filecontents}
+\usepackage{titling}
+\usepackage{csquotes}
+
+\usepackage{moreverb}
+\usepackage{varioref}
+\usepackage{setspace}
+\makeatletter
+\newcommand{\MSonehalfspacing}{%
+  \setstretch{1.44}%  default
+  \ifcase \@ptsize \relax % 10pt
+    \setstretch {1.448}%
+  \or % 11pt
+    \setstretch {1.399}%
+  \or % 12pt
+    \setstretch {1.433}%
+  \fi
+}
+\newcommand{\MSdoublespacing}{%
+  \setstretch {1.92}%  default
+  \ifcase \@ptsize \relax % 10pt
+    \setstretch {1.936}%
+  \or % 11pt
+    \setstretch {1.866}%
+  \or % 12pt
+    \setstretch {1.902}%
+  \fi
+}
+\makeatother
+
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{dcolumn}
+\usepackage{float}
+\usepackage{color}
+\usepackage{amsmath} 
+\usepackage{float}
+
+\setlength{\parindent}{0ex} 
+\setlength{\parskip}{1ex}
+
+
+\usepackage[automark]{scrlayer-scrpage}
+\setkomafont{pagehead}{\scshape}
+\pagestyle{scrheadings}
+\ihead{\headmark}
+\chead{}
+\ohead{}
+
+\cfoot{\pagemark}
+
+
+\usepackage{csquotes}
+\usepackage[
+backend=biber,
+natbib=true,
+language = english,
+doi = false, url = false, isbn = false, eprint = false,
+style = apa]
+{biblatex}
+\DeclareLanguageMapping{english}{english-apa}
+\addbibresource{literature.bib}
+
+% Schrift
+\setkomafont{sectioning}{\rmfamily\bfseries\boldmath}
+
+
+\setcapindent{0em} % kein Einrücken der Caption von Figures und Tabellen
+\setcapwidth{0.9\textwidth} % Breite der Caption nur 90% der Textbreite, damit sie sich vom restlichen Text abhebt
+\setlength{\abovecaptionskip}{0.2cm} % Abstand der zwischen Bild- und Bildunterschrift
+\renewcommand{\baselinestretch}{1.5}
+\numberwithin{equation}{section}
+\title{Predicting Award Prices of First Price Sealed Bid Procurement Auctions}
+\date{07/14/2022}
+\author{Fabian Blasch\\[0.4cm]{Supervisor: Dr. Katharina Fenz}}
+\begin{document}
+\begin{titlingpage}
+\maketitle
+\end{titlingpage}
+\newpage
+\tableofcontents
+\newpage
+\section{Introduction}\label{sec:int}
+
+\section{Data}\label{sec:data}
+
+\section{Economic Operationalization}\label{sec:op}
+
+\section{Methods}\label{sec:meth}
+
+\section{Results}\label{sec:res}
+
+\section{Conclusion}\label{sec:con}
+ 
+\newpage
+\printbibliography
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
