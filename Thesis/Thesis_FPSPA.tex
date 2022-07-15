@@ -1,6 +1,5 @@
 \documentclass[a4paper,12pt, headsepline]{scrartcl}
 
-\usepackage[a4paper, total={6in, 8in}]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \pagestyle{plain}
@@ -26,6 +25,12 @@
 \usepackage{color}
 \usepackage{amsmath} 
 \usepackage{float}
+\usepackage[
+colorlinks = true,
+linkcolor = black,
+citecolor = blue 
+]{hyperref}
+
 
 \setlength{\parindent}{0ex} 
 \setlength{\parskip}{1ex}
@@ -74,15 +79,36 @@ style = apa]
 
 \section{Data}\label{sec:data}
 
-\subsection{Source}\label{subsec:sour}
-\subsection{Scraping}\label{subsec:scrap}
-\subsubsection{Contract Description}\label{subsubsec:descr}
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. 
+All the information about the procurement contracts, is obtainable through the bid tab archive on the official website of the Colorado Department of Transportation. The information is provided in PDF documents. In each of those documents the following information of the respective auction is covered.
+
+\begin{itemize}
+	\item A table listing all submitted bids, including a unique identifier for each of the participating bidders
+	\item An Engineer's Estimate
+	\item The contract ID
+	\item The letting date
+	\item Either the amount of time in business days given to complete all the contracted obligations, or a completion due date
+	\item The County in which the contract is to be completed in 
+\end{itemize}
+
+For illustrative, Figure \ref{fig:bidtab} displays an example of a bid tab, in particular the second page, which contains the vendor ranking as well as the contract description and the remaining information listed above.
+
 \begin{figure}[H]
-	\includegraphics[width = 14cm]{figures/description_words.pdf}
-	\caption{Top 40 Stemmed Description Words}
+	\includegraphics[width = 14	cm]{figures/Bid_Tab_exmpl.PNG}
+	\caption{Bid Tab Example}\label{fig:bidtab}
 \end{figure}
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. 
+
+\subsection{Scraping}\label{subsec:scrap}
+In order to obtain all the archived bid tabs, the html code of the website was first examined using a google chrome extension called SelectorGadget. This tool allows one to identify html nodes, that website contents are associated with. In the case of the bid tab archive, the html node carrying the links to the individual bid tabs is \enquote{<td a>}. Once this html node is discovered and the consistency across different years in the archive is ensured, the download is easily achieved by looping over the links and downloading the  respective PDF. The hyperlink extraction was performed utilizing \textit{rvest}, by \citet{rvest}. For the remaining steps in the data extraction, a distinction will be made for text based information and tabular data.
+
+\subsubsection{Text Based Information}\label{subsubsec:descr}
+ The structure of the text based information allows us to filter the individual parts via regular expressions. Especially, for the letting data, the contract ID, and the Counties this required no further data cleaning steps. Unfortunately, this is not the case for the contract time and the contract description. 
+ 
+ 
+\begin{figure}[H]
+	\includegraphics[width = 14	cm]{figures/description_words.pdf}
+	\caption{Top 40 Stemmed Description Words}\label{fig:desc}
+\end{figure}
+
 \subsection{Descriptive Statistics}\label{subsec:desc}
 \section{Economic Operationalization}\label{sec:op}
 \subsection{Auctioneer}\label{subsec:auc}
