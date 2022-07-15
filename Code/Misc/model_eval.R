@@ -105,7 +105,8 @@ Eval_Curve <- function(E_Curve_Prel, col, leg_text, RoC = TRUE, act_label = NULL
 # Actual vs Predicted
 Act_vs_Pred <- \(Act, Pred, bg_alt = FALSE, fill = "cornflowerblue", 
                  outcol = "firebrick", size = 2, shape = 23, 
-                 title = "Actual vs. Predicted", alpha = 1){
+                 title = "Actual vs. Predicted", alpha = 1, ylim = c(0, 20e3),
+                 xlim = c(0, 20e3)){
   
   # init. plot
   ggplot() +
@@ -117,6 +118,10 @@ Act_vs_Pred <- \(Act, Pred, bg_alt = FALSE, fill = "cornflowerblue",
     geom_point(aes(x = Act, y = Pred),
                shape = shape, fill = fill, color = outcol, size = size,
                alpha = alpha) +
+    
+    # fix axis
+    ylim(ylim[1], ylim[2]) +
+    xlim(xlim[1], xlim[2]) + 
     
     # theme
     theme_bw() +

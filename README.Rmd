@@ -96,7 +96,7 @@ boxplot(Award_Price ~ Model, xlab = "", ylab = "Award Price",
 
 The boxplot shows that the Lasso regression seems to be able to predict the outliers the best when compared to the remaining models and the Engineer's Estimate as a benchmark.
 
-```{r, echo = FALSE, fig.height = 8}
+```{r, echo = FALSE, fig.height = 8, warning = FALSE}
 # split data
 split_df <- split(dat_per_plot, dat_per_plot[, "Model"])
 
@@ -110,7 +110,7 @@ Map(\(Pred, title, bool, fill){
   
   # plot
   Act_vs_Pred(Act, Pred, 
-            title = title, bg_alt = bool, size = 2.5, shape = 21, alpha = 0.6,
+            title = title, bg_alt = bool, size = 2.5, shape = 21, alpha = 0.5,
             outcol = "black", fill = fill) 
   
   
