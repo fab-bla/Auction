@@ -22,7 +22,7 @@ source("./../Misc/Auxilliary.R")
 
 # packages
 get.package(c("bizdays", "lubridate", "tidytext", "stopwords", "stringi",
-              "SnowballC", "wordcloud"))
+              "SnowballC", "wordcloud", "openxlsx"))
 
 # load data
 auctions <- readRDS("./../../Data/Bid Tab RDS/Bid_Tabs_Cleaned.RDS")
@@ -233,25 +233,38 @@ Map(\(ind, auc){
 
 # Some Illustrations
 
-```{r, fig.height = 5, fig.width = 10}
+```{r, fig.width = 10}
 
 # table of stems
 stem_tab <- sort(table(desc_stem$Stem), decreasing = TRUE)
 
+# change font to lmroman
+sysfonts::font_add("lmmodern", 
+                   "C:/Users/blasc/OneDrive/Documents/R/win-library/4.1/sysfonts/fonts/lmroman10-regular.ttf")
+
+# showtext call
+showtext::showtext_auto()
+
+# write into thesis folder
+# pdf("./../../Thesis/figures/description_words.pdf", width = 10)
+
 # align
-par(mfrow = c(1, 2), mar = c(4, 3, 2, 2))
+par(mfrow = c(1, 2), mar = c(4, 2.5, 2, 1), family = "lmmodern")
 
 # top 20 most common stemmed words
 barplot(stem_tab[1:40], las = 2,
-        ylim = c(0, 250), cex.names = 0.5, col = 4, main = "Top 40 Stemmed Words")
+        ylim = c(0, 250), cex.names = 0.5, col = 4)
 
+# repar
+par(cex.main = 2)
+title("Top 40 Stemmed Description Words ", line = -1.5, outer = TRUE)
+
+par(mar = rep(0, 4), cex.main = 0.9)
 # wordcloud
-wordcloud(names(stem_tab), stem_tab, max.words = 50, random.order = FALSE, rot.per = 0.35, 
+wordcloud(names(stem_tab), stem_tab, max.words = 40, random.order = FALSE, rot.per = 0.35, 
           colors = brewer.pal(8, "Dark2"))
 
-# tab 
-stem_tab
-
+# dev.off()
 ```
 
 

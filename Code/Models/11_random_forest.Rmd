@@ -59,10 +59,10 @@ The data set contains a lot of binary variables that are highly correlated. Acco
 
 ```{r}
 # write CV function for recursive feature elimination
-Vsel_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
+rfe_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
                    min_node_size_CV = 1:4, max_depth_CV = seq(5, 70, 5),
                    num_trees_CV = 1500, var_share = 0.75, 
-                   nrounds = seq(2, 6),
+                   nrounds = seq(2, 6), importance = "permutation",
                    feat_share_CV = seq(0.3, 1, 0.2),
                    eval_fun = Metrics::rmse,
                    ncore = NULL,
@@ -107,7 +107,7 @@ Vsel_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
                           "max_depth" = max_depth_CV, 
                           "num_trees" = num_trees_CV,
                           "nrounds" = nrounds)
-
+  
   # print cores that will be occupied
   cat(paste0(Sys.time(), " starting CV.\n", 
              (nrow(tgrid_RF) + sum(tgrid_RF[, "nrounds"])) * nfolds, " forests to fit!\n",
@@ -133,7 +133,7 @@ Vsel_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
                      max.depth = as.numeric(cv_inp[4]), 
                      num.trees = as.numeric(cv_inp[5]),
                      data = train_init,
-                     importance = "permutation") -> fit_rf
+                     importance = importance) -> fit_rf
        
        # importance
        importance <- fit_rf[["variable.importance"]]
@@ -156,7 +156,7 @@ Vsel_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
                         max.depth = as.numeric(cv_inp[4]), 
                         num.trees = as.numeric(cv_inp[5]),
                         data = dat_it,
-                        importance = "permutation") -> fit_rf_it
+                        importance = importance) -> fit_rf_it
          
          # importance 
          importance_it <- fit_rf_it[["variable.importance"]]
@@ -178,7 +178,7 @@ Vsel_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
                           max.depth = as.numeric(cv_inp[4]), 
                           num.trees = as.numeric(cv_inp[5]),
                           data = dat_it,
-                          importance = "permutation") -> fit_rf_it
+                          importance = importance) -> fit_rf_it
             
            # generate test set with all chosen variables
            dat_test <- test_init[, c("Winning_Bid", names_sub_it)]
@@ -219,14 +219,121 @@ Vsel_rf_CV_par <- \(data, nfolds = 5, splitrule_CV = "variance",
 # Execute
 
 ```{r}
-Vsel_rf_CV_par(data = dat_aucs_mod[["Train"]], nfolds = 5, splitrule_CV = "variance",
-               min_node_size_CV = seq(1, 5, 2), max_depth_CV = seq(5, 35, 10),
-               num_trees_CV = c(1000, 1500), var_share = 0.6, 
-               nrounds = seq(2, 10, 2),
-               feat_share = seq(0.7, 0.9, 0.1),
+rfe_rf_CV_par(data = dat_aucs_mod[["Train"]], nfolds = 5, splitrule_CV = "variance",
+               min_node_size_CV = seq(1, 5, 2), max_depth_CV = seq(5, 35, 15),
+               num_trees_CV = c(1000, 1500), var_share = 0.66, 
+               nrounds = seq(8, 12, 2),
+               feat_share = c(0.85, 0.95),
                eval_fun = Metrics::rmse,
                ncore = NULL,
-               seed = 33) -> a
+               seed = 33)
+```
 
+# Evaluate Colab Training Results
+
+```{r}
+# training results
+train_res <- readRDS("./../../Data/Models/RF/RFE/NestedCV_rfe_rf.RDS")
+
+# average performance over folds
+rmse <- do.call(rbind, lapply(train_res, \(mat) mat[nrow(mat), ] |> as.numeric())) |> colMeans()
+
+# snip
+per_rank <- train_res[[1]]
+
+# asssign
+per_rank[nrow(per_rank), ] <- rmse
+
+# obtain performance ranking
+per_rank <- per_rank[, order(per_rank[nrow(per_rank), ])]
+
+# best model
+best_fit <- per_rank[, 1, drop = FALSE]
+```
+
+# Predict Holdout Set
+
+```{r}
+fit_rfe_rf <- \(formula, data, splitrule = "variance",
+                min_node_size = 5, max_depth = 20,
+                num_trees = 1000, var_share = 0.6, 
+                nrounds = 10,
+                feat_share = 0.9,
+                importance = "permutation"){
+  
+  # hot encode data
+  data <- model.matrix(~. + 0, data = data) |> as.data.frame()
+  
+  # ensure viable colnames
+  names(data) <- make.names(names(data))
+  
+  # initial fit to evaluate
+  ranger::ranger(formula = formula, data = data, num.trees = num_trees,
+                 mtry = floor(feat_share * ncol(data)),
+                 splitrule = splitrule,
+                 min.node.size = min_node_size,
+                 max.depth = max_depth, importance = importance) -> fit
+  
+  
+  # importance 
+  importance_it <- fit[["variable.importance"]]
+
+  # sort and choose
+  names_sub_it <- sort(importance_it, 
+                      decreasing = TRUE)[1:floor(length(importance_it) * var_share)] |> names()
+ 
+  # overwrite data 
+  dat_it <- data[, c("Winning_Bid", names_sub_it)]
+
+  
+  # recursive elimination
+  for(i in 1:nrounds){
+   
+   # fit rf
+   ranger::ranger(formula = formula, data = dat_it, num.trees = num_trees,
+                  mtry = floor(feat_share * ncol(dat_it)),
+                  splitrule = splitrule,
+                  min.node.size = min_node_size,
+                  max.depth = max_depth, importance = importance) -> fit_rf_it
+   
+   # importance 
+   importance_it <- fit_rf_it[["variable.importance"]]
+
+   # sort and choose
+   names_sub_it <- sort(importance_it, 
+                        decreasing = TRUE)[1:floor(length(importance_it) * var_share)] |> names()
+   
+   # overwrite data 
+   dat_it <- dat_it[, c("Winning_Bid", names_sub_it)]
+
+   # in last recursive call write performance into storage
+   if(i == nrounds){
+
+     # final rf
+     ranger::ranger(formula = formula, data = dat_it, num.trees = num_trees,
+                    mtry = floor(feat_share * ncol(dat_it)),
+                    splitrule = splitrule,
+                    min.node.size = min_node_size,
+                    max.depth = max_depth, importance = importance) -> fit_rf_it
+     
+     # return  model  
+     return(list("Model" = fit_rf_it,
+                 "Variables" = names_sub_it))
+  }
+
+ }
+  
+}
+```
+
+```{r}
+# fit
+fit <- fit_rfe_rf(Winning_Bid ~ ., data = dat_aucs_mod[["Train"]])
+
+# predict on test set
+pred <- predict(fit$Model, dat_aucs_mod[["Test"]][, fit$Variables])
+
+# write predictions into folder
+saveRDS(pred[["predictions"]], "./../../Data/Misc Data/Figure_Data/rfe_rf_pred.RDS")
 ```
 

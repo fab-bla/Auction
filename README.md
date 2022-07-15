@@ -21,18 +21,18 @@ been compared:
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/13/22)
+# Best Model (07/15/22)
 
 The boxplots below display the out of sample predicted values for the
-lasso regression and the random forest with logistic PCA pre-processing.
+lasso regression and the random forest with logistic PCA preprocessing.
 Further, as the Engineers Estimate may be considered as a benchmark for
 prediction it is also included in the plot.
 
 ![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 The boxplot shows that the Lasso regression seems to be able to predict
-the outliers the best when compared to the random forest and the
-Engineer’s Estimate.
+the outliers the best when compared to the remaining models and the
+Engineer’s Estimate as a benchmark.
 
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
@@ -42,10 +42,10 @@ better, which is evident from the boxplots of predicted values. We
 observe that the Lasso model seems to outperform the other models across
 most of the observations in the validation set.
 
-|      |    Lasso |       LM |       RF |      XGB | Eng. Est. |
-|:-----|---------:|---------:|---------:|---------:|----------:|
-| RMSE | 326.1261 | 609.4673 | 509.7934 | 671.6634 |  497.0567 |
-| MAE  | 241.7894 | 448.2662 | 348.2869 | 376.3191 |  327.9388 |
+|      |    Lasso | logPCA_LM | logPCA_RF |   rfe_RF |      XGB | Eng. Est. |
+|:-----|---------:|----------:|----------:|---------:|---------:|----------:|
+| RMSE | 326.1261 |  609.4673 |  509.7934 | 536.9718 | 671.6634 |  497.0567 |
+| MAE  | 241.7894 |  448.2662 |  348.2869 | 366.6570 | 376.3191 |  327.9388 |
 
 The performance comparison utilizing linear and quadratic loss functions
 further emphasizes the dominance of the Lasso model.
