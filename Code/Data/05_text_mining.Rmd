@@ -166,7 +166,7 @@ descrm_2 <- stringi::stri_replace_all_regex(descrm,
 
 # df for tokenization
 desc_tm_r3 <- data.frame("Num" = seq_along(CID), "Contract_id" = CID, 
-                      "Description" = descrm_2)
+                         "Description" = descrm_2)
 
 # generate tokens 
 desc_tok_r3 <- unnest_tokens(desc_tm_r3, word, Description)

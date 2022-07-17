@@ -40,7 +40,7 @@ auctions. In particular, the aim is to predict award prices of auctions held by 
 
 # Best Model (`r Sys.Date() |> format("%D")`)
 
-The boxplots below display the out of sample predicted values for the lasso regression and the random forest with logistic PCA preprocessing. Further, as the Engineers Estimate may be considered as a benchmark for prediction it is also included in the plot.
+The boxplots below display the out of sample predicted values for the models that have been trained so far. Further, as the Engineers Estimate may be considered as a benchmark for prediction it is also included in the plot.
 
 ```{r, echo = FALSE}
 # data
@@ -94,7 +94,7 @@ boxplot(Award_Price ~ Model, xlab = "", ylab = "Award Price",
         data = dat_per_plot)
 ```
 
-The boxplot shows that the Lasso regression seems to be able to predict the outliers the best when compared to the remaining models and the Engineer's Estimate as a benchmark.
+The boxplot shows that the Lasso regression seems to be able to predict the outliers the best when compared to the remaining models and the Engineer's Estimate.
 
 ```{r, echo = FALSE, fig.height = 8, warning = FALSE}
 # split data
@@ -126,7 +126,7 @@ print((plots[[1]] + plots[[6]]) /
       (plots[[5]] + plots[[2]]))
 ```
 
-The plots above display the actual vs. predicted values. These plots may be used to assess whether certain models just predict the outliers better, which is evident from the boxplots of predicted values. We observe that the Lasso model seems to outperform the other models across most of the observations in the validation set.
+The plots above display the actual vs. predicted values. These plots may be used to assess, whether certain models just predict the outliers better, which is evident from the boxplots of predicted values. We observe that the Lasso model seems to outperform the other models across most of the observations in the validation set.
 
 ```{r, echo = FALSE}
 # split

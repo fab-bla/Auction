@@ -5,7 +5,7 @@ plot.cva.glmnet <- function(x, ..., legend.x = xlim[1], legend.y = xlim[2],
                             log.x = TRUE, c.legend = 0.7){
   
   n <- length(x$modlist)
-  cvm <- sapply(x$modlist, "[[", "cvm", simplify=FALSE)
+  cvm <- sapply(x$modlist, "[[", "cvm", simplify = FALSE)
   oldPal <- palette(topo.colors(n))
   on.exit(palette(oldPal))
   ylab <- x$modlist[[1]]$name
@@ -14,14 +14,14 @@ plot.cva.glmnet <- function(x, ..., legend.x = xlim[1], legend.y = xlim[2],
   xlim <- if(log.x) log(range(xlst)) else range(xlst)
   ylim <- range(ylst)
   xlab <- if(log.x) "log Lambda" else "Lambda"
-  plot(NA, xlim=xlim, ylim=ylim, xlab=xlab, ylab=x$modlist[[1]]$name, type="n", ...)
+  plot(NA, xlim = xlim, ylim = ylim, xlab = xlab, ylab = x$modlist[[1]]$name, type = "n", ...)
   for(i in seq_along(cvm))
   {
     xvals <- if(log.x) log(xlst[[i]]) else xlst[[i]]
-    lines(xvals, ylst[[i]], col=i)
+    lines(xvals, ylst[[i]], col = i)
   }
   if(!is.null(legend.x) && !is.null(legend.y))
-    graphics::legend(xlim[1], ylim[2], x$alpha, col=seq_along(x$alpha), lty=1,
+    graphics::legend(xlim[1], ylim[2], x$alpha, col = seq_along(x$alpha), lty = 1,
                      cex = c.legend)
   invisible(x)
 }

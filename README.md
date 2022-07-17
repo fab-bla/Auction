@@ -21,23 +21,23 @@ been compared:
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/16/22)
+# Best Model (07/17/22)
 
 The boxplots below display the out of sample predicted values for the
-lasso regression and the random forest with logistic PCA preprocessing.
-Further, as the Engineers Estimate may be considered as a benchmark for
-prediction it is also included in the plot.
+models that have been trained so far. Further, as the Engineers Estimate
+may be considered as a benchmark for prediction it is also included in
+the plot.
 
 ![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
 
 The boxplot shows that the Lasso regression seems to be able to predict
 the outliers the best when compared to the remaining models and the
-Engineer’s Estimate as a benchmark.
+Engineer’s Estimate.
 
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 The plots above display the actual vs. predicted values. These plots may
-be used to assess whether certain models just predict the outliers
+be used to assess, whether certain models just predict the outliers
 better, which is evident from the boxplots of predicted values. We
 observe that the Lasso model seems to outperform the other models across
 most of the observations in the validation set.
