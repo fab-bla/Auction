@@ -241,7 +241,7 @@ rmse <- do.call(rbind, lapply(train_res, \(mat) mat[nrow(mat), ] |> as.numeric()
 # snip
 per_rank <- train_res[[1]]
 
-# asssign
+# assign
 per_rank[nrow(per_rank), ] <- rmse
 
 # obtain performance ranking
@@ -272,6 +272,29 @@ per_rank <- per_rank[, order(per_rank[nrow(per_rank), ])]
 # best model
 best_fit <- per_rank[, 1, drop = FALSE]
 ```
+
+# Evaluate third Colab Run 
+
+```{r}
+# training results run 1
+train_res <- readRDS("./../../Data/Models/RF/RFE/NestedCV_rfe_rf_r3.RDS")
+
+# average performance over folds
+rmse <- do.call(rbind, lapply(train_res, \(mat) mat[nrow(mat), ] |> as.numeric())) |> colMeans()
+
+# snip
+per_rank <- train_res[[1]]
+
+# asssign
+per_rank[nrow(per_rank), ] <- rmse
+
+# obtain performance ranking
+per_rank <- per_rank[, order(per_rank[nrow(per_rank), ])]
+
+# best model
+best_fit <- per_rank[, 1, drop = FALSE]
+```
+
 
 # Predict Holdout Set
 

@@ -25,6 +25,7 @@
 \usepackage{color}
 \usepackage{amsmath} 
 \usepackage{float}
+\usepackage{mathtools}
 \usepackage[
 colorlinks = true,
 linkcolor = black,
@@ -56,6 +57,10 @@ style = apa]
 \DeclareLanguageMapping{english}{english-apa}
 \addbibresource{literature.bib}
 
+%% Commands %%
+
+%%%%%%%%%%%%%%
+
 % Schrift
 \setkomafont{sectioning}{\rmfamily\bfseries\boldmath}
 
@@ -65,7 +70,7 @@ style = apa]
 \renewcommand{\baselinestretch}{1.5}
 \numberwithin{equation}{section}
 \title{Predicting Award Prices of First Price Sealed Bid Procurement Auctions}
-\date{07/14/2022}
+\date{\today}
 \author{Fabian Blasch\\[0.4cm]{Supervisor: Dr. Katharina Fenz}}
 \begin{document}
 \begin{titlingpage}
@@ -89,7 +94,7 @@ All the information about the procurement contracts, is obtainable through the b
 	\item An engineer's estimate
 	\item The contract ID
 	\item The letting date
-	\item Either the amount of time in business days given to complete all the contractual obligations, or a completion due date
+	\item Either the amount of time given to complete all the contractual obligations, or a completion due date
 	\item The county in which the contract is to be completed in 
 \end{itemize}
 
@@ -101,11 +106,11 @@ For illustrative purposes, Figure \ref{fig:bidtab} displays an example of a bid 
 \end{figure}
 
 \subsection{Scraping}\label{subsec:scrap}
-In order to obtain all the archived bid tabs, the html code of the website was first examined using a google chrome extension called SelectorGadget. This tool allows one to identify html nodes, that website contents are associated with. In the case of the bid tab archive, the html node carrying the links to the individual bid tabs is \enquote{<td a>}. Once this html node is discovered and the consistency across different years in the archive is ensured, the download is easily achieved by looping over the links and downloading the  respective PDF. The hyperlink extraction was performed utilizing \textit{rvest}, by \citet{rvest}. For the remaining steps in the data extraction process, a distinction will be made for text based information and tabular data.
+In order to obtain all the archived bid tabs, the html code of the website was first examined using a google chrome extension called SelectorGadget. This tool allows one to identify html nodes, that website contents are associated with. In the case of the bid tab archive, the html node carrying the links to the individual bid tabs is \enquote{<td a>}. Once this html node is discovered and the consistency across different years in the archive is ensured, the download is easily achieved by looping over the links and downloading the  respective PDFs. The hyperlink extraction was performed utilizing \textit{rvest}, by \citet{rvest}. For the remaining steps in the data extraction process, a distinction will be made for text based information and tabular data.
 
 \subsubsection{Text Based Information}\label{subsubsec:descr}
  The structure of the text based information allows us to filter the individual parts via regular expressions. Especially, for the letting data, the contract ID, and the county this required no further data cleaning steps. Unfortunately, this is not the case for the contract time and the contract description.\\ 
- The contract time was not as straightforward to obtain, since the way it is reported is inconsistent across documents. Most of the time it is reported as working days until all contractual obligations have to be fullfilled. Seldom, however, the bid tab contains a completion date instead. Accordingly, to achieve consistency across documents all completion dates were converted to contract time. This was achieved by first adding 60 days to the letting date, as this is the number of days that the Cdot reports as the expected time between the letting date and the start of the work on site. Then, the difference in days between the completion date and the starting date were computed. As, said difference is only supposed to contain working days the following holidays as well as all weekends were substracted from the difference betwen starting date and completion date.
+ The contract time was not as straightforward to obtain, since the way it is reported is inconsistent across documents. Most of the time, it is reported as working days until all contractual obligations have to be fullfilled. Seldom, however, the bid tab contains a completion date instead. Accordingly, to achieve consistency across documents all completion dates were converted to contract time. This was achieved by first adding 60 days to the letting date, as this is the number of days that the Cdot reports as the expected time between the letting date and the start of the work on site. Then, the difference in days between the completion date and the starting date were computed. As, said difference is only supposed to contain working days the following holidays as well as all weekends were substracted from the difference betwen starting date and completion date.
  
  \begin{itemize}
  	\item New Year's Day
@@ -122,15 +127,17 @@ In order to obtain all the archived bid tabs, the html code of the website was f
  \end{itemize}
  
  The computation was executed utilizing the R package \textit{bizdays}, \citet{bizdays}. The package enables the user to generate custom calenders. The difference in starting and completion date was therefore easily calculated by setting up a custom calender with the holidays listed above as well as all saturdays and sundays. Then using this calender, the difference between two dates will only take working days into account.
- The only remaining text based information is the contract description. So far none of the text based information required extensive preprocessing to obtain variables that can be represented in a tabular format. In the case of the contract description this is not the case. In order to convert the contract description into a format that may be represented in a table, the descriptions were first tokenized. Tokenization refers to splitting the input text into single unique words, i.e., splitting the sentences on spaces and removing all forms of punctuation. The result is then a vector of tokens. Said tokens were then scanned for spelling mistakes utilizing the R package \textit{hunspell} \citep{hunspell}. Once the misspelled words were corrected, stopwords were removed from the list of tokens. Stopwords are words that have no inherent signal associated with their use, examples for such words in the english language would be \enquote{a}, \enquote{is} and \enquote{the}. In natural language processing there is not necessarily one list of stopwords, depending on the context different libraries of stopwords may be used to remove as much noise as possible from textual data while leaving the signal associated with a series of words in tact. In the case of this thesis, a combination of five different libraries of stopwords was used. All of those libraries, \enquote{snowball} , \enquote{stopwords-iso}, 
- \enquote{smart}, \enquote{marimo} and \enquote{nltk} are available through the R package \textit{stopwords}, by \citet{stopwords}. After filtering out the stopwords, the remaining words were then stemmed.
- 
- 
+ The only remaining text based information is the contract description. So far, none of the text based information required extensive preprocessing to obtain variables that can be represented in a tabular format. In the case of the contract description this is not the case. In order to convert the contract description into a format that may be represented in a table, the descriptions were first tokenized. Tokenization refers to splitting the input text into single unique words, i.e., splitting the sentences on spaces and removing all forms of punctuation. The result is then a vector of tokens. Said tokens were then scanned for spelling mistakes utilizing the R package \textit{hunspell} \citep{hunspell}. Once the misspelled words were corrected, stopwords were removed from the list of tokens. Stopwords are words that have no inherent signal associated with their use, examples for such words in the english language would be \enquote{a}, \enquote{is} and \enquote{the}. In natural language processing there is not necessarily one list of stopwords, depending on the context different libraries of stopwords may be used to remove as much noise as possible from textual data while leaving the signal associated with a series of words in tact. In the case of this thesis, a combination of five different libraries of stopwords was used. All of those libraries, \enquote{snowball} , \enquote{stopwords-iso}, 
+ \enquote{smart}, \enquote{marimo} and \enquote{nltk} are available through the R package \textit{stopwords}, by \citet{stopwords}. After filtering out the stopwords, the remaining words were then stemmed. Stemming refers to the process in which a word is reduced to it's root. This means, that words that carry an identical signal are reduced to the same shortest common substring. Consider the following three words, replacing, replaced, replacement. All those words carry the information that something needs replacement. The language specific circumstances that determin the affixes are not relevant for the information extraction and thus all the aforementioned words are shortened to \enquote{replac} \citet{textminingR}. After stemming, to remove any remaining misspelled words and also for potential removal of unwanted information, all stemmed words were written to an excel file and checked manually. Given that all stopwords were already removed and the remaining words were reduced to their stem, this was a very feasible task, resulting in a file with around 2000 words to check. Below we observe the top 40 most frequent words that result from our text mining endeavours.
  
 \begin{figure}[H]
 	\includegraphics[width = 14	cm]{figures/description_words.pdf}
 	\caption{Top 40 Stemmed Description Words}\label{fig:desc}
 \end{figure}
+
+\subsubsection{Tabular Data}\label{subsec:tab}
+
+As displayed in Figure \ref{fig:bidtab}, the table in each of the auctions' PDFs contains information on the submited bids, the bidders' identity and an engineer's estimate. To extract the table containing this information, the package \textit{tabulizer} by \citet{tabulizer}. This package provides bindings for the Tabula PDF extractor, written in Java. In particular, two functions of the library were combined to write a wrapper for the table extraction. First the function \textit{extract\_tables()} was used to attempt automized table detection and subsequent extraction. Unfortunately, however, there are quite a few cases in which the automatic table detection failed because some auctions only have one or two bidders. The resulting tables that summarize those auctions have very few rows and thus the automatic detection does not recognize them as tables. Accordingly, if the output of \textit{extract\_tables()} is empty, the implemented wrapper calls \textit{extract\_areas()}. This function allows the user to specify an area via the R plot pain to specify where exactly the table is located. Once the location is passed manually, which was necessary for around 10-15\% of cases, the extraction worked as intended. To finally, obtain the tables the wrapper was used to loop over the PDFs.
 
 \subsection{Descriptive Statistics}\label{subsec:desc}
 \section{Economic Operationalization}\label{sec:op}
@@ -145,6 +152,7 @@ In order to obtain all the archived bid tabs, the html code of the website was f
 \subsection{Nested Cross Validation}\label{subsec:nest}
 \subsubsection{Logistic PCA}\label{subsubsec:logp}
 \subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
+\subsection{Post-Selection Inference for $\ell_1$-Penalized Models}\label{subsec:psi}
 \section{Results}\label{sec:res}
 \subsection{Prediction}\label{subsec:pred}
 \subsection{Unsupervised Colusion Detection}\label{subsec:col}
