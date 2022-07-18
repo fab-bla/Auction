@@ -1,4 +1,4 @@
-# Unfortunately, tabulizer has issues to identify tables with little rows, since
+# Unfortunately, tabulizer has issues to identify tables with few rows, since
 # the rows in the table represent the amount of bidders we may not ignore this 
 # as the missingness of the auctions will not be random but more likely for auctions 
 # with a small number of bidders.
