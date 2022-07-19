@@ -1,0 +1,141 @@
+---
+title: |
+       | 08 Descriptive Statistics
+author: "Fabian Blasch"
+date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{amssymb}
+   - \usepackage{float}
+   - \usepackage{titling}
+   - \usepackage{xcolor}
+output: 
+   pdf_document:
+      number_sections: TRUE
+---
+
+# Load Data
+
+```{r, results = "hide", message = FALSE, warning = FALSE}
+# source AUX
+source("./../Misc/Auxilliary.R")
+
+# packages
+get.package(c("ggplot2", "patchwork"))
+
+# load data
+dat_aucs <- do.call(rbind, readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS"))
+
+# relevel 
+levels(dat_aucs$Letting_Month) <- 1:12
+
+# cols 
+col <- c("cornflowerblue", "darkgoldenrod1", "firebrick", "forestgreen",
+         "lightgreen","darkmagenta", "darkslategrey")
+```
+
+# Barplots excl. Vendors
+
+```{r}
+# all vars that we want barplots and that are in correct format
+barplot_cols <- c("County", "Letting_Year", "N_Firm", "Letting_Month")
+
+# change font to lmroman
+sysfonts::font_add("lmmodern", 
+                   "C:/Users/blasc/OneDrive/Documents/R/win-library/4.1/sysfonts/fonts/lmroman10-regular.ttf")
+
+# showtext call
+showtext::showtext_auto()
+
+# write into thesis folder
+# pdf("./../../Thesis/figures/barplots.pdf", width = 10, height = 6)
+
+# align
+par(mfrow = c(2, 2), mar = c(4, 2.5, 2, 1), family = "lmmodern")
+
+# plots
+barplot(dat_aucs[, barplot_cols[2]] |> table(), col = col[2], ylim = c(0, 120), 
+            main = "Year", las = 1) 
+barplot(dat_aucs[, barplot_cols[4]] |> table(), col = col[4], ylim = c(0, 80), 
+            main = "Month", las  = 1) 
+
+# remar
+par(mar = c(7, 2.5, 2, 1), family = "lmmodern")
+barplot((dat_aucs[, barplot_cols[1]] |> table() |> sort(decreasing = T))[1:20], col = col[1],
+            las = 2, ylim = c(0, 35), cex.names = 0.95, main = "Top 20 Counties") 
+barplot((dat_aucs[, barplot_cols[3]] - 1) |> table() , col = col[3], ylim = c(0, 120),
+            main = "Number of Firms", las = 1) 
+
+# close graph dev
+# dev.off()
+```
+
+Barplots Vendors and Interactions
+
+```{r}
+# cols
+vend_cols_log <- names(dat_aucs) |> stringr::str_detect("Vend_")
+interact_cols <- names(dat_aucs) |> stringr::str_detect("_x_")
+Vend_not_int <- vend_cols_log & (!interact_cols)
+
+
+# write into thesis folder
+# pdf("./../../Thesis/figures/vend_plots.pdf", width = 10, height = 6)
+
+# align
+par(mfrow = c(1, 2), mar = c(12, 2.5, 2, 1), family = "lmmodern")
+
+# plots
+invis.Map(\(bool, col, m){
+
+  # subset
+  tmp <- dat_aucs[, bool] |> colSums()
+  tmp <- (tmp |> sort(decreasing = TRUE))[1:20]
+  
+  # barplot
+  barplot(tmp, las = 2, col = col, ylim = c(0, max(tmp) + 5), 
+          main = m)
+  
+}, list(Vend_not_int, interact_cols), c("darkmagenta", "darkslategrey"),
+  c("Top 20 Bidders", "Top 20 Bidder Interactions"))
+
+# graph. dev
+# dev.off()
+```
+
+# Boxplots 
+
+```{r}
+# long format
+tmp <- rbind(cbind(dat_aucs$Winning_Bid, "Award Price"),
+             cbind(dat_aucs$Eng_Est, "Engineer's Estimate"))
+tmp[,1] <- as.numeric(tmp[, 1])
+tmp_dat <- as.data.frame(tmp)
+names(tmp_dat) <- c("Price", "type")
+tmp_dat$type <- as.factor(tmp_dat$type)
+tmp_dat$Price <- as.numeric(tmp_dat$Price) / 1e3
+
+# boxplot
+boxplot(Price ~ type,  data = tmp_dat, las = 1, ylab = "")
+
+# write into thesis folder
+pdf("./../../Thesis/figures/aw_eng_hist.pdf", width = 10, height = 5)
+
+
+# align
+par(mfrow = c(1, 2), mar = c(4, 2.5, 2, 1), family = "lmmodern")
+
+# hists
+invis.Map(\(var, col, nom){
+  
+  # hist
+  hist(var, col = col, breaks = 35, main = nom, ylim = c(0, 250), xlab = "",
+       las = 1)
+  
+}, dat_aucs[, c("Winning_Bid", "Eng_Est")] / 1e3, c("cornflowerblue", "lightgreen"),
+  c("Award Price", "Engineer's Estimate"))
+
+# dev
+dev.off()
+```
+

@@ -131,15 +131,53 @@ In order to obtain all the archived bid tabs, the html code of the website was f
  \enquote{smart}, \enquote{marimo} and \enquote{nltk} are available through the R package \textit{stopwords}, by \citet{stopwords}. After filtering out the stopwords, the remaining words were then stemmed. Stemming refers to the process in which a word is reduced to it's root. This means, that words that carry an identical signal are reduced to the same shortest common substring. Consider the following three words, replacing, replaced, replacement. All those words carry the information that something needs replacement. The language specific circumstances that determin the affixes are not relevant for the information extraction and thus all the aforementioned words are shortened to \enquote{replac} \citet{textminingR}. After stemming, to remove any remaining misspelled words and also for potential removal of unwanted information, all stemmed words were written to an excel file and checked manually. Given that all stopwords were already removed and the remaining words were reduced to their stem, this was a very feasible task, resulting in a file with around 2000 words to check. Below we observe the top 40 most frequent words that result from our text mining endeavours.
  
 \begin{figure}[H]
-	\includegraphics[width = 14	cm]{figures/description_words.pdf}
+	\includegraphics[width = 12	cm]{figures/description_words_cloud.pdf}
 	\caption{Top 40 Stemmed Description Words}\label{fig:desc}
 \end{figure}
 
 \subsubsection{Tabular Data}\label{subsec:tab}
 
-As displayed in Figure \ref{fig:bidtab}, the table in each of the auctions' PDFs contains information on the submited bids, the bidders' identity and an engineer's estimate. To extract the table containing this information, the package \textit{tabulizer} by \citet{tabulizer}. This package provides bindings for the Tabula PDF extractor, written in Java. In particular, two functions of the library were combined to write a wrapper for the table extraction. First the function \textit{extract\_tables()} was used to attempt automized table detection and subsequent extraction. Unfortunately, however, there are quite a few cases in which the automatic table detection failed because some auctions only have one or two bidders. The resulting tables that summarize those auctions have very few rows and thus the automatic detection does not recognize them as tables. Accordingly, if the output of \textit{extract\_tables()} is empty, the implemented wrapper calls \textit{extract\_areas()}. This function allows the user to specify an area via the R plot pain to specify where exactly the table is located. Once the location is passed manually, which was necessary for around 10-15\% of cases, the extraction worked as intended. To finally, obtain the tables the wrapper was used to loop over the PDFs.
+As displayed in Figure \ref{fig:bidtab}, the table in each of the auctions' PDFs contains information on the submited bids, the bidders' identity and an engineer's estimate. To extract the table containing this information, the package \textit{tabulizer} by \citet{tabulizer}. This package provides bindings for the Tabula PDF extractor, written in Java. In particular, two functions of the library were combined to write a wrapper for the table extraction. First the function \textit{extract\_tables()} was used to attempt automized table detection and subsequent extraction. Unfortunately, however, there are quite a few cases in which the automatic table detection failed because some auctions only have one or two bidders. The resulting tables that summarize those auctions have very few rows and thus the automatic detection does not recognize them as tables. Accordingly, if the output of \textit{extract\_tables()} is empty, the implemented wrapper calls \textit{extract\_areas()}. This function allows the user to specify an area via the R plot-pane to specify where exactly the table is located. Once the location is passed manually, which was necessary for around 10-15\% of cases, the extraction worked as intended. To finally, obtain the tables the wrapper was used to loop over the PDFs.
 
 \subsection{Descriptive Statistics}\label{subsec:desc}
+The data that results from the sraping process is based on an auction level. Meaning that each of the 430 auctions that were scraped between 2015 and 2019 represents one row. The final columns are thus:
+
+\begin{itemize}
+	\item Contract ID
+	\item County
+	\item Letting month
+	\item Letting year
+	\item Contract time
+	\item Number of bidders
+	\item Engineer's estimate
+	\item Award price
+	\item 169 binary variables, representing the bidder identities
+	\item 652 binary variables, representing pair-wise bidder interaction terms 
+	\item 258 binary variables, representing the contract description hitwords
+\end{itemize}
+
+The interactionterms were generated in order to see, whether, a combination of certain bidders leads to a lower or higher award price. Those terms may also be used to perform unsupervised collusion detection utilizing post-selection inference for $\ell_1$-penalized models. This idea is further outlined in Section \ref{subsec:col}. To obtain a concise overview of the data,  histograms and barcharts of the variables are provided below.
+
+\begin{figure}[H]
+	\includegraphics[width = 14	cm]{figures/barplots.pdf}
+	\caption{Date, Counties and Number of Firms}\label{fig:barplots}
+\end{figure}
+
+We observe, that the sample of auctions in the dataset were held between 2015 and 2019, in which the auction frequency is the highest in Januarry and June. Further we learn, that most contracts are to be completed in El Paso followed by a combination of multiple counties. In regards to the number of bidders per auction, most of the auctions have between 1 to 4 bidders, with the maximum being 9 competing firms.
+
+\begin{figure}[H]
+	\includegraphics[width = 14	cm]{figures/vend_plots.pdf}
+	\caption{Bidders and their Interactions}\label{fig:vendplots}
+\end{figure}
+
+The depiction of the top 20 bidders represents the unique identifiers of the firms that submitted the most bids. It is interesting to see that 
+
+\begin{figure}[H]
+	\includegraphics[width = 14	cm]{figures/aw_eng_hist.pdf}
+	\caption{Award Price and Engineer's Estimate}\label{fig:aweng}
+\end{figure}
+
+
 \section{Economic Operationalization}\label{sec:op}
 \subsection{Auctioneer}\label{subsec:auc}
 \subsection{Firms}\label{subsec:firms}

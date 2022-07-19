@@ -246,25 +246,29 @@ sysfonts::font_add("lmmodern",
 showtext::showtext_auto()
 
 # write into thesis folder
-# pdf("./../../Thesis/figures/description_words.pdf", width = 10)
+pdf("./../../Thesis/figures/description_words_cloud.pdf", width = 5, height = 5)
 
 # align
-par(mfrow = c(1, 2), mar = c(4, 2.5, 2, 1), family = "lmmodern")
+#par(mfrow = c(1, 2), mar = c(4, 2.5, 2, 1), family = "lmmodern")
 
 # top 20 most common stemmed words
-barplot(stem_tab[1:40], las = 2,
-        ylim = c(0, 250), cex.names = 0.5, col = 4)
+# barplot(stem_tab[1:40], las = 2,
+#         ylim = c(0, 250), cex.names = 0.5, col = 4)
 
 # repar
-par(cex.main = 2)
-title("Top 40 Stemmed Description Words ", line = -1.5, outer = TRUE)
+# par(cex.main = 2)
+# title("Top 40 Stemmed Description Words ", line = -1.5, outer = TRUE)
 
-par(mar = rep(0, 4), cex.main = 0.9)
+par(mar = rep(0, 4), family = "lmmodern")
+
+# seed
+set.seed(38)
+
 # wordcloud
 wordcloud(names(stem_tab), stem_tab, max.words = 40, random.order = FALSE, rot.per = 0.35, 
           colors = brewer.pal(8, "Dark2"))
 
-# dev.off()
+dev.off()
 ```
 
 
