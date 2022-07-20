@@ -80,10 +80,10 @@ Vend_not_int <- vend_cols_log & (!interact_cols)
 
 
 # write into thesis folder
-# pdf("./../../Thesis/figures/vend_plots.pdf", width = 10, height = 6)
+#pdf("./../../Thesis/figures/vend_plots.pdf", width = 10, height = 5)
 
 # align
-par(mfrow = c(1, 2), mar = c(12, 2.5, 2, 1), family = "lmmodern")
+par(mfrow = c(1, 2), mar = c(7, 2.5, 2, 1), family = "lmmodern")
 
 # plots
 invis.Map(\(bool, col, m){
@@ -91,6 +91,9 @@ invis.Map(\(bool, col, m){
   # subset
   tmp <- dat_aucs[, bool] |> colSums()
   tmp <- (tmp |> sort(decreasing = TRUE))[1:20]
+  
+  # remove vend from name 
+  names(tmp) <- stringr::str_remove_all(names(tmp), "Vend_")
   
   # barplot
   barplot(tmp, las = 2, col = col, ylim = c(0, max(tmp) + 5), 
@@ -100,7 +103,7 @@ invis.Map(\(bool, col, m){
   c("Top 20 Bidders", "Top 20 Bidder Interactions"))
 
 # graph. dev
-# dev.off()
+#dev.off()
 ```
 
 # Boxplots 
