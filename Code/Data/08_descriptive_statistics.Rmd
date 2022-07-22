@@ -122,7 +122,7 @@ tmp_dat$Price <- as.numeric(tmp_dat$Price) / 1e3
 boxplot(Price ~ type,  data = tmp_dat, las = 1, ylab = "")
 
 # write into thesis folder
-pdf("./../../Thesis/figures/aw_eng_hist.pdf", width = 10, height = 5)
+# pdf("./../../Thesis/figures/aw_eng_hist.pdf", width = 10, height = 5)
 
 
 # align
@@ -139,6 +139,17 @@ invis.Map(\(var, col, nom){
   c("Award Price", "Engineer's Estimate"))
 
 # dev
-dev.off()
+# dev.off()
 ```
+
+# Amounts of time that award price exceeds 110%
+
+```{r}
+with(dat_aucs,{
+  
+  sum(Winning_Bid > (Eng_Est * 1.1)) / 430
+  
+})
+```
+
 
