@@ -27,6 +27,8 @@
 \usepackage{amsfonts}
 \usepackage{float}
 \usepackage{mathtools}
+\usepackage{relsize}
+\usepackage{bm}
 \usepackage[
 colorlinks = true,
 linkcolor = black,
@@ -59,7 +61,8 @@ style = apa]
 \addbibresource{literature.bib}
 
 %% Commands %%
-
+\DeclareMathOperator*{\argminA}{arg\,min}
+\DeclareMathOperator*{\argmaxA}{arg\,max}
 %%%%%%%%%%%%%%
 
 % Schrift
@@ -199,11 +202,11 @@ The auction design created by the CDOT is a classical sealed-bid first-price auc
 
 For the applied nature of this thesis a formalization of the auction process in not a necesary prerequisite 
 for a good prediction model, however, a sound understanding of all the economic agents at play might yield insights into the potential gains made from a prediction model for participating firms and may also provide us with expectations for the post-selection inference that is explored in Section \ref{subsubsec:psi}. Given that this chapter is not strictly necessary for the reader to understand the main findings of this thesis a basic understanding of game theory is assumed.\\
-The description of bidding in the first-price sealed-bid procurement auction (FPSBPA) is denoted in accordance with \citet{milgrom82} and \citet{HandbookIndustrialOrga}. For the following description let uppercase letters represent random variables and their lowercase counterpart a single realisation. Consider an auction enviroment with $n$ potential bidding firms, all of them submit bids in hopes to procure a contract from the auctioneer. Each of those firms, which are indexed by $i$ observe a signal $x_i$. One can think of $X_i$ as private information that each firm has about their own cost structure. Further, let $V$ represent the characteristics that determin the value of the contract to the firms. Firm $i's$ payoff is represented by $U_i = u_i(V, X_i, X_{-i})$, where $X_{-i}$ represents the characterisitcs of firms $i's$ rivals. Most of the time it is assumed that firms are risk neutral, i.e., expected utility of profit is simply equal to the expectation of a linear function of capital gained, and maximizing it is equivalent to maximizing expected profit itself. Let the bidding strategy be a function $\beta: X_i \rightarrow \mathbb{R}^+$, that maps the characteristics of firm $i$ into the non-negative real numbers. To ensure that this function is invertible, in the literature it is usually assumed that $\beta$ is strictly increasing in the signals $X_i$, this is not particularly unrealistic. Again, assuming that $X_i$ represents the cost structure of firm $i$ a ceteris paribus decrease in costs is then associated with a decrease in the price of submitted bids. Now that the basic formalities of the auction enviroment have been set, we may consider the \enquote{winner's curse}, which assumes the event of winning an auction as an informative event in respect to the value of the contract. The idea is that a firm that manages to procure a contract through an auction must be the lowest bidder, and this also means that no other firm was willing to execute the contractual obligations for the same price. More formally, assume that the realization $v$ is unknown and identical for all firms, i.e, we are assuming that firms will be able to extract the same profit from this contract. Furter assume that the cost for completing of the contract is drawn from a common distribution $F$ and that the value of the contract to the firms is identical prior to the realisation of the cost draw, i.e, w.l.o.g for firm 1 the ex ante valuation of the contract is equal to:
+The description of bidding in the first-price sealed-bid procurement auction (FPSBPA) is denoted in accordance with \citet{milgrom82} and \citet{HandbookIndustrialOrga}. For the following description let uppercase letters represent random variables and their lowercase counterpart a single realisation. Consider an auction enviroment with $n$ potential bidding firms, all of them submit bids in hopes to procure a contract from the auctioneer. Each of those firms, which are indexed by $i$ observe a signal $x_i$. One can think of $X_i$ as private information that each firm has about their own cost structure. Further, let $V$ represent the characteristics that determin the value of the contract to the firms. Firm $i's$ payoff is represented by $U_i = u_i(V, X_i, X_{-i})$, where $X_{-i}$ represents the characterisitcs of firms $i's$ rivals. Most of the time it is assumed that firms are risk neutral, i.e., expected utility of profit is simply equal to the expectation of a linear function of capital gained, and maximizing it is equivalent to maximizing expected profit itself. Let the bidding strategy be a mapping $\beta: X_i \rightarrow \mathbb{R}^+$, that maps the characteristics of firm $i$ into the non-negative real numbers. To ensure that this function is invertible, in the literature it is usually assumed that $\beta$ is a bijection that is strictly increasing in the signals $X_i$, this is not particularly unrealistic. Again, assuming that $X_i$ represents the cost structure of firm $i$ a ceteris paribus decrease in costs is then associated with a decrease in the price of submitted bids. Now that the basic formalities of the auction enviroment have been set, we may consider the \enquote{winner's curse}, which assumes the event of winning an auction as an informative event in respect to the value of the contract. The idea is that a firm that manages to procure a contract through an auction must be the lowest bidder, and this also means that no other firm was willing to execute the contractual obligations for the same price. More formally, assume that the realization $v$ is unknown and identical for all firms, i.e, we are assuming that firms will be able to extract the same profit from this contract. Further, assume that the cost for completing of the contract is drawn from a common distribution $F$ and that the value of the contract to the firms is identical prior to the realisation of the cost draw, i.e, w.l.o.g for firm 1 the ex ante valuation of the contract is equal to:
 \[
 v_1(x_1) = \mathbb{E}[V|X_1 = x_1]  = \int vf_{V|X_1}(v|x_1)dv.
 \]
- Then in equilibrium, assuming that the bidding function is decreasing in the cost realization, the winner is the firm with the lowest cost draw from the distribution. By Jensens inequality, given that the maximum is a convex function, 
+ Then in equilibrium, assuming that the bidding function is increasing in the cost realization, the winner is the firm with the lowest cost draw from the distribution. By Jensens inequality, given that the maximum is a convex function, 
 \[
 \mathbb{E}[\text{max}\{V_i|v\}] \leq \text{max}\{{\mathbb{E}[V_i|v]}\} = v.
 \] 
@@ -214,11 +217,11 @@ This represents the winner's curse as the firm with the lowest cost draw may ext
 Where $Y_1$ is the firm with the lowest cost of contract execution among firm 1's rivals. We thus find that the bidder that incurs the lowest cost associated with the completion of all contractual obligations and therefore the highest potential profit to be extracted from the procurment of the contract should bid less than the firm's ex ante estimate of $V_1$, simply because the assignment of the contract to the firm as the lowest bidder is an informative event. Especially for firms, that are not as established and might have difficulties to obtain the expertise to properly assess the difficulties associated with completion of a contractual agreement will suffer more severly from the winner's curse. This is relevant for this thesis as an award price prediction that gives a reasonable estimate for the costs associated with the completion of a contract will change the informational assymetries and thus also lessen the severity of the winner's curse, should the award price prediction be shared with the bidders \citep{GarciaRodriguez2020}.\\
 
 Now that we have discovered another potential beneficiary of a award price prediction model, we may assess the strategic bidding behaviour of firms. To further simplify the strategic behaviour we may again assume that firms cost realisations $x_i$ are drawn from a common distribution $F$, further we may asssume that the number of firms that submit bids is common knowledge and that the reserve price is not binding. Essentially, that means that the firms believe that bidding above the 110\% treshhold will not lead to a reissue of the contract but to a contract award in the secondary process previously described.
-The firm is then set out to:
+Given that this game is symmetric, we may again focus on firm 1 w.l.o.g. The firm aims to maximize its expected profit, i.e.,
 \[
-\max_b \text{ } (b - x)\{1 - F[\beta^{-1}(b)]\}^{n-1},
+\argmaxA_b \text{ } (b - x)\{1 - F[\beta^{-1}(b)]\}^{n-1},
 \]
-which is just the expected profit. Where $(b - c)$ is the profit that the firm expects if it were to win the contract and the remaining term is the probability that all other firms have higher costs associated with the execution of the contractual obligation, and thus submit higher bids. Accordingly, by the previously mentioned assumption of the strictly increasing function $\beta$, the lowest cost realization leads to the lowest bid. From the maximization problem, we obtain the following FOC:
+which is just the expected profit. Where $(b - c)$ is the profit that the firm expects if it were to win the contract and the remaining term is the probability that all other competing firms have higher costs associated with the execution of the contractual obligation, and thus submit higher bids. Accordingly, by the previously mentioned assumption of the strictly increasing function $\beta$, the lowest cost realization leads to the lowest bid. From the maximization problem, we obtain the following FOC:
 \begin{gather*}
 	\{1-F[\beta^{-1}(b)]\}^{n-1} + (b - x)(n - 		1)\{1-F[\beta^{-1}(b)]\}^{n-2}\frac{d\beta^{-1}}{db}\{(-1)f[\beta^{-1}(b)]\} \overset{!}{=} 0\\
 	\frac{\{1-F[\beta^{-1}(b)]\}^{n-1}}{\{1-F[\beta^{-1}(b)]\}^{n-2}} = (b - x)(n - 1)f[\beta^{-1}(b)]\frac{d\beta^{-1}}{db}\\
@@ -228,13 +231,44 @@ Knowing that in the bayesian NE, $\beta^{-1}(b) = x$ and $\frac{d\beta^{-1}(b)}{
 \begin{gather*}
 	\beta'(x) = \frac{[\beta(x) - x](n - 1)f(x)}{1-F(x)}
 \end{gather*}
-This is a differential equation that modern computer algebra systems like mathematica can easily solve to obtain the bayesian BE bid function.
+This is a differential equation that modern computer algebra systems like mathematica can easily solve to obtain the bayesian NE bid function.
 \[
 \beta(x) = x + \frac{\int_x^\infty [1 - F(t)]^{(n-1)}dt}{[1-F(x)]^{(n-1)}}
 \]
-We thus learn that the bid resulting from the cost structure of the firm is a surcharge added to the cost realization. Further, we observe that the surcharge depends on the number of firms in an auction and the common cost distribution. We have to keep in mind, however, that this simple result is based on quite restrictive assumptions. Especially, the risk neutrality of firms is not particularly realistc and it is also not very plausible that all cost realizations are drawn from the same distribution. This would imply that economies of scale do not play a role. 
+We thus learn that the bid resulting from the cost structure of the firm is a surcharge added to the cost realization. Further, we observe that the surcharge depends on the number of firms in an auction and the common cost distribution. We have to keep in mind, however, that this simple result is based on quite restrictive assumptions. Especially, the risk neutrality of firms is not particularly realistic and it is also not very plausible that all cost realizations are drawn from the same distribution. This would imply that economies of scale do not play a role. Nonetheless, given those simplifying assumptions, the results displayed in section \ref{sec:res} will show whether the derived economic intuition of firms behaviour is observable in the data.
 \section{Methods}\label{sec:meth}
+
+This section contains precise descriptions of the methods used to generate the results presented in section \ref{sec:res}.
+
 \subsection{Elastic Nets}\label{subsec:net}
+
+When the amount of features in a dataset is significantly larger than the amount of observations, elastic net regularization offers a solution to fit linear models using a convex combination of the lasso and ridge penalty.\\
+The description of the elastic net regularization is denoted in accordance with the seminal paper by \citet{hastie03}. Assume that a dataset has n observations and p explanatory variables. As it is the case with the award price datset, the number of explanatory variables may greatly exceed the number of observations, i.e., $p >> n$. Let $\mathbf{y} = (y_1, ...., y_n)^T$ be the response variable and $\mathbf{X} = [x_1|...|x_p]$ the model matrix, containing the hot encoded explanatory variables. This means that all factor variables have to be converted to individual dummy variables for each level. Subsequently, each column in the model matrix is then centered and standardized. This ensures that the regularization is consistent across variables, since the regularization process is not scale invariant. For any combination of non-negative $\lambda_1$ and $\lambda_2$, \citet{hastie03}, define the elastiv net criterion as,
+\[
+L(\lambda_1, \lambda_2, \bm{\beta}) = |\mathbf{y} - \mathbf{X}\bm{\beta}|^2 +\lambda_2|\bm{\beta}|^2 +\lambda_2|\bm{\beta}|_1, 
+\]
+where $|\bm{\beta}|^2$ represents the $\ell_2$ norm of the coefficient vector $\bm{\beta}$, i.e., 
+\[
+|\bm{\beta}|^2 = \mathlarger{\sum}\limits_{i = 1}^{p}\bm{\beta}_i^2
+\]
+and $|\bm{\beta}|_1$ is equivalent to the $\ell_1$ norm, i.e.,  
+\[
+|\bm{\beta}|_1 = \mathlarger{\sum}\limits_{i = 1}^{p}|\bm{\beta}|.
+\]
+The elastic net estimator $\bm{\hat{\beta}}$ results from the following minimization problem,
+\[
+\bm{\hat{\beta}} = \argminA_{\bm{\beta}} L(\lambda_1, \lambda_2, \bm{\beta}).
+\]
+Alternatively, the elastic net penalized regression may also be written as a constrained optimization problem of the least square estmator. Let $\alpha = \frac{\lambda_2}{\lambda_2 + \lambda_1}$, then for some fixed $t$, 
+\[
+\bm{\hat{\beta}} = \argmaxA_{\bm{\beta}} |\mathbf{y} - \mathbf{X}\bm{\beta}|^2,
+\]
+subject to,
+\[
+(1 - \alpha)|\bm{\beta}|_1 + \alpha|\bm{\beta}|^2 \leq t.
+\]
+The constraint thus encompasses a convex combination of the lasso penalty and the ridge penalty. Accordingly, both ridge and lasso regression are a special cases of an elastic net, where $\alpha = 1$ results in ridge regression and $\alpha = 0$ leaves us with the $\ell_1$ penalized lasso regression estimator.
+
 \subsubsection{Post-Selection Inference for $\ell_1$-Penalized Models}\label{subsubsec:psi}
 \subsection{Ensemble Methods}\label{subsec:ens}
 \subsubsection{Random Forests}\label{subsubsec:rf}
