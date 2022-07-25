@@ -8,7 +8,8 @@ Transportation](https://codot.gov/business/bidding/bid-tab-archives). To
 date, the following models with varying preprocessing schedules have
 been compared:
 
--   Elastic Net
+-   [Elastic
+    Net](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_elastic_net.ipynb)
 -   Linear Model
     -   [with logistic PCA preprocessing (parallel
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_PreProcess_LM.ipynb)
@@ -21,7 +22,7 @@ been compared:
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/17/22)
+# Best Model (07/25/22)
 
 The boxplots below display the out of sample predicted values for the
 models that have been trained so far. Further, as the Engineers Estimate
