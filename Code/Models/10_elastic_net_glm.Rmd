@@ -29,7 +29,8 @@ source("./../Misc/Auxilliary.R")
 source("./../Misc/model_eval.R")
 
 # packages
-get.package(c("lubridate", "glmnet", "glmnetUtils", "tidyverse", "patchwork"))
+get.package(c("lubridate", "glmnet", "glmnetUtils", "tidyverse", "patchwork",
+              "selectiveInference"))
 
 # load data
 dat_aucs_eng <- readRDS("./../../Data/Bid Tab RDS/Aucs_df_feateng_split.RDS")
@@ -59,35 +60,6 @@ lapply(dat_aucs_eng, \(df){
 print(Dens_hist_plot(dat_aucs_mod[["Train"]], "Winning_Bid", dist = "exponential", distFUN = dexp, bins = 100, bg_alt = TRUE) +
 Dens_hist_plot(dat_aucs_mod[["Train"]], "Winning_Bid", dist = "normal", distFUN = dnorm, bins = 100) /
 Dens_hist_plot(dat_aucs_mod[["Train"]], "Winning_Bid", dist = "gamma", distFUN = dgamma, lower_b = 0.005, bins = 100))
-```
-
-## Cross Validation
-
-```{r}
-# families 
-fams <- list("Gaus_ident" = gaussian(link = "identity"),
-             "Gaus_log" = gaussian(link = "log"),
-             "Gaus_inv" = gaussian(link = "inverse"),
-             "Gam_ident" = Gamma(link = "identity"),
-             "Gam_log" = Gamma(link = "log"),
-             "Gam_ident" = Gamma(link = "identity"))
-
-# cross validation
-cvfit_auc_eng <- glmnetUtils::cva.glmnet(Winning_Bid ~., data = dat_aucs_mod[["Train"]],
-                                 family = fams[[1]],
-                                 type.measure = "mse", nfolds = 10,
-                                 alpha = c(0.01, seq(0, 1, 0.25),0.99),
-                                 nlambda = 250)
-beepr::beep(sound = 1)
-
-# save
-# saveRDS(cvfit_auc_eng, "./../../Data/Models/Glmnets/Raw/cvfiteng_norm.RDS")
-
-# read file 
-cvfit_auc_eng <- readRDS("./../../Data/Models/Glmnets/Raw/cvfiteng_norm.RDS")
-
-# plot fit
-plot(cvfit_auc_eng, c.legend = 0.5, main = "Cross Validation Results")
 ```
 
 ## CV Function
@@ -146,59 +118,48 @@ CV_disglmnet <- \(formula, data, families, type_measure = "mse", nfolds = 5,
   # return
   return(tmp)
 }
-
-tets <- CV_disglmnet(Winning_Bid ~., data = dat_aucs_mod[["Train"]], 
-                     families = fams)
-
 ```
 
 ## Best Model
 
 ```{r}
 # obtain best model
-per_matrix_auc2 <- do.call(rbind, Map(function(x, y){
+lapply(cv_res, \(lst){
+  
+  # obtain model list from CV results
+  do.call(rbind, Map(function(x, y){
+  
+     cbind("Per" = sqrt(x$cvm),
+           "Lambda" = x$lambda,
+           "Alpha" = rep(y, length(x$lambda)))
+  
+  }, lst$modlist, lst$alpha)) -> mod_lst
+  
+  # best model
+  mod_lst[which.min(mod_lst[, "Per"]), ]
+  
+}) -> modlist
 
- cbind("Per" = x$cvm,
-       "Lambda" = x$lambda,
-       "Alpha" = rep(y, length(x$lambda)))
-
-}, cvfit_auc2$modlist, cvfit_auc2$alpha))
-
-# best performing parameters
-best_para_auc2 <- per_matrix_auc2[which.min(per_matrix_auc2[, "Per"]), ]
+# best model
+modlist <- do.call(rbind, modlist)
+best_mod <- modlist[which.min(modlist[, "Per"]), ]
 
 # fit model using best parameters
-fit_fin_auc2 <- glmnetUtils::glmnet(Winning_Bid_Log ~., data = dat_train_aucs,
+fit_fin <- glmnetUtils::glmnet(Winning_Bid ~., data = dat_aucs_mod[["Train"]],
                                family = gaussian(link = "identity"),
-                               alpha = best_para_auc2["Alpha"], 
-                               lambda = best_para_auc2["Lambda"])
+                               alpha = best_mod["Alpha"], 
+                               lambda = best_mod["Lambda"])
 
 # predict
-pred_vals_auc2 <- predict(fit_fin_auc2, dat_train_aucs)
+pred_vals <- predict(fit_fin, dat_aucs_mod[["Test"]])
 
-# check preds
-par(mfrow = c(1, 2))
-boxplot(exp(dat_train_aucs[["Winning_Bid_Log"]]), ylim = c(0, 40e6))
-boxplot(exp(pred_vals_auc2), ylim = c(0, 40e6))
-
-# rmse
-sqrt(sum((exp(dat_train_aucs[["Winning_Bid_Log"]]) - exp(pred_vals_auc2))^2) / length(pred_vals_auc2))
 ```
 
 ```{r}
-# fit model using best parameters
-fit_fin_test <- glmnetUtils::glmnet(Winning_Bid ~ ., data = dat_aucs_mod_eng[[2]],
-                               family = gaussian(link = "identity"),
-                               alpha = best_para_auc3["Alpha"], 
-                               lambda = best_para_auc3["Lambda"])
-
-# predict
-pred_vals_test <- predict(fit_fin_test, dat_aucs_mod_eng[[2]], ylim = c(0, 20e3))
-
 # long dataset for boxplot
-rbind(cbind(dat_aucs_mod_eng[[2]][["Winning_Bid"]], "Act."),
-      cbind(pred_vals_test, "Lasso Reg."),
-      cbind(dat_aucs_mod_eng[[2]][["Eng_Est"]], "Eng. Est."))|> as.data.frame()|> 
+rbind(cbind(dat_aucs_mod[["Test"]][["Winning_Bid"]], "Act."),
+      cbind(pred_vals, "Lasso Reg."),
+      cbind(dat_aucs_mod[["Test"]][["Eng_Est"]], "Eng. Est."))|> as.data.frame()|> 
       setNames(c("Award_Price", "Model")) -> dat_box
 
 
@@ -210,59 +171,15 @@ within(dat_box,{
 
 # save data
 # saveRDS(dat_box, "./../../Data/Misc Data/Figure_Data/Lasso_Performance.RDS")
-
-# save
-# pdf("./../../Data/Misc Data/Figures/Actual_Lasso_Eng_Est.pdf")
-
-# datbox
-boxplot(as.numeric(dat_box[, 1]) ~ dat_box[, 2], xlab = "", ylab = "Award Price",
-        ylim = c(0, 20e3), pch = 19, outcol = "darkorchid", 
-        col = c("cornflowerblue", "forestgreen", "firebrick"), main = "Quality of Prediction")
-
-# plot device
-# dev.off()
-
-# rmse
-sapply(list(pred_vals_test, dat_aucs_mod_eng[[2]][["Eng_Est"]]), \(x){
-  
-  sapply(list(Metrics::rmse, Metrics::mae), \(fun){
-    
-      fun(dat_aucs_mod_eng[[2]][["Winning_Bid"]], x)
-    
-  }) |> setNames(c("RMSE", "MAE"))
-
-}) |> knitr::kable(col.names = c("Lasso Model", "Eng. Estimate"))
 ```
 
 ```{r}
 # coefficients
-coefft_auc3 <- coef(fit_fin_auc3, s = "lambda.min")
-coef_ordered_auc3 <- coefft_auc3[order(abs(coefft_auc3[, 1]), decreasing = TRUE), ]
-signum_auc3 <- coef_ordered_auc3[-1] |> sign()
+coefft_auc <- coef(fit_fin, s = "lambda.min")
+coef_ordered_auc <- coefft_auc[order(abs(coefft_auc[, 1]), decreasing = TRUE), ]
+signum_auc <- coef_ordered_auc[-1] |> sign()
 
-# print est model parameters
-knitr::kable(best_para_auc3, col.names = c("Final Model"))
+# selective inference
 
-# generate data for varImp plot
-TopvarImp_auc3 <- varImp(fit_fin_auc3, lambda = fit_fin_auc3$lambda)  %>%
-   dplyr::filter(Overall != 0) %>% 
-   arrange(desc(Overall)) %>% 
-   slice_max(Overall, n = 10)
-
-# Plot
-plot_varimp_auc3 <- ggplot2::ggplot(TopvarImp_auc3, aes(x = reorder(rownames(TopvarImp_auc3), Overall), y = Overall)) +
-  geom_point(color = "blue", size = 4, alpha = 0.6) +
-  geom_segment(aes(x = rownames(TopvarImp_auc3), xend = rownames(TopvarImp_auc3), y = 0, yend = Overall), 
-               color = "skyblue") +
-  xlab("Variable") +
-  ylab("Overall Importance") +
-  theme_light() +
-  coord_flip() 
-
-# plot
-plot_varimp_auc3
-
-# signs
-knitr::kable(ifelse(signum_auc3 < 0, "-", "+"), col.names = "Sign")
 ```
 
