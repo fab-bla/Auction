@@ -118,8 +118,6 @@ CV_disglmnet <- \(formula, data, families, type_measure = "mse", nfolds = 5,
   # return
   return(tmp)
 }
-
-CV_disglmnet(Winning_Bid ~., dat_aucs_mod[["Train"]], type_measure = "deviance")
 ```
 
 ```{r}
@@ -131,8 +129,6 @@ glmnetUtils::cva.glmnet(Winning_Bid ~., data = dat_aucs_mod[["Train"]],
                         type.measure = "deviance", nfolds = 10,
                         alpha = seq(0., 1, 0.05),
                         lambda = seq(5, 500, 5)) -> tmp
-plot(tmp)
-
 # to lst 
 tmp <- list(tmp)
 
@@ -166,7 +162,6 @@ fit_fin <- glmnetUtils::glmnet(Winning_Bid ~., data = dat_aucs_mod[["Test"]],
 # predict
 pred_vals <- predict(fit_fin, dat_aucs_mod[["Test"]])
 ```
-
 
 ## Best Model
 
@@ -220,7 +215,7 @@ within(dat_box,{
         }) -> dat_box
 
 # save data
-saveRDS(dat_box, "./../../Data/Misc Data/Figure_Data/Lasso_Performance_r2.RDS")
+# saveRDS(dat_box, "./../../Data/Misc Data/Figure_Data/Lasso_Performance_r2.RDS")
 ```
 
 ```{r}
@@ -232,7 +227,7 @@ signum_auc <- coef_ordered_auc[-1] |> sign()
 
 # Selective Inference
 
-```{r}
+```{r, warning = FALSE}
 # rejoin data
 dat <- do.call(rbind, dat_aucs_mod)
 
@@ -284,10 +279,11 @@ pselInf <- fixedLassoInf(x = mod_mat_sc, y = label, beta = beta,
 
 # p vals
 pvals <- pselInf$pv
+names(pvals) <- colnames(mod_mat)
 pvals <- sort(pvals, decreasing = FALSE)
-pvals <- matrix(pvals, nrow = 1)
-colnames(pvals) <- colnames(mod_mat)
 
+# return
+knitr::kable(pvals[pvals < 0.1], col.names = "p-value")
 ```
 
 
