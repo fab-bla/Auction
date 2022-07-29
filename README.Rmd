@@ -44,7 +44,7 @@ The boxplots below display the out of sample predicted values for the models tha
 
 ```{r, echo = FALSE}
 # data
-per_lasso <- readRDS("./Data/Misc Data/Figure_Data/Lasso_Performance.RDS")
+per_lasso <- readRDS("./Data/Misc Data/Figure_Data/Lasso_Performance_r2.RDS")
 per_RF <- readRDS("./Data/Misc Data/Figure_Data/logPCA_RF_pred.RDS")
 per_rfe_RF <- readRDS("./Data/Misc Data/Figure_Data/rfe_rf_pred.RDS")
 per_xgb <- readRDS("./Data/Misc Data/Figure_Data/xgb_pred.RDS")

@@ -118,11 +118,62 @@ CV_disglmnet <- \(formula, data, families, type_measure = "mse", nfolds = 5,
   # return
   return(tmp)
 }
+
+CV_disglmnet(Winning_Bid ~., dat_aucs_mod[["Train"]], type_measure = "deviance")
 ```
+
+```{r}
+# find best model cv
+tmp <- readRDS("./../../Data/Models/Glmnets/Raw/cvfiteng_norm.RDS")
+
+glmnetUtils::cva.glmnet(Winning_Bid ~., data = dat_aucs_mod[["Train"]],
+                        family = "gaussian",
+                        type.measure = "deviance", nfolds = 10,
+                        alpha = seq(0., 1, 0.05),
+                        lambda = seq(5, 500, 5)) -> tmp
+plot(tmp)
+
+# to lst 
+tmp <- list(tmp)
+
+# best
+lapply(tmp, \(lst){
+  
+  # obtain model list from CV results
+  do.call(rbind, Map(function(x, y){
+  
+     cbind("Per" = sqrt(x$cvm),
+           "Lambda" = x$lambda,
+           "Alpha" = rep(y, length(x$lambda)))
+  
+  }, lst$modlist, lst$alpha)) -> mod_lst
+  
+  # best model
+  mod_lst[which.min(mod_lst[, "Per"]), ]
+
+}) -> modlist
+
+# best model
+modlist <- do.call(rbind, modlist)
+best_mod <- modlist[which.min(modlist[, "Per"]), ]
+
+# fit model using best parameters
+fit_fin <- glmnetUtils::glmnet(Winning_Bid ~., data = dat_aucs_mod[["Test"]],
+                               family = gaussian(link = "identity"),
+                               alpha = best_mod["Alpha"], 
+                               lambda = best_mod["Lambda"])
+
+# predict
+pred_vals <- predict(fit_fin, dat_aucs_mod[["Test"]])
+```
+
 
 ## Best Model
 
 ```{r}
+# load Cv results
+cv_res <- readRDS("./../../Data/Models/Glmnets/Raw/CV_elastic_net.RDS")
+
 # obtain best model
 lapply(cv_res, \(lst){
   
@@ -137,7 +188,7 @@ lapply(cv_res, \(lst){
   
   # best model
   mod_lst[which.min(mod_lst[, "Per"]), ]
-  
+
 }) -> modlist
 
 # best model
@@ -146,13 +197,12 @@ best_mod <- modlist[which.min(modlist[, "Per"]), ]
 
 # fit model using best parameters
 fit_fin <- glmnetUtils::glmnet(Winning_Bid ~., data = dat_aucs_mod[["Train"]],
-                               family = gaussian(link = "identity"),
+                               family = "gaussian",
                                alpha = best_mod["Alpha"], 
                                lambda = best_mod["Lambda"])
 
 # predict
 pred_vals <- predict(fit_fin, dat_aucs_mod[["Test"]])
-
 ```
 
 ```{r}
@@ -170,7 +220,7 @@ within(dat_box,{
         }) -> dat_box
 
 # save data
-# saveRDS(dat_box, "./../../Data/Misc Data/Figure_Data/Lasso_Performance.RDS")
+saveRDS(dat_box, "./../../Data/Misc Data/Figure_Data/Lasso_Performance_r2.RDS")
 ```
 
 ```{r}
@@ -178,8 +228,66 @@ within(dat_box,{
 coefft_auc <- coef(fit_fin, s = "lambda.min")
 coef_ordered_auc <- coefft_auc[order(abs(coefft_auc[, 1]), decreasing = TRUE), ]
 signum_auc <- coef_ordered_auc[-1] |> sign()
+```
+
+# Selective Inference
+
+```{r}
+# rejoin data
+dat <- do.call(rbind, dat_aucs_mod)
+
+# split into label and model matirx
+label <- dat[, "Winning_Bid"]
+dat[, "Winning_Bid"] <- NULL
+
+# model matrix
+mod_mat <- model.matrix(~. + 0, data = dat)
+
+# remove all vars with less then 10 entries
+cs <- mod_mat |> colSums()
+
+# mod mat sub
+mod_mat <- mod_mat[, cs > 20]
+
+# remove duplicate cols 
+duplicated.columns <- duplicated(t(mod_mat))
+mod_mat <- mod_mat[, !duplicated.columns]
+
+# scale and standardize
+mod_mat_sc <- scale(mod_mat, TRUE, TRUE)
+
+# retune using the entire dataset
+glmnet::cv.glmnet(x = mod_mat_sc, y = label,
+                  standardize = FALSE, alpha = 1,
+                  lambda = seq(0.1, 300, 0.1), 
+                  family = "gaussian", nfolds = 5) -> cv_res
+
+# plot 
+plot(cv_res)
+
+# fit best model
+glmnet::glmnet(x = mod_mat_sc, y = label, family = "gaussian",
+               alpha = 1, lambda = cv_res$lambda.min,
+               standardize = FALSE, tresh = 1e-25) -> fit_ent
+
+# extract ceofs
+beta <-  coef(fit_ent, x = mod_mat_sc, y = label, 
+              s = cv_res$lambda.min / nrow(dat), exact = TRUE,
+              tresh = 1e-25)[-1]
+
+# estimate sigma
+sigma <- estimateSigma(x = mod_mat_sc, y = label, intercept = TRUE)
 
 # selective inference
+pselInf <- fixedLassoInf(x = mod_mat_sc, y = label, beta = beta, 
+                         lambda = cv_res$lambda.min)
+
+# p vals
+pvals <- pselInf$pv
+pvals <- sort(pvals, decreasing = FALSE)
+pvals <- matrix(pvals, nrow = 1)
+colnames(pvals) <- colnames(mod_mat)
 
 ```
+
 
