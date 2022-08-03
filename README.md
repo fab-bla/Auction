@@ -1,9 +1,11 @@
 First-Price Procurement Auctions
 ================
 
-This repository contains my master thesis on first-price sealed-bid
-procurement auctions. In particular, the aim is to predict award prices
-of auctions held by the [Colorado Department of
+This repository contains my [master
+thesis](https://github.com/Base-R-Best-R/Auction/blob/main/Thesis/Thesis_FPSBPA.pdf)
+on first-price sealed-bid procurement auctions, please keep in mind that
+this is still a work in progress. In particular, the aim is to predict
+award prices of auctions held by the [Colorado Department of
 Transportation](https://codot.gov/business/bidding/bid-tab-archives). To
 date, the following models with varying preprocessing schedules have
 been compared:
@@ -22,7 +24,7 @@ been compared:
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (07/27/22)
+# Best Model (08/03/22)
 
 The boxplots below display the out of sample predicted values for the
 models that have been trained so far. Further, as the Engineers Estimate

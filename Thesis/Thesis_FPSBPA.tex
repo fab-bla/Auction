@@ -91,7 +91,7 @@ The importance of public procurement becomes quickly apparent when looking at th
 
 \begin{figure}[H]
 	\includegraphics[width = 14	cm]{figures/Colorado_Budget.PNG}
-	\caption{State of Colorado Budget}\label{fig:bud}
+	\caption{Colorado State Operating Budget \citep{ColoradoBudget}}\label{fig:bud}
 \end{figure}
 
 Given that the contracts awarded through procurement auctions are such a substantial part of the budget, every potential improvement to the process may greatly increase the efficiency of the tax payers money that is spent. Accordingly, a closer examination of the process including a prediction model for the auctions' award prices may support public procurement agencies like the CDOT with budget planning. Additionally, further analysis of the underlying data in respect to the interactions of particular bidders and the associated effect on award prices is also highly relevant for public procurement agencies. This thesis thus provides an analysis of different models, that predict the award price of an auction given input information available through the bid tabs that are published on the official website of the CDOT. In particular, four different model types with varying preprocessing schedules are compared in terms of their predictive power. Standard linear regression, elastic net regression, random forests and an eXtreme gradient boosting model. To assess, whether, the combination of certain bidders leads to higher award prices, recently discovered post-selection inference methods are utilized \citep{selectiveInference}\\
@@ -293,7 +293,9 @@ and hence when conditioning on the sign as well as the selected variables, it is
 \bm{\eta^Ty}|\{A\bm{y} \leq \bm{b}\}.
 \]
 \citet{Lee2016}, elegantly derive that the resulting conditional distribution is a univariate truncated Gaussian. Subsequently, they use this result to present a test statistic that may be utilized to draw inference about the significance of the parameter estimates $\hat\beta_j^{\hat M}$. A description of this derivation is beyond the scope of this thesis, the interested reader is referred to \citet{Lee2016} and \citet{tib2016}. Where the latter provides an extension to the results of \citet{Lee2016}, to generalized $\ell_1$ penalized linear models and further also provides the implementation in an R package called \textit{selectiveInference}, by \citet{selectiveInference}.
+
 \subsection{Ensemble Methods}\label{subsec:ens}
+
 \subsubsection{Random Forest}\label{subsubsec:rf}
 \subsubsection{eXtreme Gradient Boosting}\label{subsubsec:xgb}
 \subsection{Nested Cross Validation}\label{subsec:nest}
