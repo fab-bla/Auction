@@ -32,6 +32,7 @@
 \usepackage{dsfont}
 \usepackage{algorithm2e}
 \usepackage{enumerate}
+\usepackage{float}
 \usepackage[
 colorlinks = true,
 linkcolor = black,
@@ -321,7 +322,7 @@ We aim to choose the splitting variable $j$ and the corresponding splitting poin
 Note that that it is infeasible to choose those sequential partitions that optimize the sum of squares simultaneously for all possible splits. Accordingly, the optimization process is greedy in a sense that it is memoryless and only considers the current available splits given all splits that have occurred beforehand. To a degree this is quite unsettling as it does not guarantee that the recursive partitioning will lead to a global minimum in RSS. This is also where ensemble algorithms may make quite a difference, as we will discover at a later stage. Coming back to the greedy minimization, we have previously discovered that the inner minimum in regards to the constant that represent the observations in $R_1$ and $R_2$ are optimally represented by the arithmetic mean. The outer minimum in respect to $j$ and $s$ may be discovered by  finding the best splitting point $s$ for every candidate variable $j$ to then assess which combination $(j, s)$ leads to the minimization in RSS. This process may then be repeated in the resulting half-planes. If we were to consider trees as a stand alone learner, at this point we would have to think about how we choose the complexity of the tree. However, as in this thesis the depth of a tree is a hyper parameter chosen via cross validation we may skip this part. The interested reader is referred to \citet{hastie09}. Shortly summarized, fixing some threshold for the minimum decrease in RSS to warrant an additional split is not optimal as a seemingly bad split at the current node  might lead to a significant decrease in RSS at a later split. Accordingly, what is usually applied to determine the optimal tree complexity is cost-complexity pruning. In essence this means the tree is grown until some minimum node size is reached and then the tree is \enquote{cut down} backwards starting from the terminal nodes.
 
 \subsubsection{Random Forest}\label{subsubsec:rf}
-As previously mentioned random forests utilize bootstrap aggregation to many noisy but unbiased models, aiming to reduce the variance of the individual simple learners. The presented regression trees are well suited for this, as they may capture complex non-linear relationships in the data and given that they are grown sufficiently deep, they exhibit low bias. By linearity of the expectation operator, given that the each tree generated in bootstrap aggregation is identically distributed, we find that the expectation of the average of an ensemble of trees is identical to any of the individual trees. Put differently, the bias of any single tree is identical to the bias of the bagged ensemble and thus the only way of improving the predictive accuracy is via a reduction in variance. The algorithm used to fit a random forest may be concisely described following \citet{hastie09}.
+As previously mentioned random forests utilize bootstrap aggregation to improve the predictive performance of many noisy but unbiased learners. This is achieved by reducing the variance of the individual simple learning algorithm. The presented regression trees are well suited for this, as they may capture complex non-linear relationships in the data and given that they are grown sufficiently deep, they exhibit low bias. The algorithm used to fit a random forest may be concisely described following \citet{hastie09}:
 
 \RestyleAlgo{ruled}
 
@@ -329,20 +330,38 @@ As previously mentioned random forests utilize bootstrap aggregation to many noi
 %% your algorithm with \Comment
 \SetKwComment{Comment}{/* }{ */}
 % A distance matrix based on pairwise euclidean distance $\mathbf{D} \coloneqq Dist(G_i, G_j)\text{ }\forall\text{ }i, j$,\\
-\begin{algorithm}[hbt!]
+\begin{algorithm}[H]
 	\caption{\textit{Random Forest}}\label{alg:one}
-	\KwData{$b = 1, 2, ..., B$ bootstrap samples drawn with replacement from the training data, $p$ the number of explanatory variables, $m$ the number of variables sampled for each split, the minmum node size $n_{min}$ and the maximum depth $d_{max}$}
+	\KwData{$b = 1, 2, ..., B$ bootstrap samples drawn with replacement from the training data, $p$ the number of explanatory variables, $m$ the number of variables sampled for each split, $n_{min}$ the minmum node size and the maximum depth $d_{max}$.}
 	\begin{enumerate}
 		\item Grow a regression tree $T_b$ utilizing the bagged data, by recursively repeating the following steps, until the minimum node size $n_{min}$ or the maximum depth $d_{max}$ is reached.
 		\begin{enumerate}[i.]
-			\item Randomly sample $m$ explanatory candidate variables from the $p$ candidates.
+			\item Randomly sample $m$ explanatory variables from the $p$ available candidates.
 			\item Find the best split point $s$ for each of the sampled variables $m$.
 			\item Choose the best split available.
 		\end{enumerate}
 		\item Return the ensemble of trees $\{T_b\}_1^B$
 	\end{enumerate}
-
 \end{algorithm}
+
+To predict the response of a new observation, we simply average over the trees in our forest, i.e,
+\[
+\hat f_{rf}(x) = \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_B(x).
+\]
+ By linearity of the expectation operator, given that each tree generated in bootstrap aggregation is identically distributed, we find that the expectation of the average of an ensemble of trees is identical to any of the individual trees. Put differently, the bias of any single tree is identical to the bias of the bagged ensemble and thus the only way of improving the predictive accuracy is via a reduction in variance.
+ Additionally, to gain some intuition for the candidate variable sampling we may benefit from examining $B$ random variables $T_b$, that are identically distributed but not necessarily independent. Let the variance of each random variable $T_b$ be represented by $\sigma^2$ and further let the positive pairwise correlation be represented by $\rho$. Accordingly, the prediction that we obtain by the average over all trees in the forest exhibits the variance: 
+ \[
+ \mathbb{V}ar(\hat f_{rf}) = \mathbb{V}ar \left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_B(x) \right] = \frac{1}{B^2} \mathbb{V}ar \left[ \mathlarger{\sum}\limits_{b = 1}^B T_B(x) \right] = \frac{1}{B^2} \mathlarger{\sum}\limits_{i = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}ov \left[T_i, T_j \right].
+ \]
+Now, given that in the double sum there are $B^2$ summands and we know that B of those are just $\mathbb{C}ov\left[T_i, T_i \right] = \mathbb{V}ar\left[T_i\right] = \sigma^2$, we are left with $B^2 - B$ terms, and thus we find,
+\[
+\frac{1}{B^2} \mathlarger{\sum}\limits_{i = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}ov \left[T_i, T_j \right] = \frac{1}{B^2} \left[B\sigma^2 + (B^2 - B)\rho\sigma^2 \right] = \frac{\sigma^2}{B} +  \frac{B - 1}{B}\rho\sigma^2.
+\]
+Some trivial rearrangements then lead us to the more easily interpretable result,
+\[
+\mathbb{V}ar(\hat f_{rf}) = \rho\sigma^2 + \frac{\sigma^2}{B}(1 - \rho).
+\]
+This result, simply demonstrates the idea behind the variance reduction achieved via bagging and candidate variable sampling. We observe that the second term approaches zero as the number of trees in the forest approach infinity. Additionally, we also observe that the first term depends on the correlation of the individual trees, thus by choosing different candidate variables at each split in different trees we aim to reduce the correlation of the individual trees in our forest.
 
 \subsubsection{eXtreme Gradient Boosting}\label{subsubsec:xgb}
 \subsection{Nested Cross Validation}\label{subsec:nest}
