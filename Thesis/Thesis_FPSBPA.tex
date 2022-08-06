@@ -30,6 +30,8 @@
 \usepackage{relsize}
 \usepackage{bm}
 \usepackage{dsfont}
+\usepackage{algorithm2e}
+\usepackage{enumerate}
 \usepackage[
 colorlinks = true,
 linkcolor = black,
@@ -299,7 +301,7 @@ and hence when conditioning on the sign as well as the selected variables, it is
 
 \subsection{Ensemble Methods}\label{subsec:ens}
 Ensemble methods encompass the combination of simple learning algorithms to achieve superior results in regard to predictive power. For this thesis tree-based methods are of particular importance. For the sake of simplicity, we may only distinguish between two methods of combining individual trees. Bagging and boosting, the former revolves around bootstrap aggregation, which might be a more familiar term to some readers, that have not been exposed to a lot of machine learning literature. Bootstrap aggregation aims to reduce the variance of prediction, by sampling with replacement from all observations, to then apply some simple learning algorithm like a regression tree. In the end the resulting prediction is a constant derived from the individual learners, most of the times said constant is the arithmetic mean. In contrast, boosting aims to improve the predictive power of simple learners like regression trees by sequentially improving the error of the previously fit tree. This chapter gives a concise overview of regression trees as the base learners, random forest which utilizes bagging and eXtreme Gradient Boosting which as the name suggests is a special boosting technique discovered by \citet{chen2016}. The formalization of those methods is denoted in accordance with \citet{hastie09} for regression trees and random forest. For eXtreme gradient boosting the notation is heavily inspired by the seminal paper by \citet{chen2016}. As previously, it is assumed that the reader is familiar with basic terminology, should some terms be unfamiliar, the reader is referred to \citet{James2013} and \citet{hastie09}. Where the former provides a very informal and easy to understand approach, while the latter is more formally motivated.
-\subsection{Regression Trees}
+\subsubsection{Regression Trees}\label{subsubsec:trees}
 The description simple learner could not be more fitting than in the case of a regression tree. In essence the idea may be described in a single sentence. A regression tree finds recursive binary partitions in the space spanned by the explanatory variables that optimizes some metric used to judge the best variable as well as the best available value to form a partition. More formally, again let $p$ represent the number of explanatory variables and $n$ the number of observations, i.e., $i = 1, 2, ..., n$ and $x_i = (x_{i1}, ..., x_{ip})$. Further, let there be M regions $R_i$, each formed by a split in the data. Additionally, suppose that we model the response variable $y$ as a constant $c_m$ in each region, i.e.,
 \[
 f(x) = \mathlarger{\sum}\limits_{m = 1}^{M} c_m \mathds{1}_{\{x \text{ } \in \text{ } R_m\}}.
@@ -316,8 +318,32 @@ We aim to choose the splitting variable $j$ and the corresponding splitting poin
 \[
 \minA_{j, s}\mathlarger{[} \minA_{c_1} \mathlarger{\sum}\limits_{x_i \in R_1(j, s)} (y_i - c_1)^2 + \minA_{c_2} \mathlarger{\sum}\limits_{x_i \in R_2(j, s)} (y_i - c_2)^2 \mathlarger{]}.
 \]
-Note that that it is infeasible to choose those sequential partitions that optimize the sum of squares simultaneously for all possible splits. Accordingly, the optimization process is greedy in a sense that it is memoryless and only considers the current available splits given all splits that have occurred beforehand. To a degree this is quite unsettling as it does not guarantee that the recursive partitioning will lead to a global minimum in RSS. This is also where ensemble algorithms may make quite a difference, as we will discover at a later stage. Coming back to the greedy minimization, we have previously discovered that the inner minimum in regards to the constant that represent the observations in $R_<$ and $R_2$ are optimally represented by the arithmetic mean. The outer minimum in respect to $j$ and $s$ may be achieved by  finding the best splitting point $s$ for every candidate variable $j$ to then assess which combination $(j, s)$ leads to the minimization in RSS. This process may then be repeated in the resulting half-planes.
+Note that that it is infeasible to choose those sequential partitions that optimize the sum of squares simultaneously for all possible splits. Accordingly, the optimization process is greedy in a sense that it is memoryless and only considers the current available splits given all splits that have occurred beforehand. To a degree this is quite unsettling as it does not guarantee that the recursive partitioning will lead to a global minimum in RSS. This is also where ensemble algorithms may make quite a difference, as we will discover at a later stage. Coming back to the greedy minimization, we have previously discovered that the inner minimum in regards to the constant that represent the observations in $R_1$ and $R_2$ are optimally represented by the arithmetic mean. The outer minimum in respect to $j$ and $s$ may be discovered by  finding the best splitting point $s$ for every candidate variable $j$ to then assess which combination $(j, s)$ leads to the minimization in RSS. This process may then be repeated in the resulting half-planes. If we were to consider trees as a stand alone learner, at this point we would have to think about how we choose the complexity of the tree. However, as in this thesis the depth of a tree is a hyper parameter chosen via cross validation we may skip this part. The interested reader is referred to \citet{hastie09}. Shortly summarized, fixing some threshold for the minimum decrease in RSS to warrant an additional split is not optimal as a seemingly bad split at the current node  might lead to a significant decrease in RSS at a later split. Accordingly, what is usually applied to determine the optimal tree complexity is cost-complexity pruning. In essence this means the tree is grown until some minimum node size is reached and then the tree is \enquote{cut down} backwards starting from the terminal nodes.
+
 \subsubsection{Random Forest}\label{subsubsec:rf}
+As previously mentioned random forests utilize bootstrap aggregation to many noisy but unbiased models, aiming to reduce the variance of the individual simple learners. The presented regression trees are well suited for this, as they may capture complex non-linear relationships in the data and given that they are grown sufficiently deep, they exhibit low bias. By linearity of the expectation operator, given that the each tree generated in bootstrap aggregation is identically distributed, we find that the expectation of the average of an ensemble of trees is identical to any of the individual trees. Put differently, the bias of any single tree is identical to the bias of the bagged ensemble and thus the only way of improving the predictive accuracy is via a reduction in variance. The algorithm used to fit a random forest may be concisely described following \citet{hastie09}.
+
+\RestyleAlgo{ruled}
+
+%% This is needed if you want to add comments in
+%% your algorithm with \Comment
+\SetKwComment{Comment}{/* }{ */}
+% A distance matrix based on pairwise euclidean distance $\mathbf{D} \coloneqq Dist(G_i, G_j)\text{ }\forall\text{ }i, j$,\\
+\begin{algorithm}[hbt!]
+	\caption{\textit{Random Forest}}\label{alg:one}
+	\KwData{$b = 1, 2, ..., B$ bootstrap samples drawn with replacement from the training data, $p$ the number of explanatory variables, $m$ the number of variables sampled for each split, the minmum node size $n_{min}$ and the maximum depth $d_{max}$}
+	\begin{enumerate}
+		\item Grow a regression tree $T_b$ utilizing the bagged data, by recursively repeating the following steps, until the minimum node size $n_{min}$ or the maximum depth $d_{max}$ is reached.
+		\begin{enumerate}[i.]
+			\item Randomly sample $m$ explanatory candidate variables from the $p$ candidates.
+			\item Find the best split point $s$ for each of the sampled variables $m$.
+			\item Choose the best split available.
+		\end{enumerate}
+		\item Return the ensemble of trees $\{T_b\}_1^B$
+	\end{enumerate}
+
+\end{algorithm}
+
 \subsubsection{eXtreme Gradient Boosting}\label{subsubsec:xgb}
 \subsection{Nested Cross Validation}\label{subsec:nest}
 \subsubsection{Logistic PCA}\label{subsubsec:logp}
