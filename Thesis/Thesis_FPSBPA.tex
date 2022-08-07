@@ -313,7 +313,7 @@ If we choose to minimize the sum of squares,
 \]
 the optimal $\hat c_m$ is the arithmetic mean of the observations in partition $R_i$ \citep{hastie09}. So far, we have determined how to optimally represent the observations grouped in a partition $R_i$ by a single constant. However, we still need to determine how to choose the optimal splitting variable $x_j$ as well as the optimal splitting point $s$. Suppose that at each node, we consider all possible variables $p$ that may generate the best pair of resulting half planes,
 \[
-R_1(j, s) = \{X|X_j \leq s\} \text{ and } R_2(j, s) = \{X|X_j \leq s\}.
+R_1(j, s) = \{X|X_j \leq s\} \text{ and } R_2(j, s) = \{X|X_j > s\}.
 \]
 We aim to choose the splitting variable $j$ and the corresponding splitting point $s$ such that,
 \[
@@ -334,7 +334,7 @@ As previously mentioned random forests utilize bootstrap aggregation to improve 
 	\caption{\textit{Random Forest}}\label{alg:one}
 	\KwData{$b = 1, 2, ..., B$ bootstrap samples drawn with replacement from the training data, $p$ the number of explanatory variables, $m$ the number of variables sampled for each split, $n_{min}$ the minmum node size and the maximum depth $d_{max}$.}
 	\begin{enumerate}
-		\item Grow a regression tree $T_b$ utilizing the bagged data, by recursively repeating the following steps, until the minimum node size $n_{min}$ or the maximum depth $d_{max}$ is reached.
+		\item For each bootstrap sample b, grow a regression tree $T_b$ utilizing the bagged data, by recursively repeating the following steps, until the minimum node size $n_{min}$ or the maximum depth $d_{max}$ is reached.
 		\begin{enumerate}[i.]
 			\item Randomly sample $m$ explanatory variables from the $p$ available candidates.
 			\item Find the best split point $s$ for each of the sampled variables $m$.
@@ -349,19 +349,26 @@ To predict the response of a new observation, we simply average over the trees i
 \hat f_{rf}(x) = \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_B(x).
 \]
  By linearity of the expectation operator, given that each tree generated in bootstrap aggregation is identically distributed, we find that the expectation of the average of an ensemble of trees is identical to any of the individual trees. Put differently, the bias of any single tree is identical to the bias of the bagged ensemble and thus the only way of improving the predictive accuracy is via a reduction in variance.
- Additionally, to gain some intuition for the candidate variable sampling we may benefit from examining $B$ random variables $T_b$, that are identically distributed but not necessarily independent. Let the variance of each random variable $T_b$ be represented by $\sigma^2$ and further let the positive pairwise correlation be represented by $\rho$. Accordingly, the prediction that we obtain by the average over all trees in the forest exhibits the variance: 
+ To gain further insights into the workings of a random forest we may benefit from examining the variance of the $B$ random variables $T_b$ that represent the trees in our forest. Note that said trees are identically distributed but not necessarily independent. Let the variance of $T_b$ be represented by $\sigma^2$ and further let the positive pairwise correlation be represented by $\rho$. Accordingly, the prediction that we obtain by averaging over all trees in the forest exhibits the variance: 
  \[
- \mathbb{V}ar(\hat f_{rf}) = \mathbb{V}ar \left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_B(x) \right] = \frac{1}{B^2} \mathbb{V}ar \left[ \mathlarger{\sum}\limits_{b = 1}^B T_B(x) \right] = \frac{1}{B^2} \mathlarger{\sum}\limits_{i = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}ov \left[T_i, T_j \right].
+ \mathbb{V}\text{ar}(\hat f_{rf}) = \mathbb{V}\text{ar} \left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_B(x) \right] = \frac{1}{B^2} \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_B(x) \right] = \frac{1}{B^2} \mathlarger{\sum}\limits_{i = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_i, T_j \right].
  \]
-Now, given that in the double sum there are $B^2$ summands and we know that B of those are just $\mathbb{C}ov\left[T_i, T_i \right] = \mathbb{V}ar\left[T_i\right] = \sigma^2$, we are left with $B^2 - B$ terms, and thus we find,
+Now, given that in the double sum there are $B^2$ summands and we know that B of those are just $\mathbb{C}\text{ov}\left[T_i, T_i \right] = \mathbb{V}ar\left[T_i\right] = \sigma^2$, we are left with $B^2 - B$ terms for all cases $i \neq j$, and we thus find,
 \[
-\frac{1}{B^2} \mathlarger{\sum}\limits_{i = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}ov \left[T_i, T_j \right] = \frac{1}{B^2} \left[B\sigma^2 + (B^2 - B)\rho\sigma^2 \right] = \frac{\sigma^2}{B} +  \frac{B - 1}{B}\rho\sigma^2.
+\frac{1}{B^2} \mathlarger{\sum}\limits_{i = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_i, T_j \right] = \frac{1}{B^2} \left[B\sigma^2 + (B^2 - B)\rho\sigma^2 \right] = \frac{\sigma^2}{B} +  \frac{B - 1}{B}\rho\sigma^2,
 \]
+knowing that for the identically distributed variables at hand,
+\begin{gather*}
+	\rho = \text{Corr}\left[T_i, T_j\right] =  \frac{\mathbb{C}\text{ov}\left[T_i, T_j \right]}{\sigma_{T_i}\sigma_{T_j}}\\
+	\iff \mathbb{C}\text{ov}\left[T_i, T_j \right] = \rho\sigma^2.
+\end{gather*}
+
 Some trivial rearrangements then lead us to the more easily interpretable result,
 \[
-\mathbb{V}ar(\hat f_{rf}) = \rho\sigma^2 + \frac{\sigma^2}{B}(1 - \rho).
+\mathbb{V}\text{ar}(\hat f_{rf}) = \rho\sigma^2 + \frac{\sigma^2}{B}(1 - \rho).
 \]
-This result, simply demonstrates the idea behind the variance reduction achieved via bagging and candidate variable sampling. We observe that the second term approaches zero as the number of trees in the forest approach infinity. Additionally, we also observe that the first term depends on the correlation of the individual trees, thus by choosing different candidate variables at each split in different trees we aim to reduce the correlation of the individual trees in our forest.
+This result simply demonstrates the idea behind the variance reduction achieved via bagging and candidate variable sampling. We observe that the second term approaches zero as the number of trees in the forest approach infinity. Additionally, we also observe that the first term depends on the correlation of the individual trees, thus by sampling different candidate variables at each split for every tree, we aim to reduce the correlation of the individual trees in our forest.\\
+Given this discovery, imagine a dataset which is made up of very few variables that have a relationship with the dependant variable in the data generating process. Further, assume that there are numerous noise variables that have no predictive power. Then in order to retain some of the variables that possess predictive power in the cross-validation process the optimal number of candidate variables to sample for each split $m$ will tend towards the number of total predictors in the dataset. This happens because low values of $m$ will result in candidate samples that only contain noise variables. A key takeaways is thus, if we observe that the optimal value for $m$ chosen via cross validation is very close to the total number of explanatory variables $p$ the decorrelation via candidate sampling aiming to reduce $\rho\sigma^2$, might be failing. This is why in Section \ref{subsubsec:rfe} a variable selection method is presented that aims to reduce the number of noise variables via recursive feature elimination. Additionally, instead of variable selection methods, reducing the amount of variables before fitting the random forest with dimensionality reduction methods is also a viable approach. This is outlined in Section \ref{subsubsec:logp}.
 
 \subsubsection{eXtreme Gradient Boosting}\label{subsubsec:xgb}
 \subsection{Nested Cross Validation}\label{subsec:nest}
