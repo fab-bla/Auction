@@ -381,12 +381,56 @@ Let the dataset be defined as $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..
 \[
 \hat y_i = \phi(\bm x_i)= \mathlarger{\sum}\limits_{k = 1}^K \eta f_k(\bm x_i).
 \]
-$f_k$ represents a tree structure, that somewhat similarly as previously described in Section \ref{subsubsec:trees}, recursively partitions the space spanned by the explanatory variables to then represent the observations grouped in a leaf node as some constant $w_i$. The learning process is governed by the following regularized objective,
+$f_k$ represents a tree structure, that somewhat similarly as previously described in Section \ref{subsubsec:trees}, recursively partitions the space spanned by the explanatory variables to then represent the observations grouped in a leaf node as some constant $w_j$. The learning process is governed by the following regularized objective,
 \[
-\mathcal{L}^t = \mathlarger{\sum}\limits_{i = 1} l( y_i, \hat y_i^{(t - 1)} + f_t(\bm x_i)) + \gamma T + \frac{1}{2}\lambda|w|^2.
+\mathcal{L}^t = \mathlarger{\sum}\limits_{i = 1}^n l( y_i, \hat y_i^{(t - 1)} + f_t(\bm x_i)) + \gamma T + \frac{1}{2}\lambda f_t(\bm x_i)^2.
 \]
-As already mentioned the initial prediction for $t = 0$ is some constant, which is identical for all observations. Starting from the first iteration $t = 1$, trees are built via optimization of the above objective. Where $l$ represents the loss function, usually of quadratic nature, e.g., $l(y_i, \hat y_i) = \frac{1}{2} (\hat y - y)^2$. Further, $\gamma T$, where $\gamma \in \mathbb{R}^+$, is used to penalize the complexity of the model where $T$ represents the number of terminal nodes (leafs) in the tree of iteration $t$. The last term , $\frac{1}{2}\lambda|w|^2$ offers additional regularization to avoid over-fitting. It utilizes the $\ell_2$ norm, similar to the ridge penalty described in Section \ref{subsec:net}. Note that, as previously, given that we assume the result of the previous iteration as fixed this is a greedy optimization procedure.
+As already mentioned the initial prediction for $t = 0$ is some constant, which is identical for all observations. Starting from the first iteration $t = 1$, trees are built via optimization of the above objective. Where $l$ represents the loss function, usually of quadratic nature, e.g., $l(y_i, \hat y_i) = \frac{1}{2} (y_i - \hat y_i)^2$. Further, $\gamma T$, where $\gamma \in \mathbb{R}^+$, is used to penalize the complexity of the model where $T$ represents the number of terminal nodes (leafs) in the tree of iteration $t$. The last term , $\frac{1}{2}\lambda|w|^2$ offers additional regularization to avoid over-fitting. It utilizes the $\ell_2$ norm, similar to the ridge penalty described in Section \ref{subsec:net}. Note that, as previously, that we assume the result of the previous iteration to be fixed and thus this is also a greedy optimization procedure. For the sake of computational complexity the presented objective is not minimized directly, XGboost utilizes a second order Taylor polynomial, as an approximation for the loss function, i.e.,
+\[
+\mathcal{L}^t \approx \mathlarger{\sum}\limits_{i = 1}^n l( y_i, \hat y_i^{(t - 1)}) + g_i f_t(\bm x_i) + \frac{1}{2}h_i f_t( \bm x_i)^2 + \gamma T + \frac{1}{2}\lambda f_t(\bm x_i)^2.
+\]
+Where 
+\[
+g_i = \frac{d l(y_i, \hat y^{(t-1)})}{d \hat y_i^{(t-1)}} \text{ and } h_i = \frac{d^2 l(y_i, \hat y^{(t-1)})}{d \hat y_i^{(t-1)}},
+\]
+represent first and second order derivatives respectively. To reduce the notational burden let $I_j$ be the instance set of node $j$, we may then remove the terms that do not have an influence on the output weight $w_j$ to obtain, 
+\begin{gather}
+\mathcal{L}^t \approx \mathlarger{\sum}\limits_{i \in I_j} g_i f_t(\bm x_i) + \frac{1}{2}h_i f_t( \bm x_i)^2 + \frac{1}{2}\lambda f_t(\bm x_i)^2.
+\end{gather}
+Now we find the optimum output weight $w_j$ for the leaf j, by finding the derivative with respect to the output weight,
+\begin{gather*}
+\frac{d \mathcal{L}^t}{d w_j} =  \mathlarger{\sum}\limits_{i \in I_j} g_i + h_i w_j + \lambda w_j \overset{!}{=} 0 \\ \iff w^*_j = - \frac{\sum_{i \in I_j} g_i}{\sum_{i \in I_j} h_i + \lambda}
+\end{gather*}
+Considering the previously mentioned loss function, $l(y_i, \hat y_i) = \frac{1}{2} (y_i - \hat  y_i)^2$, we find $g_i \text{ and } h_i$ to be:
+\[
+g_i = -(y_i - \hat y_i)\text{ and } h_i = 1.
+\]
+Thus we for the quadratic loss function at hand, we find the optimal leaf weight to be:
+\[
+w^*_j =  \frac{\sum_{i \in I_j} (y_i - \hat  y_i)}{|I_j| + \lambda} = \frac{\text{RS}_{i \in I_j}}{|I_j| + \lambda},
+\]
+where $|I_j|$ represents the cardinality and $\text{RS}_{i \in I_j}$ the sum of the residuals of the instance set $I_j$. If we plug the optimal output weight back into Equation 4.1, some algebraic manipulation then yields the value that we may use to evaluate the similarity score of the leaf $j$.
+\[
+\mathcal{L}_{opt} = \frac{1}{2}\frac{RSS_{i \in I_j}}{|I_j| + \lambda} \approx \frac{RSS_{i \in I_j}}{|I_j| + \lambda},
+\]
+given that the coefficient is constant for all evaluated splits, it may be omitted. Now that we have a tool for calculating the optimal output weight $w_j$ as well as a procedure to evaluate the quality of a split, we can formulate XGboost as an algorithm:
 
+{\centering
+	\begin{minipage}{.9\linewidth}
+		\begin{algorithm}[H]
+			\caption{\textit{XGboost}}\label{alg:one}
+			\KwData{}
+			\begin{enumerate}
+				\item 
+				\begin{enumerate}[i.]
+					\item 
+				\end{enumerate}
+				\item 
+			\end{enumerate}
+		\end{algorithm}
+	\end{minipage}
+	\par
+}
 \subsection{Nested Cross Validation}\label{subsec:nest}
 \subsubsection{Logistic PCA}\label{subsubsec:logp}
 \subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
