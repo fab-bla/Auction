@@ -258,7 +258,7 @@ where $|\bm{\beta}|^2$ represents the $\ell_2$ norm of the coefficient vector $\
 \]
 and $|\bm{\beta}|_1$ is equivalent to the $\ell_1$ norm, i.e.,  
 \[
-|\bm{\beta}|_1 = \mathlarger{\sum}\limits_{i = 1}^{p}|\bm{\beta}|.
+|\bm{\beta}|_1 = \mathlarger{\sum}\limits_{i = 1}^{p}|\bm{\beta}_i|.
 \]
 The elastic net estimator $\bm{\hat{\beta}}$ results from the following minimization problem,
 \[
@@ -312,7 +312,7 @@ If we choose to minimize the sum of squares,
 \[
 \mathlarger{\sum}\limits_{i = 1}^{n}(y_i - f(x_i))^2,
 \]
-the optimal $\hat c_m$ is the arithmetic mean of the observations in partition $R_i$ \citep{hastie09}. So far, we have determined how to optimally represent the observations grouped in a partition $R_i$ by a single constant. However, we still need to determine how to choose the optimal splitting variable $x_j$ as well as the optimal splitting point $s$. Suppose that at each node, we consider all possible variables $p$ that may generate the best pair of resulting half planes,
+the optimal $\hat c_m$ is the arithmetic mean of the observations in partition $R_i$ \citep{hastie09}. A proof for this statement would be identical to deriving the optimal value of the intercept in a linear model that is only made up of one constant. So far, we have determined how to optimally represent the observations grouped in a partition $R_i$ by a single constant. However, we still need to determine how to choose the optimal splitting variable $x_j$ as well as the optimal splitting point $s$. Suppose that at each node, we consider all possible variables $p$ that may generate the best pair of resulting half planes,
 \[
 R_1(j, s) = \{X|X_j \leq s\} \text{ and } R_2(j, s) = \{X|X_j > s\}.
 \]
@@ -445,14 +445,20 @@ given that the coefficient is constant for all evaluated splits, it may be omitt
 	\par
 }
 \subsection{Nested Cross Validation}\label{subsec:nest}
-The idea of simple k-fold cross validation for hyper-parameter optimization is to split the training data into $K = 5$, equally-sized parts. Then suppose the indexing function $\kappa: \{1, ..., n\} \rightarrow \{1, ..., K\}$, it indicates which observation is $i$ out of $n$ is allocated to the $K - 1$ training folds and the K'th validation fold. Further, let $\hat f^{-k}(x)$, the fitted predictive function computed with the k'th part of the data removed and let $\bm \alpha$, represent a vector of hyper-parameters used to fit $\hat f^{-k}(x, \alpha)$ \citep{hastie09}. We can then represent the cross validation error as,
+The idea of simple k-fold cross validation for hyper-parameter optimization is to split the training data into $K$ equally-sized parts. Then suppose the indexing function $\kappa: \{1, ..., n\} \rightarrow \{1, ..., K\}$, it indicates which observation $i$ out of $n$ is allocated to the $K - 1$ training folds and the K'th validation fold, respectively. Further, let $\hat f^{-k}(x)$, be the fitted predictive function computed with the k'th part of the data removed and let $\bm \alpha$ represent a vector of hyper-parameters used to fit $\hat f^{-k}(x, \alpha)$ \citep{hastie09}. We can then represent the cross validation error as,
 \begin{gather*}
-	CV(\hat f) = \frac{1}{K |\kappa|} \mathlarger{\sum}\limits_{k = 1}^{K} \left[ \mathlarger{\sum}\limits_{i = 1}^{|\kappa|} L(y_i, \hat f^{-\kappa}(x, \bm \alpha)) \right].
+	CV(\hat f) = \frac{1}{n} \mathlarger{\sum}\limits_{i = 1}^{n} L(y_i, \hat f^{-\kappa(i)}(x, \bm \alpha)).
 \end{gather*}
 Where $L$ represents some loss function, e.g., the root mean square error or the mean absolute error.\\
-Now given that some pre-processing schedules like Logistic PCA or feature selection have an effect on the choice of the optimal hyper-parameter vector $\bm \alpha$, within the $K$ folds there a secondary CV process is established. Consider PCA as an example, the optimal number of principle component is a parameter to be chosen via cross validation, further we cannot apply our predictive function $\hat f^{-k}(x)$ on the validation fold without previously using the training data to determine the loading vectors used to apply the data set transformation. Accordingly, the idea of nested cross validation is to assess the optimal value of principle components in an inner loop, then use the acquired loading vectors to apply the data transformation on the training data to then run the outer loop over the hyper-parameter set $\bm \alpha$. Note, that it considered a severe data leak to just apply PCA to the validation set directly.
+Now given that some pre-processing schedules like Logistic PCA or feature selection have an effect on the choice of the optimal hyper-parameter vector $\bm \alpha$, within the $K$ folds a secondary CV process is established. Consider PCA as an example, the optimal number of principle component is a parameter to be chosen via cross validation, further we cannot apply our predictive function $\hat f^{-k}(x)$ on the validation fold without previously using the training data to determine the loading vectors used to apply the data set transformation inherent to PCA. Accordingly, the idea of nested cross validation is to assess the optimal value of principle components in an inner loop, then use the acquired loading vectors to apply the data transformation on the training data to then run the outer loop over the hyper-parameter set $\bm \alpha$. Note, that it considered a severe data leak to just apply PCA to the validation set directly. Accordingly, this section briefly describes two pre-processing schedules that require nested cross validation, logistics PCA applied to the binary variables by group and recursive feature elimination. Both methods aim to reduce noise in the dataset by reducing the dimensionality of the data set.
 
 \subsubsection{Logistic PCA}\label{subsubsec:logp}
+The idea of principle component analysis (PCA) was first proposed by \citet{pearson01}. The first introduced data processing technique aims to generate a projection of rank $k$, that is as close to the original data in terms of the mean squared error as possible. Let the data be made up of $\bm x_i \in \mathbb{R}^d$, for $i = 1, ..., n$. To then project the initially d-dimensional data into $k < d$ dimensions, Pearson suggested representing each $\bm x$ by $\bm{\mu + UU^T(x - \mu)}$, where $\mu \in \mathbb{R}^d$ and $\bm U$ is a $d \times k$ matrix with orthonormal columns, i.e., $\bm{U^TU = I_k}$. The objective is thus,
+\[
+\minA_{\bm \mu \in \mathbb{R}^d,\text{ }\bm{U^TU = I_k}} \mathlarger{\sum}\limits_{i = 1}^{n}|\bm{(x_i - \mu) - UU^T(x_i - \mu)}|^2
+\]
+
+\citet{pearson01}, showed that $\bm \mu$ equal to the sample mean and $\bm U$ as a matrix with the first k eigenvectors of the sample covariance matrix, yields the minimum of the stated objective. Recently, \citet{landgraf2020} proposed an extension to the idea of principle component analysis that aims to perform dimensionality reduction specifically for binary data. They also implemented their work in an R package called \textit{logisticPCA}, \citet{logPCA}. The idea is based on an alternative interpretation of PCA as a technique for dimensional projection of the natural parameters of the saturated model. Assume $x_{ij} \sim \mathcal{N}(\mu, \sigma^2)$, where $x_{ij}$ is the j'th entry of the column vector $i$ in the data matrix $\bm X$.
 \subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
 \section{Results}\label{sec:res}
 \subsection{Prediction}\label{subsec:pred}
