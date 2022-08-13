@@ -458,7 +458,52 @@ The idea of principle component analysis (PCA) was first proposed by \citet{pear
 \minA_{\bm \mu \in \mathbb{R}^d,\text{ }\bm{U^TU = I_k}} \mathlarger{\sum}\limits_{i = 1}^{n}|\bm{(x_i - \mu) - UU^T(x_i - \mu)}|^2
 \]
 
-\citet{pearson01}, showed that $\bm \mu$ equal to the sample mean and $\bm U$ as a matrix with the first k eigenvectors of the sample covariance matrix, yields the minimum of the stated objective. Recently, \citet{landgraf2020} proposed an extension to the idea of principle component analysis that aims to perform dimensionality reduction specifically for binary data. They also implemented their work in an R package called \textit{logisticPCA}, \citet{logPCA}. The idea is based on an alternative interpretation of PCA as a technique for dimensional projection of the natural parameters of the saturated model. Assume $x_{ij} \sim \mathcal{N}(\mu, \sigma^2)$, where $x_{ij}$ is the j'th entry of the column vector $i$ in the data matrix $\bm X$.
+\citet{pearson01}, showed that $\bm \mu$ equal to the sample mean and $\bm U$ as a matrix with the first k eigenvectors of the sample covariance matrix, yields the minimum of the stated objective. Recently, \citet{landgraf2020} proposed an extension to the idea of principle component analysis that aims to perform dimensionality reduction specifically for binary data. They also implemented their work in an R package called \textit{logisticPCA}, \citet{logPCA}. The idea is based on an alternative interpretation of PCA as a technique for dimensional projection of the natural parameters of the saturated model. Assume $\bm x_{i} \sim \mathcal{N}(\bm \theta_i, I_d)$, then the original idea of PCA may be interpreted as a projection to minimize the Gaussian deviance which is identical to the minimization of the mean square error  \citep{collins01}. Where $\mathbb{E}(\bm x_i)$ can be thought of as the natural parameter, while $\bm x_i$ is the natural parameter of the saturated model. Natural parameter refers to definition that is derived from the representation as part of the exponential family, i.e., 
+\[
+f(x|\theta) = h(x) \text{exp}(T(x)\theta-A(\theta)),
+\]
+where $\theta$ is the so called natural parameter, which is independent of x, $T(x)$ is also referred to as te sufficient statistic, $A(\theta)$ is the log normalizer and $h(x)$ is often referred to as the base measurement. An introduction to exponential families can be found in \citet{case01}. Given that the Bernoulli($p_{ij}$) is also part of the exponential family this alternative interpretation of minimization of the deviance may be applied in a similar fashion. The natural parameter of the Bernoulli distribution is $\theta_{ij} = logit p_{ij}$, then the saturated model occurs when $p_{ij} = x_{ij}$, i.e., the natural parameter in the saturated model is:
+\begin{equation}
+	\tilde{\theta}_{ij} =
+	\begin{cases}
+		-\infty & \text{if } x_{ij} = 0\\
+		\infty & \text{if } x_{ij} = 1.
+	\end{cases} 
+\end{equation}
+Here \citet{landgraf2020} mentions that instead of $\infty$ they use a large number $m$ to achieve computational feasibility. The natural parameters of the Bernoulli model are then estimated via
+\[
+\bm{\hat \theta_i} =  \bm{\mu - UU^T(\tilde{\theta}_i-\mu)}.
+\]
+Where $\bm{\tilde{\theta}_i}$ represents the d-dimensional vector of natural parameters from the saturated model. Finally, $\bm \mu$ and $\bm U$ are found that minimize the Bernoulli deviance,
+\[
+ \mathlarger{\sum}\limits_{i = 1}^{n} \mathlarger{\sum}\limits_{j = 1}^{d} -2x_{ij}\hat{\theta}_{ij} + 2\text{log}(1 + \text{exp}(\hat{\theta}_{ij})).
+\]
+Now that we have established the formalities of this approach, an algorithm of the nested CV process if provided below. The logPCA pre-processing is only implemented for the random forest for reasons outlined in Section \ref{subsubsec:rf}.
+
+{\centering
+	\begin{minipage}{.9\linewidth}
+		\begin{algorithm}[H]
+			\caption{\textit{Nested CV: Logistic PCA}}\label{alg:three}
+			\KwData{}
+			\begin{enumerate}
+				\item lorem
+				\item For rows in RF tuning grid, repeat:
+				\begin{enumerate}[I.]
+					\item lorem
+					\begin{enumerate}[i.]
+						\item lorem
+						\item lorem
+					\end{enumerate}
+					\item lorem
+					\item lorem
+				\end{enumerate} 
+				\item lorem
+			\end{enumerate}
+		\end{algorithm}
+	\end{minipage}
+	\par
+}
+
 \subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
 \section{Results}\label{sec:res}
 \subsection{Prediction}\label{subsec:pred}
