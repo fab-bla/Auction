@@ -427,7 +427,7 @@ given that the coefficient is constant for all evaluated splits, it may be omitt
 			\caption{\textit{XGboost}}\label{alg:two}
 			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. The structure complexity paremeter $\gamma$, the regularization parameter $\lambda$, the learning rate $\eta$, the maximum depth $d_{max}$ and the amount of trees to be fit in succession $n_{iter}$.}
 			\begin{enumerate}
-				\item Start with some initial prediction that is identical for all observations, e.g., the mean of the response.
+				\item Start with some initial prediction that is identical for all observations.
 				\item For $n_{iter}$ times, repeat:
 				\begin{enumerate}[I.]
 					\item While the number of nodes in the current tree is smaller or equal\\ to $d_ {max}$:
@@ -445,12 +445,12 @@ given that the coefficient is constant for all evaluated splits, it may be omitt
 	\par
 }
 \subsection{Nested Cross Validation}\label{subsec:nest}
-The idea of simple k-fold cross validation for hyper-parameter optimization is to split the training data into $K$ equally-sized parts. Then suppose the indexing function $\kappa: \{1, ..., n\} \rightarrow \{1, ..., K\}$, it indicates which observation $i$ out of $n$ is allocated to the $K - 1$ training folds and the K'th validation fold, respectively. Further, let $\hat f^{-k}(x)$, be the fitted predictive function computed with the k'th part of the data removed and let $\bm \alpha$ represent a vector of hyper-parameters used to fit $\hat f^{-k}(x, \alpha)$ \citep{hastie09}. We can then represent the cross validation error as,
+The idea of simple k-fold cross validation for hyper-parameter optimization is to split the training data into $K$ equally-sized parts. Then suppose the indexing function $\kappa: \{1, ..., n\} \rightarrow \{1, ..., K\}$, it indicates which observation $i$ out of $n$ is allocated to the $K - 1$ training folds and the K'th validation fold, respectively. Further, let $\hat f^{-k}(x)$, be the fitted predictive function computed with the k'th part of the data removed and let $\bm \alpha$ represent a vector of hyper-parameters used to fit $\hat f^{-k}(x, \bm{\alpha})$ \citep{hastie09}. We can then represent the cross validation error as,
 \begin{gather*}
 	CV(\hat f) = \frac{1}{n} \mathlarger{\sum}\limits_{i = 1}^{n} L(y_i, \hat f^{-\kappa(i)}(x, \bm \alpha)).
 \end{gather*}
 Where $L$ represents some loss function, e.g., the root mean square error or the mean absolute error.\\
-Now given that some pre-processing schedules like Logistic PCA or feature selection have an effect on the choice of the optimal hyper-parameter vector $\bm \alpha$, within the $K$ folds a secondary CV process is established. Consider PCA as an example, the optimal number of principle component is a parameter to be chosen via cross validation, further we cannot apply our predictive function $\hat f^{-k}(x)$ on the validation fold without previously using the training data to determine the loading vectors used to apply the data set transformation inherent to PCA. Accordingly, the idea of nested cross validation is to assess the optimal value of principle components in an inner loop, then use the acquired loading vectors to apply the data transformation on the training data to then run the outer loop over the hyper-parameter set $\bm \alpha$. Note, that it considered a severe data leak to just apply PCA to the validation set directly. Accordingly, this section briefly describes two pre-processing schedules that require nested cross validation, logistics PCA applied to the binary variables by group and recursive feature elimination. Both methods aim to reduce noise in the dataset by reducing the dimensionality of the data set.
+Now given that some pre-processing schedules like Logistic PCA or feature selection have an effect on the choice of the optimal hyper-parameter vector $\bm \alpha$, within the $K$ folds a secondary CV process is established. Consider PCA as an example, the optimal number of principle component is a parameter to be chosen via cross validation, further we cannot apply our predictive function $\hat f^{-k}(x)$ on the validation fold without previously using the training data to determine the loading vectors used to apply the data set transformation inherent to PCA. Accordingly, the idea of nested cross validation is to assess the optimal value of principle components in an inner loop, then use the acquired loading vectors to apply the data transformation on the training data to then run the outer loop over the hyper-parameter set $\bm \alpha$. Note, that it considered a severe data leak to just apply PCA to the validation set directly. Accordingly, this section briefly describes two pre-processing schedules that require nested cross validation, logistics PCA applied to binary variables by group and recursive feature elimination. Both methods aim to reduce noise in the dataset by reducing the dimensionality of the data set.
 
 \subsubsection{Logistic PCA}\label{subsubsec:logp}
 The idea of principle component analysis (PCA) was first proposed by \citet{pearson01}. The first introduced data processing technique aims to generate a projection of rank $k$, that is as close to the original data in terms of the mean squared error as possible. Let the data be made up of $\bm x_i \in \mathbb{R}^d$, for $i = 1, ..., n$. To then project the initially d-dimensional data into $k < d$ dimensions, Pearson suggested representing each $\bm x$ by $\bm{\mu + UU^T(x - \mu)}$, where $\mu \in \mathbb{R}^d$ and $\bm U$ is a $d \times k$ matrix with orthonormal columns, i.e., $\bm{U^TU = I_k}$. The objective is thus,
@@ -462,7 +462,7 @@ The idea of principle component analysis (PCA) was first proposed by \citet{pear
 \[
 f(x|\theta) = h(x) \text{exp}(T(x)\theta-A(\theta)),
 \]
-where $\theta$ is the so called natural parameter, which is independent of x, $T(x)$ is also referred to as te sufficient statistic, $A(\theta)$ is the log normalizer and $h(x)$ is often referred to as the base measurement. An introduction to exponential families can be found in \citet{case01}. Given that the Bernoulli($p_{ij}$) is also part of the exponential family this alternative interpretation of minimization of the deviance may be applied in a similar fashion. The natural parameter of the Bernoulli distribution is $\theta_{ij} = logit p_{ij}$, then the saturated model occurs when $p_{ij} = x_{ij}$, i.e., the natural parameter in the saturated model is:
+where $\theta$ is the so called natural parameter, which is independent of x, $T(x)$ is also referred to as te sufficient statistic, $A(\theta)$ is the log normalizer and $h(x)$ is often referred to as the base measurement. An introduction to exponential families can be found in \citet{case01}. Given that the Bernoulli($p_{ij}$) is also part of the exponential family this alternative interpretation of minimization of the deviance may be applied in a similar fashion. The natural parameter of the Bernoulli distribution is $\theta_{ij} = \text{logit}(p_{ij})$, then the saturated model occurs when $p_{ij} = x_{ij}$, i.e., the natural parameter in the saturated model is:
 \begin{equation}
 	\tilde{\theta}_{ij} =
 	\begin{cases}
@@ -470,7 +470,7 @@ where $\theta$ is the so called natural parameter, which is independent of x, $T
 		\infty & \text{if } x_{ij} = 1.
 	\end{cases} 
 \end{equation}
-Here \citet{landgraf2020} mentions that instead of $\infty$ they use a large number $m$ to achieve computational feasibility. The natural parameters of the Bernoulli model are then estimated via
+Here \citet{landgraf2020} mention that instead of $\infty$ they use a large number $m$ to achieve computational feasibility. The natural parameters of the Bernoulli model are then estimated via
 \[
 \bm{\hat \theta_i} =  \bm{\mu - UU^T(\tilde{\theta}_i-\mu)}.
 \]
@@ -484,7 +484,7 @@ Now that we have established the formalities of this approach, an algorithm of t
 	\begin{minipage}{.9\linewidth}
 		\begin{algorithm}[H]
 			\caption{\textit{Nested CV: Logistic PCA}}\label{alg:three}
-			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$, a $n \times k$ tuning grid for the random forest hyper-parameters, a $l \times p$ tuning grid for the logistic PCA hyper-parameters, $K$ cross validation folds and a loss function $L(y_i, \hat y_i)$ to determin the CV error.}
+			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. A $n \times k$ tuning grid for the random forest hyper-parameters, a $l \times p$ tuning grid for the logistic PCA hyper-parameters, $K$ cross validation folds and a loss function $l(y_i, \hat y_i)$ to determin the CV error.}
 			\begin{enumerate}
 				\item For all $K$ cross validation folds, repeat:
 					\begin{enumerate}
@@ -497,7 +497,7 @@ Now that we have established the formalities of this approach, an algorithm of t
 						\begin{enumerate}[i.]
 							\item Fit the random forest with the hyper-parameters\\ specified in the current row of the RF tuning grid, utilizing the logPCA transformed data obtained from\\ the training folds.
 							\item Predict the response in the validation set.
-							\item Calculate the error using the loss function $L$.
+							\item Calculate the error using the loss function $l(y_i, \hat y_i)$.
 							\item Save the error as well as the input hyper-parameters.
 						\end{enumerate}
 					\end{enumerate} 
@@ -511,13 +511,13 @@ Now that we have established the formalities of this approach, an algorithm of t
 Note that it is vital that the logPCA process is not directly applied to the validation data in the CV process. This would be considered a severe data leak. Instead the logPCA process executed on the training data and the resulting transformation is then applied to the test data. This is also where the implementation by \citet{logPCA} shines, as the application of an obtained logPCA transformation to a new dataset is implemented in a computationally efficient way. Further, note that in this thesis the actual implementation of this CV process is slightly more complicated and would require another loop. This is because the logPCA process was not applied to all columns in the data set at once. The columns were grouped into contract description, firm identification and firm interaction columns, which represent all sources of binary dummy variables besides the contract date and the county. Logistic PCA was then applied to these groups of columns separately. This was done to be able to assess variable importance with the source of the input information sustained. Meaning that even though we may not be able to say which variable in the original form of the data is more influential for the prediction of our model. However, we may tell if a potentially influential principle component was generated by contract description data, firm identification information or firm interaction data.
 
 \subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
-As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise variables, the predictive accuracy of a random forest model might benefit from the removal of some of the variables with little or no predictive power. The idea behind recursive feature elimination is to fit a random forest, identify the $p \in (0, 1)$ most important variables and remove the remaining covariates. This may be repeated for a number of times $k$, where the optimal choice of $k$ and $p$ are to be determined via cross validation. \citet{gregorutti13} present simulation studies that convey that the recursive feature elimination algorithm performs well in reducing the amount of unimportant noise variables. They also compare different approaches to asses the importance of a predictor and conclude that permutation importance delivered the best results. The permutation importance may be efficiently computed by using the out of bag  (OOB) sample. When the b'th tree is constructed OOB samples are predicted using the current tree structure, then the values of one of the covariates is randomly permuted and the OOB samples are predicted again. The decrease in accuracy measured by some loss function $L(y_i, \hat y_i)$ is then averaged over all trees in the forest. The resulting measure may then be thought of as the importance of the variable. This procedure is repeated for all variables. The R package \textit{ranger} by, \citet{ranger}, enables the user to compute the variable importance as outlined above. The algorithm of recursive feature elimination may be summarized as follows:
+As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise variables, the predictive accuracy of a random forest model might benefit from the removal of some of the variables with little or no predictive power. The idea behind recursive feature elimination is to fit a random forest, identify the relative amount $p \in (0, 1)$ of the most important variables and remove the remaining covariates. This may be repeated for a number of times $k$, where the optimal choice of $k$ and $p$ are to be determined via cross validation. \citet{gregorutti13} present simulation studies that convey that the recursive feature elimination algorithm performs well in reducing the amount of unimportant noise variables. They also compare different approaches to asses the importance of a predictor and conclude that permutation importance delivers the best results. Permutation importance may be efficiently computed by using the out of bag  (OOB) sample. When the b'th tree is constructed OOB samples are predicted using the current tree structure, then the values of one of the covariates is randomly permuted and the OOB samples are predicted again. The decrease in accuracy measured by some loss function $L(y_i, \hat y_i)$ is then averaged over all trees in the forest. The resulting measure may then be thought of as the importance of the variable. This procedure is repeated for all variables. The R package \textit{ranger} by, \citet{ranger}, enables the user to compute the variable importance as outlined above. The algorithm of recursive feature elimination may be summarized as follows:
 
 {\centering
 	\begin{minipage}{.9\linewidth}
 		\begin{algorithm}[H]
 			\caption{\textit{Nested CV: Recursive Feature Elimination}}\label{alg:four}
-			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$, a $n \times f$ tuning grid for the random forest hyper-parameters, in this case this tuning grid also contains the parameters for recursive feature elimination $p$ and $k$, $K$ cross validation folds and a loss function $L(y_i, \hat y_i)$ to determin the CV error.}
+			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$. A $n \times f$ tuning grid for the random forest hyper-parameters, in this case this tuning grid also contains the parameters for recursive feature elimination $p$ and $k$, $K$ cross validation folds and a loss function $l(y_i, \hat y_i)$ to determin the CV error.}
 			\begin{enumerate}
 				\item For all $K$ cross validation folds, repeat:
 				\begin{enumerate}
@@ -525,7 +525,6 @@ As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise va
 					\begin{enumerate}[I.]
 						\item Fit a random forest using the data in the training folds.
 						\item Calculate the permutation importance of each covariate.
-						\item Predict the responses in the validation set.
 						\item While the number of iterations is smaller or equal to $k$, specified in the current row of the tuning grid:
 						\begin{enumerate}[i.]
 							\item Retain the $\lceil d*p \rceil$ most important variables, in the training and in the validation set.
@@ -533,7 +532,7 @@ As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise va
 							\item Calculate the feature importance.
 						\end{enumerate}
 						\item Predict the response in the validation set.
-						\item Calculate the error using the loss function $L$.
+						\item Calculate the error using the loss function $l(y_i, \hat y_i)$.
 						\item Save the error as well as the input hyper-parameters. 
 					\end{enumerate} 
 				\end{enumerate}
@@ -543,6 +542,8 @@ As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise va
 	\end{minipage}
 	\par
 }
+
+Note that the model that includes all covariates may be included  as the model that is fit if $k = 0$ or $p = 1$. Albeit $p = 1$ is possible, in terms of computational efficiency it is the inferior solution to retaining all variables. Accordingly, if the tuning grid is set up correctly the standard random forest will be fit in the recursive feature elimination CV process. 
 
 \section{Results}\label{sec:res}
 \subsection{Prediction}\label{subsec:pred}
