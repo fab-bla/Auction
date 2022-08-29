@@ -106,7 +106,7 @@ Eval_Curve <- function(E_Curve_Prel, col, leg_text, RoC = TRUE, act_label = NULL
 Act_vs_Pred <- \(Act, Pred, bg_alt = FALSE, fill = "cornflowerblue", 
                  outcol = "firebrick", size = 2, shape = 23, 
                  title = "Actual vs. Predicted", alpha = 1, ylim = c(0, 20e3),
-                 xlim = c(0, 20e3)){
+                 xlim = c(0, 20e3), text = FALSE){
   
   # init. plot
   ggplot() +
@@ -134,7 +134,10 @@ Act_vs_Pred <- \(Act, Pred, bg_alt = FALSE, fill = "cornflowerblue",
                       panel.grid.major = element_line(size = 0.5, linetype = 'solid',
                                                       colour = "white"), 
                       panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
-                                                      colour = "white"))}
+                                                      colour = "white"))} +
+    
+    # change to LaTeX font required for thesis
+    {if(text)  theme(text = element_text(family = "lmmodern"))}
   
 }
 
