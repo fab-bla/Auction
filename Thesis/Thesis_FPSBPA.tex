@@ -21,11 +21,9 @@
 \usepackage{graphicx}
 \usepackage{tabularx}
 \usepackage{dcolumn}
-\usepackage{float}
 \usepackage{color}
 \usepackage{amsmath} 
 \usepackage{amsfonts}
-\usepackage{float}
 \usepackage{mathtools}
 \usepackage{relsize}
 \usepackage{bm}
@@ -62,6 +60,22 @@ language = english,
 doi = false, url = false, isbn = false, eprint = false,
 style = apa]
 {biblatex}
+%%
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+% \usepackage{threeparttable}
+% \usepackage{threeparttablex}
+% \usepackage[normalem]{ulem}
+\usepackage{makecell}
+\usepackage{xcolor}
+%%
+
 \DeclareLanguageMapping{english}{english-apa}
 \addbibresource{literature.bib}
 
@@ -201,8 +215,8 @@ The last two plots, enable us to gain insights about the distribution of the awa
 \newpage
 \section{Economic Operationalization}\label{sec:op}
 
-Before formalization, a quick overview of the auction design of the Colorado Department of Transportation is presented. This renders modelling assumptions more comprehensible. The CDOT provides a document on their website that summarizes the entire auction process including all pre-registration processes, that firms have to traverse before they are eligible to submit bids \citep{CDOTRul}.\\
-The auction design created by the CDOT is a classical sealed-bid first-price auction, i.e., contracts are advertised for bids online, firms that have been pre-qualified for bidding for a certain contract may submit their bids online or in person. Once a preset date passes a representative of the CDOT opens all submitted bids and announces the lowest bidder, who is awarded the contract. The pre-qualification that was mentioned is of vital importance for this thesis. Given that all firms have to be pre-qualified for bidding, one may utilize bidder identity and bidder interactions when predicting award prices. If there was no pre-qualification, then the auctioneer would not have knowledge of all potential bidders until no more bids are to be received. At this point there is also no need for a prediction of the award price. Besides a pre-qualification process, the CDOT also implements a reserve price. Every project is assigned an engineer, who is responsible to calculate an engineer's estimate of the cost of completion. Should the lowest bid that was submitted exceed the engineer's estimate by more than 10\%, then the lowest bidder is only awarded the contract if a secondary assessment of the CDOT ends with the conclusion that the lowest apparent bid is indeed a reasonable price for execution of the contractual obligations. This secondary process to bypass the initial reserve price was necessary for 17\% of the auctions in the dataset that is used in this thesis. In regards to the frequency of bid rejection, for our modelling assumption it is important to know that the secondary assessment process very rarely results in a rejection of the lowest apparent bid \citep{CDOTRul}. 
+Before formalization, a quick overview of the auction design of the Colorado Department of Transportation is presented. This renders modelling assumptions more comprehensible. The CDOT provides a document on their website that summarizes the entire auction process including all preregistration processes, that firms have to traverse before they are eligible to submit bids \citep{CDOTRul}.\\
+The auction design created by the CDOT is a classical sealed-bid first-price auction, i.e., contracts are advertised for bids online, firms that have been prequalified for bidding for a certain contract may submit their bids online or in person. Once a preset date passes a representative of the CDOT opens all submitted bids and announces the lowest bidder, who is awarded the contract. The prequalification that was mentioned is of vital importance for this thesis. Given that all firms have to be prequalified for bidding, one may utilize bidder identity and bidder interactions when predicting award prices. If there was no prequalification, then the auctioneer would not have knowledge of all potential bidders until no more bids are to be received. At this point there is also no need for a prediction of the award price. Besides a prequalification process, the CDOT also implements a reserve price. Every project is assigned an engineer, who is responsible to calculate an engineer's estimate of the cost of completion. Should the lowest bid that was submitted exceed the engineer's estimate by more than 10\%, then the lowest bidder is only awarded the contract if a secondary assessment of the CDOT ends with the conclusion that the lowest apparent bid is indeed a reasonable price for execution of the contractual obligations. This secondary process to bypass the initial reserve price was necessary for 17\% of the auctions in the dataset that is used in this thesis. In regards to the frequency of bid rejection, for our modelling assumption it is important to know that the secondary assessment process very rarely results in a rejection of the lowest apparent bid \citep{CDOTRul}. 
 
 \subsection{First Price Sealed Bid Auctions}\label{subsec:fpsba}
 
@@ -269,9 +283,10 @@ Alternatively, the elastic net penalized regression may also be written as a con
 \bm{\hat{\beta}} = \argminA_{\bm{\beta}} |\mathbf{y} - \mathbf{X}\bm{\beta}|^2,
 \]
 subject to,
-\[
+\begin{gather}
 (1 - \alpha)|\bm{\beta}|_1 + \alpha|\bm{\beta}|^2 \leq t.
-\]
+\end{gather}
+
 The constraint thus encompasses a convex combination of the lasso penalty and the ridge penalty. Accordingly, both ridge and lasso regression are a special cases of an elastic net, where $\alpha = 1$ results in ridge regression and $\alpha = 0$ leaves us with the $\ell_1$ penalized lasso regression estimator, initially presented by \citet{tibshirani96}. In regards to model selection, lasso regression is particularly powerful as it does not shrink candidate variables close to zero, which is the case when utilizing the ridge penalty. In the case of $\ell_1$ penalized regression, the obtained $\bm{\hat{\beta}}$ carries only non-zero components for the variables that were deemed important enough in the cross-validation process used to determine the optimal value of the shrinkage parameter $t$, assuming $\alpha = 0$. This is troublesome for the frequentist statistician, as it implies that the coefficient vector $\bm{\hat{\beta}}$ itself is random \citep{Lee2016}. The severity of the implications for frequentist inference is outlined in \citet{benjamini05} and \citet{benjamini09}.
 
 \subsubsection{Post-Selection Inference for $\ell_1$-Penalized Models}\label{subsubsec:psi}
@@ -450,7 +465,7 @@ The idea of simple k-fold cross validation for hyper-parameter optimization is t
 	CV(\hat f) = \frac{1}{n} \mathlarger{\sum}\limits_{i = 1}^{n} l(y_i, \hat f^{-\kappa(i)}(x, \bm \alpha)).
 \end{gather*}
 Where $l$ represents some loss function, e.g., the root mean square error or the mean absolute error.\\
-Now given that some pre-processing schedules like Logistic PCA or feature selection have an effect on the choice of the optimal hyper-parameter vector $\bm \alpha$, within the $K$ folds a secondary CV process is established. Consider PCA as an example, the optimal number of principle component is a parameter to be chosen via cross validation, further we cannot apply our predictive function $\hat f^{-k}(x)$ on the validation fold without previously using the training data to determine the loading vectors used to apply the data set transformation inherent to PCA. Accordingly, the idea of nested cross validation is to assess the optimal value of principle components in an inner loop, then use the acquired loading vectors to apply the data transformation on the training data to then run the outer loop over the hyper-parameter set $\bm \alpha$. Note, that it considered a severe data leak to just apply PCA to the validation set directly. Accordingly, this section briefly describes two pre-processing schedules that require nested cross validation, logistics PCA applied to binary variables by group and recursive feature elimination. Both methods aim to reduce noise in the dataset by reducing the dimensionality of the data set.
+Now given that some preprocessing schedules like Logistic PCA or feature selection have an effect on the choice of the optimal hyper-parameter vector $\bm \alpha$, within the $K$ folds a secondary CV process is established. Consider PCA as an example, the optimal number of principle component is a parameter to be chosen via cross validation, further we cannot apply our predictive function $\hat f^{-k}(x)$ on the validation fold without previously using the training data to determine the loading vectors used to apply the data set transformation inherent to PCA. Accordingly, the idea of nested cross validation is to assess the optimal value of principle components in an inner loop, then use the acquired loading vectors to apply the data transformation on the training data to then run the outer loop over the hyper-parameter set $\bm \alpha$. Note, that it considered a severe data leak to just apply PCA to the validation set directly. Accordingly, this section briefly describes two preprocessing schedules that require nested cross validation, logistics PCA applied to binary variables by group and recursive feature elimination. Both methods aim to reduce noise in the dataset by reducing the dimensionality of the data set.
 
 \subsubsection{Logistic PCA}\label{subsubsec:logp}
 The idea of principle component analysis (PCA) was first proposed by \citet{pearson01}. The first introduced data processing technique aims to generate a projection of rank $k$, that is as close to the original data in terms of the mean squared error as possible. Let the data be made up of $\bm x_i \in \mathbb{R}^d$, for $i = 1, ..., n$. To then project the initially d-dimensional data into $k < d$ dimensions, Pearson suggested representing each $\bm x$ by $\bm{\mu + UU^T(x - \mu)}$, where $\mu \in \mathbb{R}^d$ and $\bm U$ is a $d \times k$ matrix with orthonormal columns, i.e., $\bm{U^TU = I_k}$. The objective is thus,
@@ -478,7 +493,7 @@ Where $\bm{\tilde{\theta}_i}$ represents the d-dimensional vector of natural par
 \[
  \mathlarger{\sum}\limits_{i = 1}^{n} \mathlarger{\sum}\limits_{j = 1}^{d} -2x_{ij}\hat{\theta}_{ij} + 2\text{log}(1 + \text{exp}(\hat{\theta}_{ij})).
 \]
-Now that we have established the formalities of this approach, an algorithm of the nested CV process if provided below. The logPCA pre-processing is only implemented for the random forest for reasons outlined in Section \ref{subsubsec:rf}.
+Now that we have established the formalities of this approach, an algorithm of the nested CV process if provided below. The logPCA preprocessing is only implemented for the random forest for reasons outlined in Section \ref{subsubsec:rf}.
 
 {\centering
 	\begin{minipage}{.9\linewidth}
@@ -491,7 +506,7 @@ Now that we have established the formalities of this approach, an algorithm of t
 					\item For all $l$ rows in the logPCA tuning grid, repeat:
 					\begin{enumerate}[I.]
 						\item Perform CV for the logPCA parameter $m$, using the\\ number of principle components of the current row in the logPCA tuning grid.
-						\item Perform the logPCA pre-prosessing procedure on the\\ training folds.
+						\item Perform the logPCA preprosessing procedure on the\\ training folds.
 						\item Apply the transformation that minimizes the Bernoulli deviance of the training data to the validation data.
 						\item For all $n$ rows in the RF tuning grid, repeat:
 						\begin{enumerate}[i.]
@@ -552,17 +567,47 @@ This section covers the comparison of the predictive accuracy based on the out o
 To asses the error of our prediction, two metrics are used. Let $m$ be the number of observations in the test dataset. Then we may calculate the mean error as:
 \[
 \text{Err} = \frac{1}{m} \mathlarger{\sum}\limits_{i = 1}^{m} l(y_i, \hat y_i)
-\], where $l(y_i, \hat y_i) =( y_i - \hat y_i)^2 \text{, or } l(y_i, \hat y_i) = |y_i - \hat y_i|$. The plot below displays the loss associated with the corresponding prediction error. When using a quadratic loss function, the plot enables us to realize that we interpret large deviations from the actual values as drastically worse when compared to the linear loss function. Depending on the nature of our problem putting great emphasis on large errors, might be desirable. Given that for this thesis, the main objective is to ease budget planing of the auctioning entity, the interpretation of using a quadratic loss function is, that we want to avoid to put forward drastically more or less capital prior to the bidding process.
+\], where $l(y_i, \hat y_i) =( y_i - \hat y_i)^2 \text{, or } l(y_i, \hat y_i) = |y_i - \hat y_i|$. The plot below displays the loss associated with the corresponding prediction error. When using a quadratic loss function, the plot enables us to realize that we interpret large deviations from the actual values as drastically worse when compared to the linear loss function. Depending on the nature of our problem putting great emphasis on large errors, might be desirable. Given that for this thesis, the main objective is to ease budget planing of the auctioning entity, the interpretation of using a quadratic loss function is, that we want to avoid to allocate drastically more or less capital prior to the bidding process.
 \begin{figure}[H]
 	\includegraphics[width = 14	cm]{figures/Lossfun.pdf}
 	\caption{Loss Functions}\label{fig:lossfun}
 \end{figure}
 \subsection{Prediction}\label{subsec:pred}
 \subsubsection{Elastic Net}
+As previously described the elastic net offers two tunable parameters. To find the optimal specification, the package \textit{glmnetUtlis}, by \citet{glmnetUtils} was used.This is an R package that extends the original package \textit{glmnet} and enables the user to tune both $t$ and $\alpha$ from Equation 4.1 \citep{glmnet}. Unfortunately, the definition of the regularized objective is defined differently in the package. However, this difference is just of notational nature. The optimal five fold CV root mean square error (RMSE) is achieved for $\alpha = 1$ and $t = 50$. Where $t$ from Equation 4.1 is called $\lambda$ in \textit{glmnetUtils}. Given the different setup, $\alpha = 1$ implies the optimal elastic net is actually a lasso regression model. This also stems from a difference in the definition in the regularized objective of the package that was utilized. 
 \subsubsection{Random Forest}
+The random forest is fit incorporating two different preprocessing schedules as previously described. The cross validation process is implemented parallelly using the R package \textit{ranger} to fit the random forests \citep{ranger}. The following table contains the optimal hyper parameters that were found via five fold cross validation.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}[t]{lcc}
+		\toprule
+		& Recursive Feature Elimination & logistic PCA \\
+		\midrule
+		\cellcolor{gray!6}{Node Feature Share} & \cellcolor{gray!6}{85\%} & \cellcolor{gray!6}{-}\\
+		Mtry & - & 55\\
+		\cellcolor{gray!6}{Min. Node Size} & \cellcolor{gray!6}{3} & \cellcolor{gray!6}{1}\\
+		Max. Depth & 20 & 30\\
+		\cellcolor{gray!6}{Num. Trees} & \cellcolor{gray!6}{1500} & \cellcolor{gray!6}{1000}\\
+		Nrounds & 16 & -\\
+		\cellcolor{gray!6}{Covariate Share} & \cellcolor{gray!6}{75\%} & \cellcolor{gray!6}{-}\\
+		Num. PC Description & - & 20\\
+		\cellcolor{gray!6}{Num. PC Vendors} & \cellcolor{gray!6}{-} & \cellcolor{gray!6}{10}\\
+		Num. PC Vendor Interaction & - & 20\\
+		\bottomrule
+	\end{tabular}
+	\caption{Random Forest Best CV Hyperparameters}\label{tab:RF}
+\end{table}
+
+Node Feature share is a wrapper variable for the number of covariates to sample at each node to find another split in the data. Given that the number of explanatory variables is not constant in the recursive feature elimination algorithm, the amount of sampled covariates at each new split is passed via a percentage of total variables left in the current iteration. \enquote{Mtry} which is an argument of the random forest function in the \textit{ranger} package represents the absolute number of covariates to sample for a new split. \enquote{Nrounds}, represents the number of feature elimination rounds, while \enquote{Covariate Share} represents the relative number of covariates to retain in each iteration. Accordingly, knowing that we start the first iteration with 1086 explanatory variables and we iteratively remove 25\% in each f the 16 iterations, we find that the forest with the lowest CV error only utilizes $\lceil 0.75^{16} \times 1086\rceil = 11$ covariates.
+
 \subsubsection{eXtreme Gradient Boosting}
 \subsubsection{Performance Comparison}
-\subsection{Unsupervised Colusion Detection}\label{subsec:col}
+\begin{figure}[H]
+	\includegraphics[width = 14	cm]{figures/percomp.pdf}
+	\caption{Actual vs. Predicted Values}\label{fig:percomp}
+\end{figure}
+\subsection{Unsupervised Collusion Detection}\label{subsec:col}
 \section{Conclusion}\label{sec:con}
  
 \newpage
