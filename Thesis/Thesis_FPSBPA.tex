@@ -573,10 +573,13 @@ To asses the error of our prediction, two metrics are used. Let $m$ be the numbe
 	\caption{Loss Functions}\label{fig:lossfun}
 \end{figure}
 \subsection{Prediction}\label{subsec:pred}
+For all models the CV for hyperparameter optimization was written in R \citep{R}. At first, a hyperparameter grid is built that spans a wide range for all input values. Then the CV process is repeated multiple times, in each iteration the ranges for the different parameters are altered such that for each case, the optimal parameter never lies on the edge of the interval. The rationale behind this is, that a hyperparameter value that lies on the edge might not be optimal. Suppose we have a tuning grid for an elastic net, i.e., we are looking for the values of $\alpha$ and $\lambda$ that minimize our CV error. Further suppose, that we choose the intervals $\alpha \in \{0, 0.25, 0.5, 0.75, 1\}$ and $\lambda \in [0, 100] \cap \mathbb{N}_0$. We then set up the tuning grid, that contains all combinations of our parameter values. Formally, this may be expressed using set theory. The tuning grid is just the Cartesian product of all hyperparameter sets, i.e., assume the hyperparameter sets for $\alpha$ and $\lambda$ are called A and B respectively. Than the set that represents the tuning grid is just $A \times B$. Now assume that the lowest CV error is achieved for $\alpha = 0.25$ and $\lambda = 100$, then we observe that the $\lambda$ value is on the right edge of the interval. Accordingly, it could be the case that a higher value for $\lambda$ leads to a lower CV error. For the next CV run the tuning grid may be altered shrinking the range of $\alpha$ values while extending the $\lambda$ interval.\\
+All cross validation runs were conducted in Google Colaboratory, which allows users to remotely execute Python code. The PRO+ version of their service offers 24h of uninterrupted code execution. Thus the size of the tuning grids is chosen such that execution finishes within 24 hours. To execute the R code in Python the package \textit{rpy2} was utilized \citep{rpy2}.
+
 \subsubsection{Elastic Net}
 As previously described the elastic net offers two tunable parameters. To find the optimal specification, the package \textit{glmnetUtlis}, by \citet{glmnetUtils} was used.This is an R package that extends the original package \textit{glmnet} and enables the user to tune both $t$ and $\alpha$ from Equation 4.1 \citep{glmnet}. Unfortunately, the definition of the regularized objective is defined differently in the package. However, this difference is just of notational nature. The optimal five fold CV root mean square error (RMSE) is achieved for $\alpha = 1$ and $t = 50$. Where $t$ from Equation 4.1 is called $\lambda$ in \textit{glmnetUtils}. Given the different setup, $\alpha = 1$ implies the optimal elastic net is actually a lasso regression model. This also stems from a difference in the definition in the regularized objective of the package that was utilized. 
 \subsubsection{Random Forest}
-The random forest is fit incorporating two different preprocessing schedules as previously described. The cross validation process is implemented parallelly using the R package \textit{ranger} to fit the random forests \citep{ranger}. The following table contains the optimal hyper parameters that were found via five fold cross validation.
+The random forest is fit incorporating two different preprocessing schedules as previously described. The cross validation process is implemented parallelly using the R package \textit{parallel} and \textit{ranger} was used to fit the forests \citep{ranger, R}. The following table contains the optimal hyperparameters that were found via five fold cross validation.
 
 \begin{table}[H]
 	\centering
@@ -599,14 +602,49 @@ The random forest is fit incorporating two different preprocessing schedules as 
 	\caption{Random Forest Best CV Hyperparameters}\label{tab:RF}
 \end{table}
 
-Node Feature share is a wrapper variable for the number of covariates to sample at each node to find another split in the data. Given that the number of explanatory variables is not constant in the recursive feature elimination algorithm, the amount of sampled covariates at each new split is passed via a percentage of total variables left in the current iteration. \enquote{Mtry} which is an argument of the random forest function in the \textit{ranger} package represents the absolute number of covariates to sample for a new split. \enquote{Nrounds}, represents the number of feature elimination rounds, while \enquote{Covariate Share} represents the relative number of covariates to retain in each iteration. Accordingly, knowing that we start the first iteration with 1086 explanatory variables and we iteratively remove 25\% in each f the 16 iterations, we find that the forest with the lowest CV error only utilizes $\lceil 0.75^{16} \times 1086\rceil = 11$ covariates.
+Node Feature Share is a wrapper variable for the number of covariates to sample at each node to find another split in the data. Given that the number of explanatory variables is not constant in the recursive feature elimination algorithm, the amount of sampled covariates at each new split is passed via a percentage of total variables left in the current iteration. \enquote{Mtry} which is an argument of the random forest function in the \textit{ranger} package represents the absolute number of covariates to sample for a new split. \enquote{Nrounds}, represents the number of feature elimination rounds, while \enquote{Covariate Share} represents the relative number of covariates to retain in each iteration. Accordingly, knowing that we start the first iteration starts with 1086 explanatory variables and we iteratively remove 25\% in each of the 16 iterations, we find that the forest with the lowest CV error only utilizes roughly $\lceil 0.75^{16} \times 1086\rceil = 11$ covariates. The actual number might be slightly higher since the algorithm retains the ceiling of the share times the current number of remaining covariates in each iteration. The optimal number of principle components for the contract description, the vendor ID and the vendor interaction was discovered using the nested CV process outlined in Section \ref{subsec:nest}. The best model reduces the 169 bidder identities to 10 principle components (PCs), the bidder interactions are reduced to 20 PCs from 652 initial pairwise interaction terms. Lastly, the 258 description words are represented by 20 PCs. All remaining variables in the tuning grid are thoroughly explained in Section \ref{subsubsec:rf}.
 
 \subsubsection{eXtreme Gradient Boosting}
+The XGBoost CV process is implemented using the R package \textit{xgboost}, that was released with the original manuscript \citep{xgboost}. All of the listed hyperparameters are explained in Section \ref{subsubsec:xgb}.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}[t]{lc}
+		\toprule
+		& XGBoost Hyperparameters\\
+		\midrule
+		\cellcolor{gray!6}{$N_{iter}$} & \cellcolor{gray!6}{338}\\
+		Min. Child Weight & 1\\
+		\cellcolor{gray!6}{Max. Depth} & \cellcolor{gray!6}{7}\\
+		Subsample & 90\%\\
+		\cellcolor{gray!6}{Colsample by Tree} & \cellcolor{gray!6}{90\%}\\
+		$\eta$ & 0.04\\
+		\cellcolor{gray!6}{$\gamma$} & \cellcolor{gray!6}{0.01}\\
+		$\lambda$ & 8\\
+		\cellcolor{gray!6}{$\alpha$} & \cellcolor{gray!6}{3}\\
+		\bottomrule
+	\end{tabular}
+	\caption{XGBoost Best CV Hyperparameters}\label{tab:xgb}
+\end{table}
+
 \subsubsection{Performance Comparison}
 \begin{figure}[H]
 	\includegraphics[width = 14	cm]{figures/percomp.pdf}
 	\caption{Actual vs. Predicted Values}\label{fig:percomp}
 \end{figure}
+
+\begin{table}
+	\centering
+	\begin{tabular}[t]{lrrrrrr}
+		\toprule
+		& Lasso Reg. & Eng. Est. & logPCA\_RF & rfe\_RF & logPCA\_LM & XGB\\
+		\midrule
+		\cellcolor{gray!6}{RMSE} & \cellcolor{gray!6}{326.1261} & \cellcolor{gray!6}{497.0567} & \cellcolor{gray!6}{509.7934} & \cellcolor{gray!6}{560.7600} & \cellcolor{gray!6}{609.4673} & \cellcolor{gray!6}{671.6634}\\
+		MAE & 241.7894 & 327.9388 & 348.2869 & 373.1132 & 448.2662 & 376.3191\\
+		\bottomrule
+	\end{tabular}
+	\caption{Out of Sample Error}\label{tab:percomp}
+\end{table}
 \subsection{Unsupervised Collusion Detection}\label{subsec:col}
 \section{Conclusion}\label{sec:con}
  
