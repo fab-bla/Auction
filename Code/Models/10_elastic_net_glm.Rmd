@@ -263,19 +263,19 @@ plot(cv_res)
 # fit best model
 glmnet::glmnet(x = mod_mat_sc, y = label, family = "gaussian",
                alpha = 1, lambda = cv_res$lambda.min,
-               standardize = FALSE, tresh = 1e-25) -> fit_ent
-
+               standardize = FALSE, tresh = 1e-100) -> fit_ent
+?glmnet
 # extract ceofs
-beta <-  coef(fit_ent, x = mod_mat_sc, y = label, 
-              s = cv_res$lambda.min / nrow(dat), exact = TRUE,
-              tresh = 1e-25)[-1]
+beta <- coef(fit_ent, x = mod_mat_sc, y = label, 
+             s = cv_res$lambda.min / nrow(dat), exact = TRUE,
+             tresh = 1e-100)[-1]
 
 # estimate sigma
 sigma <- estimateSigma(x = mod_mat_sc, y = label, intercept = TRUE)
 
 # selective inference
 pselInf <- fixedLassoInf(x = mod_mat_sc, y = label, beta = beta, 
-                         lambda = cv_res$lambda.min)
+                         lambda = cv_res$lambda.min, tol.beta = 0.1)
 
 # p vals
 pvals <- pselInf$pv
