@@ -85,6 +85,7 @@ style = apa]
 \DeclareMathOperator*{\argmaxA}{arg\,max}
 \DeclareMathOperator*{\maxA}{max}
 \DeclareMathOperator*{\minA}{min}
+\newenvironment{proof}{\paragraph{Proof:}}{\hfill$\square$}
 %%%%%%%%%%%%%%
 
 % Schrift
@@ -235,7 +236,7 @@ The description of bidding in the first-price sealed-bid procurement auction (FP
 \[
 v_1(x_1) = \mathbb{E}[V|X_1 = x_1]  = \int vf_{V|X_1}(v|x_1)dv.
 \]
- Then in equilibrium, assuming that the bidding function is increasing in the cost realization, the winner is the firm with the lowest cost draw from the distribution but also influenced by the firms private information about the contract. Formally, in the literature this is formalized by stating that the lowest bid is announced by the firm that incurs the lowest signal \citep{HandbookIndustrialOrga}. This intuitively makes sense as the signal is defined on the real numbers and the lowest signal will thus be identical to the lowest contract execution costs and consequently the highest profit to be made. By Jensen's inequality, given that the maximum is a convex function, 
+ Then in equilibrium, assuming that the bidding function is increasing in the cost realization, the winner is the firm with the lowest cost draw from the distribution but also influenced by the firms private information about the contract. Formally, in the literature this is formalized by stating that the lowest bid is announced by the firm that incurs the lowest signal \citep{HandbookIndustrialOrga}. This intuitively makes sense as the signal is defined on the real numbers and the lowest signal will thus be identical to the lowest contract execution costs and consequently the highest profit to be made. By Jensen's inequality, given that the maximum is a convex function\footnote{A proof is provided in Appendix \ref{App:A1}.}, 
 \[
 \mathbb{E}[\text{max}\{V_i|v\}] \leq \text{max}\{{\mathbb{E}[V_i|v]}\} = v.
 \] 
@@ -336,7 +337,7 @@ If we choose to minimize the sum of squares,
 \[
 \mathlarger{\sum}\limits_{i = 1}^{n}(y_i - f(x_i))^2,
 \]
-the optimal $\hat c_m$ is the arithmetic mean of the observations in partition $R_i$ \citep{hastie09}. A proof for this statement would be identical to deriving the optimal value of the intercept in a linear model fit via ordinary least squares (OLS), that is only made up of one constant. So far, we have determined how to optimally represent the observations grouped in a partition $R_i$ by a single constant. However, we still need to determine how to choose the optimal splitting variable $x_j$ as well as the optimal splitting point $s$. Suppose that at each node, we consider all possible variables $p$ that may generate the best pair of resulting half planes,
+the optimal $\hat c_m$ is the arithmetic mean of the observations in partition $R_i$\footnote{A proof is provided in Appendix \ref{App:A2}.} \citep{hastie09}. A proof for this statement would be identical to deriving the optimal value of the intercept in a linear model fit via ordinary least squares (OLS), that is only made up of one constant. So far, we have determined how to optimally represent the observations grouped in a partition $R_i$ by a single constant. However, we still need to determine how to choose the optimal splitting variable $x_j$ as well as the optimal splitting point $s$. Suppose that at each node, we consider all possible variables $p$ that may generate the best pair of resulting half planes,
 \[
 R_1(j, s) = \{X|X_j \leq s\} \text{ and } R_2(j, s) = \{X|X_j > s\}.
 \]
@@ -647,7 +648,7 @@ The following plots aim to assess the out of sample performance of the respectiv
 \begin{table}[H]
 	\caption{Out of Sample Error}\label{tab:percomp}
 	\centering
-	\begin{tabular}[t]{lrrrrrr}
+	\begin{tabular}[t]{lcccccc}
 		\toprule
 		& Lasso Reg. & Eng. Est. & logPCA\_RF & rfe\_RF & logPCA\_LM & XGB\\
 		\midrule
@@ -670,5 +671,21 @@ Fixing the type I error to 5\%, we find that the only confidence interval that d
 \section{Conclusion}\label{sec:con}
  This thesis offers a concise description of the process that was applied to obtain the data from the website of the CDOT. Further, the auction process of the CDOT is explained and an economic operationalization of bidders' behaviour is provided. After establishing some economic intuition, the methods that are used for the award price prediction are presented. The best performing model, both in terms of RMSE and MAE is the elastic net, in particular the realized regression is a lasso regression. The obtained model is then used to provide confidence intervals for the best performing model. For the sample of 430 auctions at hand no significant effects of bidder interactions was detected.
  \newpage
-\printbibliography
+ \printbibliography
+ \newpage
+ \appendix
+ \section{Appendix: Proofs}
+ \subsection{The maximum is convex on $\mathbb{R}^n$}\label{App:A1}
+ By definition provided by \citet{rudin76}, a mapping $f: \mathbb{R}^n \rightarrow \mathbb{R}$ is convex if
+ \[
+ f(tx+ (1-t)y) \leq (1-t)f(x)+tf(y) \text{ }\forall\text{ } x, y \in \mathbb{R}^n \text{ and } t \in [0, 1].
+ \]
+ \begin{proof}
+ The fact that the maximum fulfils this definition may be shown via straightforward computation. 
+ Let $f(\bm{x}) = \text{max}(x_1, ..., x_n)$, then 
+ \[
+ 
+ \]
+ \end{proof}
+ \subsection{The optimal constant $c_m$ in $R_i$}\label{App:A2}
 \end{document}
