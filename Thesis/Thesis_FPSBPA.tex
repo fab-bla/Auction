@@ -380,9 +380,10 @@ To predict the response of a new observation, we simply average over the trees i
 \]
  By linearity of the expectation operator, given that each tree generated in bootstrap aggregation is identically distributed, we find that the expectation of the average of an ensemble of trees is identical to any of the individual trees\footnote{A proof is provided in Appendix \ref{App:A3}.}. Put differently, the bias of any single tree is identical to the bias of the bagged ensemble and thus the only way of improving the predictive accuracy is via a reduction in variance.
  To gain further insights into the workings of a random forest we may benefit from examining the variance of the $B$ random variables $T_b$ that represent the trees in our forest. Note that said trees are identically distributed but not necessarily independent. Let the variance of $T_b$ be represented by $\sigma^2$ and further let the positive pairwise correlation be represented by $\rho$. Accordingly, the prediction that we obtain by averaging over all trees in the forest exhibits the variance, 
- \[
- \mathbb{V}\text{ar}(\hat f_{rf}) = \mathbb{V}\text{ar} \left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i) \right] = \frac{1}{B^2} \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i) \right] = \frac{1}{B^2} \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
- \]
+\begin{align*}
+ \mathbb{V}\text{ar}(\hat f_{rf}) = \mathbb{V}\text{ar} \left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i) \right] = \frac{1}{B^2} \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i) \right] \overset{\text{\footnotemark}}{=} \frac{1}{B^2} \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
+\end{align*}
+\footnotetext{A proof is provided in Appendix \ref{App:A4}.}
 Now, given that in the double sum there are $B^2$ summands and we know that B of those are just $\mathbb{C}\text{ov}\left[T_k, T_k \right] = \mathbb{V}ar\left[T_k\right] = \sigma^2$, we are left with $B^2 - B$ terms for all cases $k \neq j$, and we thus find,
 \[
 \frac{1}{B^2} \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right] = \frac{1}{B^2} \left[B\sigma^2 + (B^2 - B)\rho\sigma^2 \right] = \frac{\sigma^2}{B} +  \frac{B - 1}{B}\rho\sigma^2,
@@ -714,5 +715,37 @@ for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, w
  	\[
  		\mathbb{E}\left[ \hat f_{rf}(\bm x_i)\right] =\mathbb{E}\left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i)\right] = \frac{1}{B}\mathbb{E}\left[\mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i)\right]\overset{i.d}{=} \frac{1}{B}\mathbb{E}\left[BT_1(\bm x_i)\right] = \mathbb{E}\left[T_1(\bm x_i)\right].
  	\]
+ \end{proof}
+
+ \subsection{Identity for the Variance of a Sum}\label{App:A4}
+ Suppose we have $B$ identically distributed random variables $\{T_b\}_1^B$ with finite variances. We aim to show, that
+ \[
+\mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right]= \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
+ \]
+ \begin{proof}
+ 	By Steiner's displacement theorem,
+ 	\[
+ 	\mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] = \mathbb{E}\left[\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)^2\right] - \left[\mathbb{E}\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)\right]^2.
+  	\]
+  	Squaring a sum is identical to multiplying each element of the two summands pairwise, i.e.,
+  	\[
+  	\mathbb{E}\left[\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)^2\right] = 	\mathbb{E}\left[\mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B T_k T_j \right] = \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right], 
+    \]
+    and
+    \[
+    \left[\mathbb{E}\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)\right]^2 = 
+    \left[\mathlarger{\sum}\limits_{b = 1}^B \mathbb{E}\left(T_b\right)\right]^2 = 
+    \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[ T_k \right] \mathbb{E}\left[ T_j \right].
+    \]
+    We thus find,
+    \[
+    \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] =
+    \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right] - \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[ T_k \right] \mathbb{E}\left[ T_j \right],
+    \]
+    and hence,
+    \[
+    \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] =
+    \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right] - \mathbb{E}\left[ T_k \right] \mathbb{E}\left[ T_j \right] = \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
+    \]
  \end{proof}
 \end{document}
