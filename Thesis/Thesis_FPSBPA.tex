@@ -398,7 +398,7 @@ Some trivial rearrangements then lead us to the more easily interpretable result
 \[
 \mathbb{V}\text{ar}(\hat f_{rf}) = \rho\sigma^2 + \frac{\sigma^2}{B}(1 - \rho).
 \]
-This result simply demonstrates the idea behind the variance reduction achieved via bagging and candidate variable sampling. We observe that the second term approaches zero as the number of trees in the forest approach infinity. Additionally, we also observe that the first term depends on the correlation of the individual trees, thus by sampling different candidate variables at each split for every tree, we aim to reduce the correlation of the individual trees in our forest.\\
+This result simply demonstrates the idea behind the variance reduction achieved via bagging and candidate variable sampling. We observe that the second term approaches zero as the number of trees in the forest approach infinity. Additionally, we also observe that the first term depends on the correlation of the individual trees, thus by sampling different candidate variables at each split for every tree, we aim to reduce the correlation of the individual trees in our forest. This is also of particular importance for the weights that we use to average over our trees. It can be shown that applying an equal weight to the prediction of our simple learners is optimal if the trees are uncorrelated\footnote{A proof is provided in Appendix \ref{App:A5}.}.\\
 Given this discovery, imagine a dataset which is made up of very few variables that have a relationship with the dependant variable in the data generating process. Further, assume that there are numerous noise variables that have no predictive power. Then in order to retain some of the variables that possess predictive power in the cross-validation process the optimal number of candidate variables to sample for each split $m$ will tend towards the number of total predictors in the dataset. This happens because low values of $m$ will result in candidate samples that only contain noise variables. A key takeaways is thus, if we observe that the optimal value for $m$ chosen via cross validation is very close to the total number of explanatory variables $p$ the decorrelation via candidate sampling aiming to reduce $\rho\sigma^2$, might be failing. This is why in Section \ref{subsubsec:rfe} a variable selection method is presented that aims to reduce the number of noise variables via recursive feature elimination. Additionally, instead of variable selection methods, reducing the amount of variables before fitting the random forest with dimensionality reduction methods is also a viable approach. This is outlined in Section \ref{subsubsec:logp}.
 
 \subsubsection{eXtreme Gradient Boosting}\label{subsubsec:xgb}
@@ -747,5 +747,49 @@ for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, w
     \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] =
     \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right] - \mathbb{E}\left[ T_k \right] \mathbb{E}\left[ T_j \right] = \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
     \]
+ \end{proof}
+ \subsection{A lower bound for the Variance of a Sum}\label{App:A5}
+ A lot of times, the equal weights implied by a standard random forest are taken as given without providing further arguments as to why such a specific weighting is optimal. This proof aims to show, that for $B$ uncorrelated and identically distributed random variables $\{T_b\}_1^B$ with finite variance, there exists a lower bound for the variance of the sum of said random variables. Note that in a random forest, the trees are seldom uncorrelated, and accordingly the correlation structure should be modelled when calculating the weights. This is, however, a very complex endeavour. Alternatively, we may look into the lower bound for uncorrelated random variables to gain further understanding of why a low correlation of trees in a random forest is of such importance.\\ As a prerequisite, the following proof utilizes the the Cauchy-Schwarz inequality (CS). In the euclidean space $\mathbb{R}^n$ with the standard inner product, it states, that
+ \[
+ \left[\mathlarger{\sum}\limits_{b = 1}^B X_bY_b \right]^2 \leq \left[\mathlarger{\sum}\limits_{b = 1}^B X_b^2\right] \left[\mathlarger{\sum}\limits_{b = 1}^B Y_b^2\right].
+ \]
+ \begin{proof}
+ The idea for this proof is heavily inspired by \citet{shahar2017}.
+ Independent of how we weigh the simple learners in our forest we require, that our weights fulfil,
+ \[
+ \mathlarger{\sum}\limits_{b = 1}^B w_b = 1.
+ \]
+ Thus we find,
+ \begin{gather*}
+ 1 = \left[\mathlarger{\sum}\limits_{b = 1}^B w_b\right]^2 = \left[\mathlarger{\sum}\limits_{b = 1}^B w_b\frac{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}}\right]^2 \overset{CS}{\leq} \left\{ \mathlarger{\sum}\limits_{b = 1}^B \left[w_b \sqrt{\mathbb{V}\text{ar}\left( T_b \right)} \right]^2 \right\} \left\{ \mathlarger{\sum}\limits_{b = 1}^B \left[ \frac{1}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}} \right]^2 \right\}.
+ \end{gather*}
+ Now, some further simplification and a division by,
+ \[
+ \frac{1}{\sum_{b = 1}^B \mathbb{V}\text{ar}\left( T_b \right)},
+ \]
+ yields the following expression,
+ \[
+\frac{1}{\sum_{b = b}^B \frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}} \leq
+\mathlarger{\sum}\limits_{b = 1}^B w_b^2 \mathbb{V}\text{ar}\left( T_b \right) \overset{*}{=} 
+\mathbb{V}\text{ar}\left[\mathlarger{\sum}\limits_{b = 1}^B w_b^2 T_b \right].
+ \]
+ Where * signifies the point at which we need the assumption that our random variables $\{T_b\}_1^B$ are uncorrelated. Further, we know that the CS inequality is binding iff there exists a $\lambda \in \mathbb{R}$ such that,
+ \[
+ w_b \sqrt{\mathbb{V}\text{ar}\left( T_b \right)} = \lambda \frac{1}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}} \text{ } \forall \text{ } b\in \{1, ..., B\}.
+ \]
+ Since our weights sum up to one we discover, that
+ \[
+ w_b = \frac{\lambda}{\mathbb{V}\text{ar}\left( T_b \right)} \implies 
+ \mathlarger{\sum}\limits_{b = 1}^B \frac{\lambda}{\mathbb{V}\text{ar}\left( T_b \right)} = 1 \iff
+ \lambda = \frac{1}{\sum_{b = b}^B\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}.
+ \]
+ This result directly leads us to the expression that we were set out to show, the weights $w_b$ for which the CS inequality is binding and thus the weights that minimize the variance of our sum are,
+ \[
+ w_b = \frac{\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}{\sum_{b = b}^B\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}.
+ \]
+ For our identically distributed variables  $\{T_b\}_1^B$, this simplifies to,
+\[
+w_b = \frac{1}{B}\text{ } \forall \text{ } b\in \{1, ..., B\}.
+\]  
  \end{proof}
 \end{document}
