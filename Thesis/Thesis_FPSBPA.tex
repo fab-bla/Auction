@@ -107,7 +107,7 @@ style = apa]
 	\textbf{Abstract}
 \end{center}
 \vspace*{2pt}
-Public auctions are a vital instrument for governments to procure contracts. Accordingly, an award price prediction model may be of great use for public entities like the Colorado Department of Transportation (CDOT), since it enables them to plan their budget more accurately. This thesis compares different methods to predict the award price of first price sealed bid procurement auctions held by the CDOT. The best performing model is a lasso regression model. Besides performing better than the other applied methods, the $\ell_1$-penalized regression model also performs drastically better than the engineer's estimate, which was used as a benchmark. This thesis further examines whether the interaction of certain bidders is associated with a significant change in the award price. The existence of such effects might allude to price collusion. For the dataset containing 430 auctions, no significant interactions were detected.
+Public auctions are a vital instrument for governments to procure contracts. Accordingly, an award price prediction model may be of great use for public entities like the Colorado Department of Transportation (CDOT) since it would enable them to plan their budget more accurately. This thesis compares different methods to predict the award price of first price sealed bid procurement auctions held by the CDOT. The best performing model is a lasso regression model. Besides performing better than the other applied methods, the $\ell_1$-penalized regression model also performs drastically better than the engineer's estimate, which is used as a benchmark. This thesis further examines whether the interaction of certain bidders is associated with a significant change in the award price. The existence of such effects might allude to price collusion. For the dataset containing 430 auctions, no significant interactions are detected.
 \end{abstract}
 \end{titlingpage}
 \newpage
@@ -117,7 +117,7 @@ Public auctions are a vital instrument for governments to procure contracts. Acc
 \textbf{Acknowledgements}
 \end{center}
 \vspace*{-17pt}
-First and foremost, I would like to thank my Supervisor Dr. Katharina Fenz for the valuable comments that helped me to improve my thesis significantly. Further, I would also like to express my gratitude for the support of two of my friends and fellow economics students. Gregor Steiner provided feedback concerning the structure of this thesis and pointed out notational errors. Lukas Pirnbacher initially made me aware of the existence of the bid tab archive on the website of the Colorado Department of Transportation. Both contributions had a tangible positive impact on this thesis.
+First and foremost, I would like to thank Dr. Katharina Fenz for the outstanding supervision and the valuable comments that helped me to improve my thesis. Further, I would also like to express my gratitude for the support of two of my friends and fellow economics students. Gregor Steiner provided feedback concerning the structure of this thesis and pointed out notational errors. Lukas Pirnbacher initially made me aware of the existence of the bid tab archive on the website of the Colorado Department of Transportation. Both contributions had a tangible positive impact on this thesis.
 \newpage
 \tableofcontents
 \thispagestyle{empty}
@@ -132,9 +132,9 @@ The importance of public procurement becomes quickly apparent when looking at th
 	\caption{Colorado State Operating Budget \citep{ColoradoBudget}}\label{fig:bud}
 \end{figure}
 
-Given that the contracts awarded through procurement auctions are such a substantial part of the budget, every potential improvement to the process may greatly increase the efficiency of the tax payers money that is spent. Accordingly, a closer examination of the process including a prediction model for the auctions' award prices may support public procurement agencies like the CDOT with budget planning. Additionally, further analysis of the underlying data in respect to the interactions of particular bidders and the associated effect on award prices is also highly relevant for public procurement agencies. This thesis thus provides an analysis of different models, that predict the award price of an auction given input information available through the bid tabs that are published on the official website of the CDOT. In particular, four different model types with varying preprocessing schedules are compared in terms of their predictive power: Standard linear regression, elastic net regression, random forests and an eXtreme gradient boosting model. Those methods were chosen, as they are the most popular machine learning algorithms for tabular data. Additionally, all of the mentioned methods, some of them combined with a preprocessing schedule, are able to deal with a large number of potential explanatory variables. To assess, whether, the combination of certain bidders leads to higher award prices, recently discovered post-selection inference methods are utilized \citep{selectiveInference}.\\
+Given that the contracts awarded through procurement auctions are such a substantial part of the budget, every potential improvement to the process may greatly increase the efficiency of the tax payers money that is spent. Accordingly, a closer examination of the process including a prediction model for the auctions' award prices may support public procurement agencies like the CDOT with budget planning. Additionally, further analysis of the underlying data in respect to the interactions of particular bidders and the associated effect on award prices is also highly relevant for public procurement agencies. This thesis thus provides an analysis of different models, that predict the award price of an auction given input information available through the bid tabs that are published on the official website of the CDOT. In particular, four different model types with varying preprocessing schedules are compared in terms of their predictive power: Standard linear regression, elastic net regression, random forests and an eXtreme gradient boosting model. Those methods were chosen, as they are the most popular machine learning algorithms for tabular data. Additionally, all of the mentioned methods, some of them combined with a preprocessing schedule, are able to deal with a large number of potential explanatory variables. To assess whether the combination of certain bidders leads to higher award prices, recently discovered post-selection inference methods are utilized \citep{selectiveInference}.\\
 The presentation of the theoretical concepts in the methods section is kept concise, whenever advanced concepts need introduction a reference is provided. Additionally, great emphasis is put on keeping the application as simple as possible. All applied illustrations of algorithms are written in the simplest form attainable, while attempting to avoid ambiguity. The idea behind this approach is to simultaneously provide an approachable reading experience for people who have not enjoyed formal mathematical training while retaining some formality in the descriptions of the applied methods.
-The remaining paper is structured as follows, first the data extraction process from the PDFs provided on the CDOT's website is described. Then the general process of procurement is outlined, this also entails a concise description of the auction process utilized by the CDOT. The following section covers the methods that are applied, not only in respect to the different models used for prediction but also for the different preprocessing schedules that are applied and the post-selection inference that is used. The thesis concludes with the results for the best predictive model utilizing linear and quadratic loss functions and the results of the analysis of bidder interactions. All the code that was used to generate the presented results may be found here: \textit{github.com/Base-R-Best-R/Auction}.
+The remaining paper is structured as follows, first the data extraction process from the PDFs provided on the CDOT's website is described. Then the general process of procurement is outlined, this also entails a concise description of the auction process utilized by the CDOT. The following section covers the methods that are applied, not only in respect to the different models used for prediction but also for the different preprocessing schedules that are applied and the post-selection inference that is used. The thesis concludes with the results for the best predictive model utilizing linear and quadratic loss functions and the results of the analysis of bidder interactions. All the code that was used to generate the presented results may be found here: \href{github.com/Base-R-Best-R/Auction}{\textit{github.com/Base-R-Best-R/Auction}}.
 \newpage
 \section{Data}\label{sec:data}
 
@@ -178,18 +178,18 @@ In order to obtain all the archived bid tabs, the html code of the website was f
  	\item Christmas
  \end{itemize}
  
- The computation was executed utilizing the R package \textit{bizdays} \citep{bizdays}. The package enables the user to generate custom calenders. The difference in starting and completion date was therefore easily calculated by setting up a custom calender with the holidays listed above as well as all Saturdays and Sundays. Then using this calender, the difference between two dates only takes working days into account.
+ The computation was executed utilizing the R package \textit{bizdays} \citep{bizdays}. The package enables the user to generate custom calenders. The difference in starting and completion date was therefore easily calculated by setting up a custom calender with the holidays listed above as well as all Saturdays and Sundays. Then using this calender, the difference between two dates only takes working days into account.\\
  The only remaining text based information is the contract description. So far, none of the text based information required extensive preprocessing to obtain variables that can be represented in a tabular format. In the case of the contract description this is not the case. In order to convert the contract description into a format that may be represented in a table, the descriptions were first tokenized. Tokenization refers to splitting the input text into single unique words, i.e., splitting the sentences on spaces and removing all forms of punctuation. The result is then a vector of tokens. Said tokens were then scanned for spelling mistakes utilizing the R package \textit{hunspell} \citep{hunspell}. Once the misspelled words were corrected, stop words were removed from the list of tokens. Stop words are words that have no inherent signal associated with their use, examples for such words in the English language would be \enquote{a}, \enquote{is} and \enquote{the}. In natural language processing there is not necessarily one list of stop words, depending on the context different libraries of stop words may be used to remove as much noise as possible from textual data while leaving the signal associated with a series of words in tact. In the case of this thesis, a combination of five different libraries of stop words was used. All of those libraries, \enquote{snowball} , \enquote{stopwords-iso}, 
  \enquote{smart}, \enquote{marimo} and \enquote{nltk} are available through the R package \textit{stopwords}, by \citet{stopwords}. After filtering out the stop words, the remaining words were then stemmed. Stemming refers to the process in which a word is reduced to its root. This means, that words that carry an identical signal are reduced to the same shortest common substring. Consider the following three words, replacing, replaced, replacement. All those words carry the information that something needs replacement. The language specific circumstances that determine the affixes are not relevant for the information extraction and thus all the aforementioned words are shortened to \enquote{replac} \citep{textminingR}. After stemming, to remove any remaining misspelled words and also for potential removal of unwanted information, all stemmed words were written to an excel file and checked manually. Given that all stop words were already removed and the remaining words were reduced to their stem, this was a very feasible task, resulting in a file with around 2000 words to check. Below we observe the top 40 most frequent words that result from our text mining endeavours.
  
 \begin{figure}[H]
-	\includegraphics[width = 10.5cm]{figures/description_words_cloud_cropped2.pdf}
+	\includegraphics[width = 9.9cm]{figures/description_words_cloud_cropped2.pdf}
 	\caption{Top 40 Stemmed Description Words}\label{fig:desc}
 \end{figure}
 
 \subsubsection{Tabular Data}\label{subsec:tab}
 
-As displayed in Figure \ref{fig:bidtab}, the table in each of the auctions' PDFs contains information on the submitted bids, the bidders' identity and an engineer's estimate. To extract the table containing this information, the package \textit{tabulizer} by \citet{tabulizer} is utilized. This package provides bindings for the Tabula PDF extractor, written in Java. In particular, two functions of the library were combined to write a wrapper for the table extraction. First the function \textit{extract\_tables()} was used to attempt automized table detection and subsequent extraction. Unfortunately, however, there are quite a few cases in which the automatic table detection failed because some auctions only have one or two bidders. The resulting tables that summarize those auctions have very few rows and thus the automatic detection does not recognize them as tables. Accordingly, if the output of \textit{extract\_tables()} is empty, the implemented wrapper calls \textit{extract\_areas()}. This function allows the user to specify an area via the R plot-pane to assess where exactly the table is located. Once the location is passed manually, which was necessary for around 20-25\% of cases, the extraction works as intended. To finally obtain the tables, the wrapper is used to loop over the PDFs.
+As displayed in Figure \ref{fig:bidtab}, the table in each of the auctions' PDFs contains information on the submitted bids, the bidders' identity and an engineer's estimate. To extract the table containing this information, the package \textit{tabulizer} by \citet{tabulizer} is utilized. This package provides bindings for the Tabula PDF extractor, written in Java. In particular, two functions of the library were combined to write a wrapper for the table extraction. First the function \textit{extract\_tables()} was used to attempt automized table detection and subsequent extraction. Unfortunately, however, there are quite a few cases in which the automatic table detection failed because some auctions only attract one or two bidders. The resulting tables that summarize those auctions have very few rows and thus the automatic detection does not recognize them as tables. Accordingly, if the output of \textit{extract\_tables()} is empty, the implemented wrapper calls \textit{extract\_areas()}. This function allows the user to specify an area via the R plot-pane to assess where exactly the table is located. Once the location is passed manually, which was necessary for around 20-25\% of the cases, the extraction works as intended. To finally obtain the tables, the wrapper is used to loop over the PDFs.
 
 \subsection{Descriptive Statistics}\label{subsec:desc}
 The data that results from the scraping process is based on an auction level, meaning that each of the 430 auctions that were scraped between 2015 and 2019 represents one row. The final columns are thus:
@@ -211,7 +211,7 @@ The data that results from the scraping process is based on an auction level, me
 The interaction terms were generated in order to see whether a combination of certain bidders leads to a lower or higher award price. Those terms may also be used to perform unsupervised collusion detection utilizing post-selection inference for $\ell_1$-penalized models. This idea is further outlined in Section \ref{subsec:col}. To obtain a concise overview of the data,  histograms and bar charts of the variables are provided below.
 
 \begin{figure}[H]
-	\includegraphics[width = 14	cm]{figures/barplots.pdf}
+	\includegraphics[width = 14	cm]{figures/barplots_n.pdf}
 	\caption{Date, Counties and Number of Firms}\label{fig:barplots}
 \end{figure}
 
@@ -234,7 +234,7 @@ The last two plots, enable us to gain insights about the distribution of the awa
 \section{Economic Operationalization}\label{sec:op}
 
 Before presenting the formalization, a quick overview of the auction design of the Colorado Department of Transportation is presented. This renders modelling assumptions more comprehensible. The CDOT provides a document on their website that summarizes the entire auction process including all preregistration processes, that firms have to traverse before they are eligible to submit bids \citep{CDOTRul}.\\
-The auction design created by the CDOT is a classical sealed-bid first-price auction, i.e., contracts are advertised for bids online, firms that have been prequalified for bidding for a certain contract may submit their bids online or in person. Once a preset date passes, a representative of the CDOT opens all submitted bids and announces the lowest bidder, who is awarded the contract. The prequalification that was mentioned is of vital importance for this thesis. Given that all firms have to be prequalified for bidding, one may utilize bidder identity and bidder interactions when predicting award prices. If there was no prequalification, then the auctioneer would not have knowledge of all potential bidders until no more bids are to be received. At this point there is also no need for a prediction of the award price. Besides a prequalification process, the CDOT also implements a reserve price. Every project is assigned an engineer, who is responsible to calculate an engineer's estimate of the cost of completion. Should the lowest bid that was submitted exceed the engineer's estimate by more than 10\%, then the lowest bidder is only awarded the contract if a secondary assessment of the CDOT ends with the conclusion that the lowest apparent bid is indeed a reasonable price for execution of the contractual obligations. This secondary process to bypass the initial reserve price was necessary for 17\% of the auctions in the dataset that is used in this thesis. In regards to the frequency of bid rejection, for our modelling assumption it is important to know that the secondary assessment process very rarely results in a rejection of the lowest apparent bid \citep{CDOTRul}. 
+The auction design created by the CDOT is a standard sealed bid first price auction, i.e., contracts are advertised for bids online, firms that have been prequalified for bidding for a certain contract may submit their bids online or in person. Once a preset date passes, a representative of the CDOT opens all submitted bids and announces the lowest bidder, who is awarded the contract. The prequalification that was mentioned is of vital importance for this thesis. Given that all firms have to be prequalified for bidding, one may utilize bidder identity and bidder interactions when predicting award prices. If there was no prequalification, then the auctioneer would not have knowledge of all potential bidders until no more bids are to be received. At this point there is also no need for a prediction of the award price. Besides a prequalification process, the CDOT also implements a reserve price. Every project is assigned an engineer, who is responsible to calculate an engineer's estimate of the cost of completion. Should the lowest bid that is submitted exceed the engineer's estimate by more than 10\%, then the lowest bidder is only awarded the contract if a secondary assessment of the CDOT ends with the conclusion that the lowest apparent bid is indeed a reasonable price for execution of the contractual obligations. This secondary process to bypass the initial reserve price was necessary for 17\% of the auctions in the dataset that is used in this thesis. In regards to the frequency of bid rejection, for our modelling assumption it is important to know that the secondary assessment process very rarely results in a rejection of the lowest apparent bid \citep{CDOTRul}. 
 
 \subsection{First Price Sealed Bid Auctions}\label{subsec:fpsba}
 
@@ -253,7 +253,7 @@ This represents the winner's curse as the firm with the lowest signal submits th
 \mathbb{E}[V|X_1 = x, Y_1 > x] < \mathbb{E}[V, X_1 = x].
 \]
 Where $Y_1$ is the firm with the lowest signal among firm 1's rivals. We thus find that the bidder that incurs the lowest signal associated with the completion of all contractual obligations and therefore the highest potential profit to be extracted from the procurement of the contract should bid less than the firm's ex ante estimate of $V_1$, simply because the assignment of the contract to the firm as the lowest bidder is an informative event. Especially firms that are not as established and might have difficulties to obtain the expertise to properly assess the difficulties associated with completion of a contractual agreement will suffer more severely from the winner's curse. This is relevant for this thesis as an award price prediction that gives a reasonable estimate for the costs associated with the completion of a contract will change the informational asymmetries and thus also lessen the severity of the winner's curse, should the award price prediction be shared with the bidders \citep{GarciaRodriguez2020}.\\
-Now that we have discovered another potential beneficiary of an award price prediction model, we may assess the strategic bidding behaviour of firms. To further simplify the strategic behaviour we may assume that firms signal realisations $x_i$ are drawn from a common distribution, i.e., the values associated with a contract $(V, X_1, ..., X_n)$ are governed by some joint distribution denoted by F. Further, we may assume that the number of firms that submit bids is common knowledge and that the reserve price is not binding. Essentially, this means that the firms believe that bidding above the 110\% threshold will not lead to a reissue of the contract but to a contract award in the secondary process previously described. Given that this game is symmetric, we may again focus on firm 1, w.l.o.g. The firm then aims to maximize its expected profit, i.e.,
+Now that we have discovered another potential beneficiary of an award price prediction model, we may assess the strategic bidding behaviour of firms. To further simplify the strategic behaviour we may assume that firms signal realisations $x_i$ are drawn from a common distribution, i.e., the values associated with a contract $(V, X_1, ..., X_n)$ are governed by some joint distribution denoted by F. Further, we may assume that the number of firms that submit bids is common knowledge and that the reserve price is not binding. Essentially, this means that the firms believe that bidding above the 110\% threshold will not lead to a reissue of the contract but to a contract award in the secondary process previously described. Given that this game is symmetric, we may again focus on firm 1, w.l.o.g. The firm aims to maximize its expected profit, i.e.,
 \[
 \argmaxA_b \text{ } (b - x)\{1 - F[\beta^{-1}(b)]\}^{n-1}.
 \]
@@ -261,11 +261,11 @@ Where $(b - x)$ is the profit that the firm expects if it were to win the contra
 \begin{gather*}
 \{1-F[\beta^{-1}(b)]\}^{n-1} + (b - x)(n - 		1)\{1-F[\beta^{-1}(b)]\}^{n-2}\frac{d\beta^{-1}}{db}\{(-1)f[\beta^{-1}(b)]\} \overset{!}{=} 0\\
 	\iff \frac{\{1-F[\beta^{-1}(b)]\}^{n-1}}{\{1-F[\beta^{-1}(b)]\}^{n-2}} = (b - x)(n - 1)f[\beta^{-1}(b)]\frac{d\beta^{-1}}{db}\\
-	\iff 1-F[\beta^{-1}(b)] = (b - x)(n - 1)f[\beta^{-1}(b)]\frac{d\beta^{-1}}{db}
+	\iff 1-F[\beta^{-1}(b)] = (b - x)(n - 1)f[\beta^{-1}(b)]\frac{d\beta^{-1}}{db}.
 \end{gather*}
 Knowing that in the Bayesian NE, $\beta^{-1}(b) = x$ and $\frac{d\beta^{-1}(b)}{db} = \frac{1}{\beta'(x)}$, we then find:
 \begin{gather*}
-	\beta'(x) = \frac{[\beta(x) - x](n - 1)f(x)}{1-F(x)}
+	\beta'(x) = \frac{[\beta(x) - x](n - 1)f(x)}{1-F(x)}.
 \end{gather*}
 This is a differential equation, from which we may obtain the Bayesian NE bid function \citep{decarolis18}:
 \[
@@ -279,7 +279,7 @@ This section contains precise descriptions of the methods used to generate the r
 
 \subsection{Elastic Nets}\label{subsec:net}
 
-When the number of features in a dataset is significantly larger than the number of observations, elastic net regularization offers a solution to fit linear models using a convex combination of the lasso and ridge penalty. Further the regularization may be used to better optimize the bias variance trade-off when compared to a linear regression estimated via ordinary least squares.\\
+When the number of features in a dataset is significantly larger than the number of observations, elastic net regularization offers a solution to fit linear models using a convex combination of the lasso and ridge penalty. Further, the regularization may be used to better optimize the bias variance trade-off when compared to a linear regression estimated via ordinary least squares.\\
 The description of the elastic net regularization is denoted in accordance with the seminal paper by \citet{hastie03}. Assume that a dataset has $n$ observations and $p$ explanatory variables. As it is the case with the auction dataset, the number of explanatory variables may greatly exceed the number of observations, i.e., $p >> n$. Let $\mathbf{y} = (y_1, ...., y_n)^T$ be the response variable and $\mathbf{X} = [x_1|...|x_p]$ the model matrix, containing the hot encoded explanatory variables. This means that all factor variables have to be converted to individual dummy variables for each level. Subsequently, each column in the model matrix is then centered and standardized. This ensures that the regularization is consistent across variables, since the regularization process is not scale invariant. For any combination of non-negative $\lambda_1$ and $\lambda_2$, \citet{hastie03}, define the elastic net criterion as,
 \[
 l(\lambda_1, \lambda_2, \bm{\beta}) = |\mathbf{y} - \mathbf{X}\bm{\beta}|^2 +\lambda_1|\bm{\beta}|^2 +\lambda_2|\bm{\beta}|_1, 
@@ -308,7 +308,7 @@ subject to,
 The constraint thus encompasses a convex combination of the lasso penalty and the ridge penalty. Accordingly, both ridge and lasso regression are a special cases of an elastic net, where $\alpha = 1$ results in ridge regression and $\alpha = 0$ leaves us with the $\ell_1$ penalized lasso regression estimator, initially presented by \citet{tibshirani96}. In regard to model selection, lasso regression is particularly powerful as it shrinks some candidate variables \textbf{exactly} to zero, which is not the case when utilizing the ridge penalty. In the case of $\ell_1$ penalized regression, the obtained $\bm{\hat{\beta}}$ carries only non-zero components for the variables that were deemed important enough in the cross-validation process used to determine the optimal value of the shrinkage parameter $t$, assuming $\alpha = 0$. This is troublesome for the frequentist statistician, as it implies that the coefficient vector $\bm{\beta}$ itself is random \citep{Lee2016}. The severity of the implications for frequentist inference is outlined in \citet{benjamini05} and \citet{benjamini09}.
 
 \subsubsection{Post-Selection Inference for $\ell_1$-Penalized Models}\label{subsubsec:psi}
-Having discovered the randomness introduced by shrinkage to exactly zero of some elements in the coefficient vector $\bm{\hat{\beta}}$, it is important to develop a sound understanding of the source of randomness. The randomness introduced by variable selection is one of choice and not inherent to the parameter value itself. Denoted in accordance with \citet{Lee2016}, again we assume $p$ explanatory variables. Further, let $M\subset\{1, ..., p\}$ be the subset of covariates which estimate $\beta_j^M$ has not been set to zero given the optimal choice of the regularization parameter $t$. Formally we may write,
+Having discovered the randomness introduced by shrinkage to exactly zero of some elements in the coefficient vector $\bm{\hat{\beta}}$, it is important to develop a sound understanding of the source of randomness. The randomness introduced by variable selection is one of choice and not inherent to the parameter value itself. Denoted in accordance with \citet{Lee2016}, again we assume $p$ explanatory variables. Further, let $M\subset\{1, ..., p\}$ be the subset of covariates which estimate $\beta_j^M$ has not been set to zero, given the optimal choice of the regularization parameter $t$. Formally we may write,
 \[
 \{\beta_j^M: M\subset\{1, ..., p\}, j \in M\}.
 \]
@@ -316,7 +316,7 @@ Given $t > 0$, we will only draw inference from the coefficients $\hat\beta_j^{\
 \[
 \mathbb{P}(\beta_j^{\hat M} \in C_j^{\hat M}) \geq 1 - \alpha.
 \]
-Unfortunately, this is obviously undefined for all $j \notin \hat M$. Accordingly, to resolve this issue \citet{Lee2016} rely on conditional convergence. Since we construct an interval for $\hat\beta_j^{\hat M}$ iff $\hat M$ is selected, we may condition on this event. Thus we obtain,
+Unfortunately, this is obviously undefined for all $j \notin \hat M$. Accordingly, to resolve this issue \citet{Lee2016} rely on conditional convergence. Since we construct an interval for $\hat\beta_j^{\hat M}$ if $\hat M$ is selected, we may condition on this event. Thus we obtain,
 \[
 \mathbb{P}(\beta_j^{\hat M} \in C_j^{\hat M}| \hat M = M) \geq 1 - \alpha.
 \]
@@ -335,7 +335,7 @@ and hence when conditioning on the sign as well as the selected variables, it is
 \citet{Lee2016}, elegantly derive that the resulting conditional distribution is a univariate truncated Gaussian. Subsequently, they use this result to present a test statistic that may be utilized to draw inference about the significance of the parameter estimates $\hat\beta_j^{\hat M}$. A description of this derivation is beyond the scope of this thesis, the interested reader is referred to \citet{Lee2016} and \citet{tib2016}. The latter provides an extension to the results of \citet{Lee2016}, to generalized $\ell_1$ penalized linear models and further also provides the implementation in an R package called \textit{selectiveInference}, by \citet{selectiveInference}.
 
 \subsection{Ensemble Methods}\label{subsec:ens}
-Ensemble methods encompass the combination of simple learning algorithms to achieve superior results in regard to predictive power. For this thesis tree-based methods are of particular importance. For the sake of simplicity, we may only distinguish between two methods of combining individual trees, bagging and boosting the former revolves around bootstrap aggregation, which might be a more familiar term to some readers, that have not been exposed to a lot of machine learning literature. Bootstrap aggregation aims to reduce the variance of prediction, by sampling with replacement from all observations, to then apply some simple learning algorithm like a regression tree. In the end, the resulting prediction is a constant derived from the individual learners, most of the times said constant is the arithmetic mean. In contrast, boosting aims to improve the predictive power of simple learners like regression trees by sequentially improving the error of the previously fit tree. This chapter gives a concise overview of regression trees as the base learners, random forest which utilizes bagging and eXtreme Gradient Boosting which as the name suggests is a special boosting technique discovered by \citet{chen2016}. The formalization of those methods is denoted in accordance with \citet{hastie09} for regression trees and random forest. For eXtreme gradient boosting the notation is heavily inspired by the seminal paper by \citet{chen2016}. As previously, it is assumed that the reader is familiar with basic terminology, should some terms be unfamiliar, the reader is referred to \citet{James2013} and \citet{hastie09}. The former provides a very informal and easy to understand approach, while the latter is more formally motivated.
+Ensemble methods encompass the combination of simple learning algorithms to achieve superior results in regard to predictive power. For this thesis tree-based methods are of particular importance. For the sake of simplicity, we may only distinguish between two methods of combining individual trees, bagging and boosting the former revolves around bootstrap aggregation, which might be a more familiar term to some readers, that have not been exposed to a lot of machine learning literature. Bootstrap aggregation aims to reduce the variance of prediction, by sampling with replacement from all observations, to then apply some simple learning algorithm like a regression tree. In the end, the resulting prediction is a constant derived from the individual learners, most of the times said constant is the arithmetic mean. In contrast, boosting aims to improve the predictive power of simple learners like regression trees by sequentially improving the error of the previously fit tree. This chapter gives a concise overview of regression trees as the base learners, random forest which utilizes bagging and eXtreme Gradient Boosting which as the name suggests is a special boosting technique discovered by \citet{chen2016}. The formalization of those methods is denoted in accordance with \citet{hastie09} for regression trees and random forests. For eXtreme gradient boosting the notation is heavily inspired by the seminal paper by \citet{chen2016}. As previously, it is assumed that the reader is familiar with basic terminology, should some terms be unfamiliar, the reader is referred to \citet{James2013} and \citet{hastie09}. The former provides a very informal and easy to understand approach, while the latter is more formally motivated.
 \subsubsection{Regression Trees}\label{subsubsec:trees}
 The description \enquote{simple learner} could not be more fitting than in the case of a regression tree. In essence, the idea may be described in a single sentence. A regression tree finds recursive binary partitions in the space spanned by the explanatory variables that optimizes some metric used to judge the best variable as well as the best available value to form a partition. More formally, again let $p$ represent the number of explanatory variables and $n$ the number of observations, i.e., $i = 1, 2, ..., n$ and $x_i = (x_{i1}, ..., x_{ip})$. Further, let there be M regions $R_m$, each formed by a split in the data. Additionally, suppose that we model the response variable $y$ as a constant $c_m$ in each region, i.e.,
 \[
@@ -356,7 +356,7 @@ We aim to choose the splitting variable $j$ and the corresponding splitting poin
 Note that it is infeasible to choose those sequential partitions that optimize the sum of squares simultaneously for all possible splits. Accordingly, the optimization process is greedy in a sense that it is memoryless and only considers the current available splits, given all splits that have occurred beforehand. To a degree this is quite unsettling as it does not guarantee that the recursive partitioning will lead to a global minimum in RSS. This is also where ensemble algorithms may make quite a difference, as we will discover at a later stage. Coming back to the greedy minimization, we have previously discovered that the inner minimum in regards to the constant that represent the observations in $R_1$ and $R_2$ are optimally represented by the arithmetic mean. The outer minimum in respect to $j$ and $s$ may be discovered by  finding the best splitting point $s$ for every candidate variable $j$ to then assess which combination $(j, s)$ leads to the minimization in RSS. This process may then be repeated in the resulting half-planes. If we were to consider trees as a stand alone learner, at this point, we would have to think about how we choose the complexity of the tree. However, as in this thesis the depth of a tree is a hyper parameter chosen via cross validation, we may skip this part. The interested reader is referred to \citet{hastie09}. Shortly summarized, fixing some threshold for the minimum decrease in RSS to warrant an additional split is not optimal, as a seemingly bad split at the current node  might lead to a significant decrease in RSS at a later split. Accordingly, what is usually applied to determine the optimal tree complexity is cost-complexity pruning. In essence this means the tree is grown until some minimum node size is reached and then the tree is \enquote{cut down} backwards starting from the terminal nodes.
 
 \subsubsection{Random Forest}\label{subsubsec:rf}
-As previously mentioned random forests utilize bootstrap aggregation to improve the predictive performance of many noisy but unbiased learners. This is achieved by reducing the variance of the individual simple learning algorithm. The presented regression trees are well suited for this, as they may capture complex non-linear relationships in the data and given that they are grown sufficiently deep, they exhibit low bias. For the sake of simplicity, the notation is slightly changed. Let the dataset be defined as $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $\bm x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. The algorithm used to fit a random forest may be concisely described following \citet{hastie09}:
+As previously mentioned, random forests utilize bootstrap aggregation to improve the predictive performance of many noisy but unbiased learners. This is achieved by reducing the variance of the individual simple learning algorithm. The presented regression trees are well suited for this, as they may capture complex non-linear relationships in the data and given that they are grown sufficiently deep, they exhibit low bias. For the sake of simplicity, the notation is slightly changed. Let the dataset be defined as $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $\bm x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. The algorithm used to fit a random forest may be concisely described following \citet{hastie09}:
 
 \RestyleAlgo{ruled}
 
@@ -402,7 +402,7 @@ knowing that for the identically distributed variables at hand,
 	\iff \mathbb{C}\text{ov}\left[T_k, T_j \right] = \rho\sigma^2.
 \end{gather*}
 
-Some trivial rearrangements then lead us to the more easily interpretable result,
+Some trivial rearrangements then lead us to the more easily interpretable expression,
 \[
 \mathbb{V}\text{ar}(\hat f_{rf}) = \rho\sigma^2 + \frac{\sigma^2}{B}(1 - \rho).
 \]
@@ -425,7 +425,7 @@ As already mentioned, the initial prediction for $t = 0$ is some constant, which
 \]
 Where 
 \[
-g_i = \frac{d l(y_i, \hat y_i^{(t-1)})}{d \hat y_i^{(t-1)}} \text{ and } h_i = \frac{d^2 l(y_i, \hat y_i^{(t-1)})}{d \hat y_i^{(t-1)}},
+g_i = \frac{d l(y_i, \hat y_i^{(t-1)})}{d \hat y_i^{(t-1)}} \text{ and } h_i = \frac{d^2 l(y_i, \hat y_i^{(t-1)})}{d \left[\hat y_i^{(t-1)}\right]^2},
 \]
 represent first and second order derivatives respectively. To reduce the notational burden let $I_j$ be the instance set of node $j$, we may then remove the terms that do not have an influence on the output weight $w_j$ to obtain, 
 \begin{gather}
@@ -484,7 +484,7 @@ The idea of simple k-fold cross validation for hyperparameter optimization is to
 	CV(\hat f) = \frac{1}{n} \mathlarger{\sum}\limits_{i = 1}^{n} l(y_i, \hat f^{-\kappa(i)}(x, \bm \alpha)),
 \end{gather*}
 where $l$ represents some loss function, e.g., of quadratic or linear nature.
-Now given that some preprocessing schedules like Logistic PCA or feature selection have an effect on the choice of the optimal hyper-parameter vector $\bm \alpha$, within the $K$ folds a secondary CV process is established. Consider PCA as an example, the optimal number of principle component is a parameter to be chosen via cross validation, further we cannot apply our predictive function $\hat f^{-k}(x)$ on the validation fold without previously using the training data to determine the loading vectors used to apply the data set transformation inherent to PCA. Accordingly, the idea of nested cross validation is to assess the optimal value of principle components in an inner loop, then use the acquired loading vectors to apply the data transformation on the training data to then run the outer loop over the hyper-parameter set $\bm \alpha$. Note, that it considered a severe data leak to just apply PCA to the validation set directly. Accordingly, this section briefly describes two preprocessing schedules that require nested cross validation, logistics PCA applied to binary variables by group and recursive feature elimination. Both methods aim to reduce noise in the data set via dimensionality reduction.
+Now given that some preprocessing schedules like Logistic PCA or feature selection have an effect on the choice of the optimal hyper-parameter vector $\bm \alpha$, within the $K$ folds a secondary CV process is established. Consider PCA as an example, the optimal number of principle components is a parameter to be chosen via cross validation, further we cannot apply our predictive function $\hat f^{-k}(x)$ on the validation fold without previously using the training data to determine the loading vectors used to apply the data set transformation inherent to PCA. Accordingly, the idea of nested cross validation is to assess the optimal value of principle components in an inner loop, to then use the acquired loading vectors to apply the required data transformations. Subsequently, one may then then run the outer loop over the hyper-parameter set $\bm \alpha$. Note, that it considered a severe data leak to just apply PCA to the validation set directly. Accordingly, this section briefly describes two preprocessing schedules that require nested cross validation, logistics PCA applied to binary variables by group and recursive feature elimination. Both methods aim to reduce noise in the data set via dimensionality reduction.
 
 \subsubsection{Logistic PCA}\label{subsubsec:logp}
 The idea of principle component analysis (PCA) was first proposed by \citet{pearson01}. The first introduced data processing technique aims to generate a projection of rank $k$, that is as close to the original data in terms of the mean squared error as possible. Let the data be made up of $\bm x_i \in \mathbb{R}^d$, for $i = 1, ..., n$. To then project the initially d-dimensional data into $k < d$ dimensions, Pearson suggested representing each $\bm x$ by $\bm{\mu + UU^T(x - \mu)}$, where $\mu \in \mathbb{R}^d$ and $\bm U$ is a $d \times k$ matrix with orthonormal columns, i.e., $\bm{U^TU = I_k}$. The objective is thus,
@@ -512,13 +512,13 @@ where $\bm{\tilde{\theta}_i}$ represents the d-dimensional vector of natural par
 \[
  \mathlarger{\sum}\limits_{i = 1}^{n} \mathlarger{\sum}\limits_{j = 1}^{d} -2x_{ij}\hat{\theta}_{ij} + 2\text{log}(1 + \text{exp}(\hat{\theta}_{ij})).
 \]
-Now that we have established the formalities of this approach, an algorithm of the nested CV process if provided below. The logPCA preprocessing is only implemented for the random forest for reasons outlined in Section \ref{subsubsec:rf}.
+Now that we have established the formalities of this approach, an algorithm of the nested CV process is provided below. The logPCA preprocessing is only implemented for the random forest for reasons outlined in Section \ref{subsubsec:rf}.
 
 {\centering
 	\begin{minipage}{.9\linewidth}
 		\begin{algorithm}[H]
 			\caption{\textit{Nested CV: Logistic PCA}}\label{alg:three}
-			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. A $n \times k$ tuning grid for the random forest hyper-parameters, a $l \times p$ tuning grid for the logistic PCA hyper-parameters, $K$ cross validation folds and a loss function $l(y_i, \hat y_i)$ to determin the CV error.}
+			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. A $n \times k$ tuning grid for the random forest hyperparameters, a $l \times p$ tuning grid for the logistic PCA hyperparameters, $K$ cross validation folds and a loss function $l(y_i, \hat y_i)$ to determin the CV error.}
 			\begin{enumerate}
 				\item For all $K$ cross validation folds, repeat:
 					\begin{enumerate}
@@ -529,10 +529,10 @@ Now that we have established the formalities of this approach, an algorithm of t
 						\item Apply the transformation that minimizes the Bernoulli deviance of the training data to the validation data.
 						\item For all $n$ rows in the RF tuning grid, repeat:
 						\begin{enumerate}[i.]
-							\item Fit the random forest with the hyper-parameters\\ specified in the current row of the RF tuning grid, utilizing the logPCA transformed data obtained from\\ the training folds.
+							\item Fit the random forest with the hyperparameters\\ specified in the current row of the RF tuning grid, utilizing the logPCA transformed data obtained from\\ the training folds.
 							\item Predict the response in the validation set.
 							\item Calculate the error using the loss function $l(y_i, \hat y_i)$.
-							\item Save the error as well as the input hyper-parameters.
+							\item Save the error as well as the input hyperparameters.
 						\end{enumerate}
 					\end{enumerate} 
 				\end{enumerate}
@@ -551,7 +551,7 @@ As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise va
 	\begin{minipage}{.9\linewidth}
 		\begin{algorithm}[H]
 			\caption{\textit{Nested CV: Recursive Feature Elimination}}\label{alg:four}
-			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$. A $n \times f$ tuning grid for the random forest hyper-parameters, in this case this tuning grid also contains the parameters for recursive feature elimination $p$ and $k$, $K$ cross validation folds and a loss function $l(y_i, \hat y_i)$ to determin the CV error.}
+			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$. A $n \times f$ tuning grid for the random forest hyperparameters, in this case this tuning grid also contains the parameters for recursive feature elimination $p$ and $k$, $K$ cross validation folds and a loss function $l(y_i, \hat y_i)$ to determin the CV error.}
 			\begin{enumerate}
 				\item For all $K$ cross validation folds, repeat:
 				\begin{enumerate}
@@ -567,7 +567,7 @@ As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise va
 						\end{enumerate}
 						\item Predict the response in the validation set.
 						\item Calculate the error using the loss function $l(y_i, \hat y_i)$.
-						\item Save the error as well as the input hyper-parameters. 
+						\item Save the error as well as the input hyperparameters. 
 					\end{enumerate} 
 				\end{enumerate}
 				\item Compute the CV error by averaging the error of each model specification across all folds.
@@ -679,9 +679,9 @@ Besides a good ex ante estimate of the required budget for a contract auctioned 
 \end{itemize}
 Fixing the type I error to 5\%, we find that the only confidence interval that does not contain zero is the one for the engineer's estimate. Recalling our initial assumptions from the theoretical discussion in Section \ref{subsec:fpsba}, we expected the number of firms to play a tangible role in determining the award price of an auction, which does not seem to be the case. The fact that only the engineer's estimate's confidence interval does not contain zero may hint at the fact that we might be suffering to a high type II error rate. Accordingly, from the perspective of the CDOT, it is advisable to repeat the process using more auctions as input for the model. The increase in observations might allow the type II error to decrease to a point were significant bidder interactions might be detected. Given that 11 out of 17 variables that were not shrinked to 0 were bidder interactions, this does not seem particularly unlikely.
 \section{Conclusion}\label{sec:con}
- This thesis offers a concise description of the process that is applied to obtain the data from the website of the CDOT. Further, the auction process of the CDOT is explained and an economic operationalization of bidders' behaviour is provided. After establishing some economic intuition, the methods that are used for the award price prediction are presented. The best performing model, both in terms of RMSE and MAE, is the elastic net. In particular, the realized regression is a lasso regression. The obtained model is then used to provide confidence intervals for the best performing model. For the sample of 430 auctions at hand, no significant effects of bidder interactions is detected.
+ This thesis offers a concise description of the process that is applied to obtain the data from the website of the CDOT. Further, the auction process of the CDOT is explained and an economic operationalization of bidders' behaviour is provided. After establishing some economic intuition, the methods that are used for the award price prediction are presented. The best performing model, both in terms of RMSE and MAE, is the elastic net. In particular, the realized regression is a lasso regression. The obtained model is then used to provide confidence intervals for the best performing model. For the sample of 430 auctions at hand, no significant effect of bidder interactions is detected.
  \newpage
- \printbibliography
+ \printbibliography[heading=bibintoc]
  \newpage
  \appendix
  \section{Appendix: Proofs}
@@ -694,9 +694,9 @@ Fixing the type I error to 5\%, we find that the only confidence interval that d
  The fact that the maximum fulfils this definition may be shown via straightforward computation. 
  Let $f(\bm{x}) = \maxA_i(x_1, ..., x_n)$, then 
  \[
-  f(tx+ (1-t)y) = \maxA_i(tx_i + (1-t)y_i) \overset{*}{\leq} (1-t)\maxA_i(y_i) + t\maxA_i(x_i) = (1-t)f(x)+tf(y)
+  f(tx+ (1-t)y) = \maxA_i(tx_i + (1-t)y_i) \overset{*}{\leq} (1-t)\maxA_i(y_i) + t\maxA_i(x_i) = (1-t)f(x)+tf(y).
  \]
- The inequality marked with * holds because it is true for any pair $x_i$, $y_i$and thus it must also hold for the maximum. To be precise,
+ The inequality marked with * holds because,
  \[
   \maxA_i(x_i) \geq x_j \text{ and } \maxA_i(y_i) \geq y_j,
  \]
@@ -716,8 +716,7 @@ for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, w
 	 \iff \hat c_m = \frac{1}{n} \mathlarger{\sum}\limits_{i = 1}^{n} y_i.
 \end{gather*}
 \end{proof}
-
- 
+\newpage
  \subsection{Bias of Individual Trees and the Resulting Forest}\label{App:A3} 
  We want to show that a random forest made up of $B$ identically distributed trees $\{T_b\}_1^B$, exhibits the same bias as an individual tree $T_b$.
  \begin{proof}
@@ -726,7 +725,7 @@ for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, w
  	\]
  \end{proof}
 
- \subsection{Identity for the Variance of a Sum}\label{App:A4}
+ \subsection{An Identity for the Variance of a Sum}\label{App:A4}
  Suppose we have $B$ identically distributed random variables $\{T_b\}_1^B$ with finite variances. We aim to show, that
  \[
 \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right]= \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
@@ -764,7 +763,7 @@ for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, w
  \]
  \begin{proof}
  The idea for this proof is heavily inspired by \citet{shahar2017}.
- Independent of how we weigh the simple learners in our forest we require, that our weights fulfil,
+ Independent of how we weigh the simple learners in our forest we require that our weights fulfil,
  \[
  \mathlarger{\sum}\limits_{b = 1}^B w_b = 1.
  \]
@@ -780,13 +779,13 @@ for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, w
  \[
 \frac{1}{\sum_{b = b}^B \frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}} \leq
 \mathlarger{\sum}\limits_{b = 1}^B w_b^2 \mathbb{V}\text{ar}\left( T_b \right) \overset{*}{=} 
-\mathbb{V}\text{ar}\left[\mathlarger{\sum}\limits_{b = 1}^B w_b^2 T_b \right].
+\mathbb{V}\text{ar}\left[\mathlarger{\sum}\limits_{b = 1}^B w_b T_b \right].
  \]
  Where * signifies the point at which we need the assumption that our random variables $\{T_b\}_1^B$ are uncorrelated. Further, we know that the CS inequality is binding iff there exists a $\lambda \in \mathbb{R}$ such that,
  \[
  w_b \sqrt{\mathbb{V}\text{ar}\left( T_b \right)} = \lambda \frac{1}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}} \text{ } \forall \text{ } b\in \{1, ..., B\}.
  \]
- Since our weights sum up to one we discover, that
+ Since our weights sum up to one we discover that,
  \[
  w_b = \frac{\lambda}{\mathbb{V}\text{ar}\left( T_b \right)} \implies 
  \mathlarger{\sum}\limits_{b = 1}^B \frac{\lambda}{\mathbb{V}\text{ar}\left( T_b \right)} = 1 \iff

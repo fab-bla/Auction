@@ -48,7 +48,7 @@ sysfonts::font_add("lmmodern",
 showtext::showtext_auto()
 
 # write into thesis folder
-# pdf("./../../Thesis/figures/barplots.pdf", width = 10, height = 6)
+# pdf("./../../Thesis/figures/barplots_n.pdf", width = 10, height = 8)
 
 # align
 par(mfrow = c(2, 2), mar = c(4, 2.5, 2, 1), family = "lmmodern")
