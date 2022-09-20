@@ -1,0 +1,45 @@
+---
+title: | 
+        | Predicting the Award Price of First Price Sealed Bid Procurement Auctions 
+
+author: "Fabian Blasch"
+date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+fontsize: 9pt
+output: 
+  beamer_presentation:
+    latex_engine: xelatex
+bibliography: C:\\Users\\blasc\\OneDrive\\Documents\\GitHub\\Auction\\Thesis\\literature.bib
+header-includes:
+   - \usepackage{caption}
+   - \captionsetup[figure]{font = tiny}
+   - \usepackage{booktabs}
+fig_caption: true
+fig_width: 1.5 
+fig_height: 1
+---
+
+```{r, echo = F, results = "hide", message = FALSE, warning = FALSE}
+# aux functions
+source("./../../Code/Misc/Auxilliary.R")
+
+# packages
+get.package(c("ggplot2", "patchwork", "kableExtra"))
+```
+
+# Motivation:  The Importance of Procurement Auctions
+
+* The authorities of the European Union for example spent around 14\% of their GDP on public procurement in 2017 @GarciaRodriguez2020.
+
+# Data: Obtaining
+
+# Data: Cleaning
+
+# Data: Descriptive Statistics
+
+# Methods: Elastic Net
+
+# Results: Best Prediction Model
+
+# Unsupervised Colusion Detection: Post-Selection Inference
+
+# References
