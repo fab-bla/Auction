@@ -721,7 +721,7 @@ for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, w
  We want to show that a random forest made up of $B$ identically distributed trees $\{T_b\}_1^B$, exhibits the same bias as an individual tree $T_b$.
  \begin{proof}
  	\[
- 		\mathbb{E}\left[ \hat f_{rf}(\bm x_i)\right] =\mathbb{E}\left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i)\right] = \frac{1}{B}\mathbb{E}\left[\mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i)\right]\overset{i.d}{=} \frac{1}{B}\mathbb{E}\left[BT_1(\bm x_i)\right] = \mathbb{E}\left[T_1(\bm x_i)\right].
+ 		\mathbb{E}\left[ \hat f_{rf}(\bm x_i)\right] =\mathbb{E}\left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i)\right] = \frac{1}{B}\mathlarger{\sum}\limits_{b = 1}^B \mathbb{E}\left[T_b(\bm x_i)\right]\overset{i.d}{=} B \frac{1}{B}\mathbb{E}\left[T_1(\bm x_i)\right] = \mathbb{E}\left[T_1(\bm x_i)\right].
  	\]
  \end{proof}
 
