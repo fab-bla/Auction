@@ -68,7 +68,21 @@ knitr::include_graphics("./../figures/Bid_Tab_exmpl.PNG")
 
 * The table containing the bids, the unique bidder intentifiers and the engineer's estimate was extracted utilizing the R package *tabulizer* [@tabulizer].
 
-# Data: Descriptive Statistics
+# Data: Final Dataset 
+
+The final dataset features 430 observations and 1087 variables.
+
+* County
+* Letting month
+* Letting year
+* Contract time
+* Number of bidders
+* Engineer's estimate
+* Award price
+* 169 binary variables, representing the bidder identities
+* 652 binary variables, representing pair-wise bidder interaction terms 
+* 258 binary variables, representing the contract description hit words
+
 
 # Methods: Elastic Net
 
