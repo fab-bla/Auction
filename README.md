@@ -24,7 +24,7 @@ been compared:
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/Parallel_NestedCV_RF.ipynb)
 -   [XGBoost](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/XGboost.ipynb)
 
-# Best Model (08/03/22)
+# Best Model (09/26/22)
 
 The boxplots below display the out of sample predicted values for the
 models that have been trained so far. Further, as the Engineers Estimate

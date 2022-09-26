@@ -70,7 +70,7 @@ knitr::include_graphics("./../figures/Bid_Tab_exmpl.PNG")
 
 # Data: Final Dataset 
 
-The final dataset features 430 observations and 1087 variables.
+The final dataset features 430 observations and 1086 variables.
 
 * County
 * Letting month
@@ -83,10 +83,49 @@ The final dataset features 430 observations and 1087 variables.
 * 652 binary variables, representing pair-wise bidder interaction terms 
 * 258 binary variables, representing the contract description hit words
 
+# Methods
+
+For the Prediction Model the following models were applied utilizing different preprocessing schedules:
+
+* Elastic net
+* Random forest
+* eXtreme Gradient Boosting
+* OLS estimated linear model 
 
 # Methods: Elastic Net
+An elastic net is a linear model that utilizes $\ell_1$ and $\ell_2$ regularization, we may forumalte the elastic net as a constrained minimization problem, 
 
-# Results: Best Prediction Model
+$$ 
+\boldsymbol{\hat{\beta}} = \underset{\boldsymbol{\beta}}{\text{arg min}} |\mathbf{y} - \mathbf{X}\boldsymbol{\beta}|^2,
+$$
+subject to,
+$$
+(1 - \alpha)|\boldsymbol{\beta}|_1 + \alpha|\boldsymbol{\beta}|^2 \leq t.
+$$
+Where $\alpha \in [0, 1]$ and $t \in \mathbb{R}^+$.
+
+# Results: Out of Sample Performance
+
+```{r, out.width = "90%", fig.align = "center", fig.cap = "Performance Comparison"}
+# graph
+knitr::include_graphics("./../figures/percomp_pres.pdf")
+```
+
+# Results: Out of Sample Performance
+
+The following table lists the performance of the applied methods utilizing linear and quadratic loss functions, i.e.,
+
+$$ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} $$
+$$  MAE = \frac{1}{n}\sum_{i = 1}^n |\hat{y} - y|. $$
+
+```{r}
+# table
+kbl <- readRDS("./../figures/kbl.RDS")
+kbl <- kbl[, order(kbl[2, ])]
+knitr::kable(kbl, 
+             col.names = c("Lasso", "Eng. Est.", "logPCA_RF", "rfe_RF", "XGB", "logPCA_LM")) |> 
+  kable_styling(font_size = 7)
+```
 
 # Unsupervised Colusion Detection: Post-Selection Inference
 
