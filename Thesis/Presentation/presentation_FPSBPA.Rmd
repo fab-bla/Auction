@@ -36,7 +36,7 @@ Auctions are a vital tool for governments to procure contracts. For construction
 
 * The authorities of the European Union for example spent around 14\% of their GDP on public procurement in 2017 [@GarciaRodriguez2020].
 
-* Similar observatios can be made for the U.S. economy, one state of particulat importance for this thesis is Colorado. 
+* Similar observatios can be made for the U.S. economy, one state of particular importance for this thesis is Colorado. 
 
 * In 2021 the Budget for Transportation in Colorado amounted to roughly \$2 billion. Out of this Budget the CDOT awarded \$790 millions worth of contracts to construct design and repair bridges and highways. All of those contracts were procured via first price sealed bid auctions.
 
@@ -48,7 +48,7 @@ Auctions are a vital tool for governments to procure contracts. For construction
   
 * Unsupervised Collusion Detection
 
-  + Examine whether the interaction of certain bidders has an effect on award prices. A signigicant interaction effect could allude to bid rigging schemes.
+  + Examine whether the interaction of certain bidders has an effect on award prices. A significant interaction effect could allude to the existance of a bid rigging scheme.
 
 # Data: Source
 
@@ -93,16 +93,33 @@ For the Prediction Model the following models were applied utilizing different p
 * OLS estimated linear model 
 
 # Methods: Elastic Net
-An elastic net is a linear model that utilizes $\ell_1$ and $\ell_2$ regularization, we may forumalte the elastic net as a constrained minimization problem, 
+Given the model matrix $\mathbf{X} \in \mathbb{R}^{n\times p}$ we may formulate the elastic net as a linear model that utilizes $\ell_1$ and $\ell_2$ regularization.Further, suppose that $\alpha \in [0, 1]$ and $t \in \mathbb{R}^+$, we can then find the elastic net estimator as a constrained minimization problem, 
 
 $$ 
 \boldsymbol{\hat{\beta}} = \underset{\boldsymbol{\beta}}{\text{arg min}} |\mathbf{y} - \mathbf{X}\boldsymbol{\beta}|^2,
 $$
 subject to,
+
 $$
 (1 - \alpha)|\boldsymbol{\beta}|_1 + \alpha|\boldsymbol{\beta}|^2 \leq t.
 $$
-Where $\alpha \in [0, 1]$ and $t \in \mathbb{R}^+$.
+Where,
+
+$$
+|\boldsymbol{\beta}|_1 = \sum\limits_{i = 1}^{p}|\boldsymbol{\beta}_i|\text{ and } |\boldsymbol{\beta}|^2 = \sum\limits_{i = 1}^{p}\boldsymbol{\beta}_i^2.
+$$
+
+# Regularized Regression: Intuition 
+
+The best performing regularized model is a lasso regression model. The lasso penalty shrinks some elements of the parameter vector $\hat\beta$ exactly to zero. 
+
+```{r, out.width = "90%", fig.align = "center", fig.cap = "Regularization Utilizing Different Norms (Toth 2022)"}
+# graph
+knitr::include_graphics("./../figures/lasso_ridge.png")
+```
+
+# Post Selection Inference: Motivation 
+
 
 # Results: Out of Sample Performance
 
