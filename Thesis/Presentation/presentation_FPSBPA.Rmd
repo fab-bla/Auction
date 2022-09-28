@@ -8,6 +8,8 @@ fontsize: 11pt
 output: 
   beamer_presentation:
     latex_engine: xelatex
+    theme: "Singapore"
+    keep_tex: true
 bibliography: C:\\Users\\blasc\\OneDrive\\Documents\\GitHub\\Auction\\Thesis\\literature.bib
 header-includes:
    - \usepackage{caption}
@@ -93,7 +95,7 @@ For the Prediction Model the following models were applied utilizing different p
 * OLS estimated linear model 
 
 # Methods: Elastic Net
-Given the model matrix $\mathbf{X} \in \mathbb{R}^{n\times p}$ we may formulate the elastic net as a linear model that utilizes $\ell_1$ and $\ell_2$ regularization.Further, suppose that $\alpha \in [0, 1]$ and $t \in \mathbb{R}^+$, we can then find the elastic net estimator as a constrained minimization problem, 
+Given the model matrix $\mathbf{X} \in \mathbb{R}^{n\times p}$ we may formulate the elastic net as a linear model that utilizes $\ell_1$ and $\ell_2$ regularization.Further, suppose that $\alpha \in [0, 1]$ and $t \in \mathbb{R}^+$, we can then define the elastic net estimator as a constrained minimization problem, 
 
 $$ 
 \boldsymbol{\hat{\beta}} = \underset{\boldsymbol{\beta}}{\text{arg min}} |\mathbf{y} - \mathbf{X}\boldsymbol{\beta}|^2,
@@ -111,15 +113,35 @@ $$
 
 # Regularized Regression: Intuition 
 
-The best performing regularized model is a lasso regression model. The lasso penalty shrinks some elements of the parameter vector $\hat\beta$ exactly to zero. 
+The best performing regularized model is a lasso regression model,i.e., $\alpha = 0$. The lasso penalty shrinks some elements of the parameter vector $\hat\beta$ exactly to zero. 
 
 ```{r, out.width = "90%", fig.align = "center", fig.cap = "Regularization Utilizing Different Norms (Toth 2022)"}
 # graph
 knitr::include_graphics("./../figures/lasso_ridge.png")
 ```
 
+# Why use Lasso Regression instead of OLS
+
+* Lasso allows us to fit a regression in cases where $p>>n$
+
+* Gauss Markov Theorem tells us that OLS is the best linear unbiased estimator but what if we do not mind a biased estimate?
+  + Lasso offers a more flexible framework that allows us to optimize the bias variance tradeoff
+  
+# Bias Variance Trade-Off
+
+```{r, out.width = "80%", fig.align = "center", fig.cap = "Bias Variance Tradeoff (Fortmann-Roe 2012)"}
+# graph
+knitr::include_graphics("./../figures/Bias_Variance.PNG")
+```
+
 # Post Selection Inference: Motivation 
 
+The derivation of a test statistic for a single covariate in our model usually assumes that the model is fixed, as if we knew ex ante which variables we need to include.
+
+* Why is it problematic if we use the Data to choose the variables in our model?
+  - A pre-selection that minimizes some predictive error, will choose variables that have a relationship with the dependent variable!
+  - Thus we need to correct our inferential procedure for this selection event!
+* Very informally speaking, we could say, a predictor needs to suprise us twice. Once to make it into the model and then another time to reject the $H_0$ of our significance test.
 
 # Results: Out of Sample Performance
 
