@@ -102,9 +102,10 @@
 \newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{#1}}
 \newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{#1}\break}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\widowpenalties 1 150
 \usepackage{caption}
 \captionsetup[figure]{font = tiny}
-\usepackage{booktabs}
+\usepackage{xcolor}
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -119,7 +120,7 @@
 \title{Predicting the Award Price of First Price Sealed Bid Procurement
 Auctions}
 \author{Fabian Blasch}
-\date{09/28/2022}
+\date{09/30/2022}
 
 \begin{document}
 \frame{\titlepage}
@@ -127,8 +128,8 @@ Auctions}
 \begin{frame}{Motivation: The Importance of Public Auctions}
 \protect\hypertarget{motivation-the-importance-of-public-auctions}{}
 Auctions are a vital tool for governments to procure contracts. For
-construction contracts, first price sealed bid auctions are of particlar
-importance.
+construction contracts, first price sealed bid auctions are of
+particular importance.
 
 \begin{itemize}
 \item
@@ -260,18 +261,19 @@ different preprocessing schedules:
 
 \begin{frame}{Methods: Elastic Net}
 \protect\hypertarget{methods-elastic-net}{}
-Given the model matrix \(\mathbf{X} \in \mathbb{R}^{n\times p}\) we may
-formulate the elastic net as a linear model that utilizes \(\ell_1\) and
-\(\ell_2\) regularization.Further, suppose that \(\alpha \in [0, 1]\)
-and \(t \in \mathbb{R}^+\), we can then define the elastic net estimator
-as a constrained minimization problem,
+Given the model matrix \(\mathbf{X} \in \mathbb{R}^{n\times p}\) and a
+dependent variable \(\mathbf{y} \in \mathbb{R}^n\), we may formulate the
+elastic net as a linear model that utilizes \(\ell_1\) and \(\ell_2\)
+regularization. Further, suppose that \(\alpha \in [0, 1]\) and
+\(t \in \mathbb{R}^+\), we can then define the elastic net estimator as
+a constrained minimization problem,
 
 \[ 
 \boldsymbol{\hat{\beta}} = \underset{\boldsymbol{\beta}}{\text{arg min}} |\mathbf{y} - \mathbf{X}\boldsymbol{\beta}|^2,
 \] subject to,
 
 \[
-(1 - \alpha)|\boldsymbol{\beta}|_1 + \alpha|\boldsymbol{\beta}|^2 \leq t.
+(1 - \alpha)|\boldsymbol{\beta}|_1 + \alpha|\boldsymbol{\beta}|^2 \leq t. 
 \] Where,
 
 \[
@@ -299,7 +301,7 @@ vector \(\hat\beta\) exactly to zero.
 \protect\hypertarget{why-use-lasso-regression-instead-of-ols}{}
 \begin{itemize}
 \item
-  Lasso allows us to fit a regression in cases where \(p>>n\)
+  Lasso allows us to fit a regression in cases where \(p>>n\).
 \item
   Gauss Markov Theorem tells us that OLS is the best linear unbiased
   estimator but what if we do not mind a biased estimate?
@@ -308,7 +310,7 @@ vector \(\hat\beta\) exactly to zero.
   \tightlist
   \item
     Lasso offers a more flexible framework that allows us to optimize
-    the bias variance tradeoff
+    the bias variance tradeoff.
   \end{itemize}
 \end{itemize}
 \end{frame}
@@ -370,7 +372,7 @@ variables we need to include.
 The following table lists the performance of the applied methods
 utilizing linear and quadratic loss functions, i.e.,
 
-\[ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} \]
+\[ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} ,\]
 \[  MAE = \frac{1}{n}\sum_{i = 1}^n |\hat{y} - y|. \]
 
 \begin{table}
@@ -391,9 +393,48 @@ MAE & 241.7894 & 327.9388 & 348.2869 & 373.1132 & 376.3191 & 448.2662\\
 
 \begin{frame}{Unsupervised Colusion Detection: Post-Selection Inference}
 \protect\hypertarget{unsupervised-colusion-detection-post-selection-inference}{}
+The R package that was used to obtain the test statistics to determine
+the significance of our estimates is called \textit{selectiveInference}
+by Tibshirani et al. (2019). It is based on a paper by the same authors
+called
+\textit{Post-selection inference for L1-penalized likelihood models}
+(Taylor and Tibshirani 2016).
+
+\begin{itemize}
+\tightlist
+\item
+  The CV optimal value for our shrinkage parameter leads us to a model
+  with 17/1085 variables.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    11 of those are firm interaction terms.
+  \item
+    2 are description hit words.
+  \item
+    The remaining variables are Contract time, a county and a unique
+    bidder identifier
+  \end{itemize}
+\item
+  For the 430 auctions at hand no signficant interactions were detected!
+\end{itemize}
 \end{frame}
 
-\begin{frame}{References}
+\begin{frame}{Thesis Repository}
+\protect\hypertarget{thesis-repository}{}
+If you are interested to learn more about the application of machine
+learning methods to predict procurement auction award prices you can
+find my thesis including the data and the code here:
+\textcolor{teal}{\textit{github.com/Base-R-Best-R/Auction}}.
+
+Also, if you are interested to learn more about post-selection
+inference. Prof.~Loftus held a very insightful and easy to understand
+presentation which is available on youtube:
+\textcolor{teal}{\textit{youtube.com/watch?v=bQhEALoxoGE}}.
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
 \protect\hypertarget{references}{}
 \hypertarget{refs}{}
 \begin{CSLReferences}{1}{0}
@@ -413,6 +454,17 @@ Recommender for Public Procurement Auctions Using Machine Learning: Data
 Analysis, Algorithm, and Case Study with Tenders from Spain.''}
 \emph{Complexity} 2020: 1--20.
 \url{https://doi.org/10.1155/2020/8858258}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-tib2016}{}}%
+Taylor, Jonathan, and Robert Tibshirani. 2016. {``Post-Selection
+Inference for L1-Penalized Likelihood Models.''} arXiv.
+\url{https://doi.org/10.48550/ARXIV.1602.07358}.
+
+\leavevmode\vadjust pre{\hypertarget{ref-selectiveInference}{}}%
+Tibshirani, Ryan, Rob Tibshirani, Jonathan Taylor, Joshua Loftus,
+Stephen Reid, and Jelena Markovic. 2019. \emph{selectiveInference: Tools
+for Post-Selection Inference}.
+\url{https://CRAN.R-project.org/package=selectiveInference}.
 
 \end{CSLReferences}
 \end{frame}

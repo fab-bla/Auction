@@ -10,11 +10,14 @@ output:
     latex_engine: xelatex
     theme: "Singapore"
     keep_tex: true
+    slide_level: 1
 bibliography: C:\\Users\\blasc\\OneDrive\\Documents\\GitHub\\Auction\\Thesis\\literature.bib
 header-includes:
+   - \widowpenalties 1 150
    - \usepackage{caption}
    - \captionsetup[figure]{font = tiny}
-   - \usepackage{booktabs}
+   #- \usepackage{booktabs}
+   - \usepackage{xcolor}
 fig_caption: true
 fig_width: 1.5 
 fig_height: 1
@@ -34,7 +37,7 @@ get.package(c("ggplot2", "patchwork", "kableExtra"))
 
 # Motivation:  The Importance of Public Auctions
 
-Auctions are a vital tool for governments to procure contracts. For construction contracts, first price sealed bid auctions are of particlar importance.
+Auctions are a vital tool for governments to procure contracts. For construction contracts, first price sealed bid auctions are of particular importance.
 
 * The authorities of the European Union for example spent around 14\% of their GDP on public procurement in 2017 [@GarciaRodriguez2020].
 
@@ -95,7 +98,7 @@ For the Prediction Model the following models were applied utilizing different p
 * OLS estimated linear model 
 
 # Methods: Elastic Net
-Given the model matrix $\mathbf{X} \in \mathbb{R}^{n\times p}$ we may formulate the elastic net as a linear model that utilizes $\ell_1$ and $\ell_2$ regularization.Further, suppose that $\alpha \in [0, 1]$ and $t \in \mathbb{R}^+$, we can then define the elastic net estimator as a constrained minimization problem, 
+Given the model matrix $\mathbf{X} \in \mathbb{R}^{n\times p}$ and a dependent variable $\mathbf{y} \in \mathbb{R}^n$, we may formulate the elastic net as a linear model that utilizes $\ell_1$ and $\ell_2$ regularization. Further, suppose that $\alpha \in [0, 1]$ and $t \in \mathbb{R}^+$, we can then define the elastic net estimator as a constrained minimization problem, 
 
 $$ 
 \boldsymbol{\hat{\beta}} = \underset{\boldsymbol{\beta}}{\text{arg min}} |\mathbf{y} - \mathbf{X}\boldsymbol{\beta}|^2,
@@ -103,7 +106,7 @@ $$
 subject to,
 
 $$
-(1 - \alpha)|\boldsymbol{\beta}|_1 + \alpha|\boldsymbol{\beta}|^2 \leq t.
+(1 - \alpha)|\boldsymbol{\beta}|_1 + \alpha|\boldsymbol{\beta}|^2 \leq t. 
 $$
 Where,
 
@@ -122,10 +125,10 @@ knitr::include_graphics("./../figures/lasso_ridge.png")
 
 # Why use Lasso Regression instead of OLS
 
-* Lasso allows us to fit a regression in cases where $p>>n$
+* Lasso allows us to fit a regression in cases where $p>>n$.
 
 * Gauss Markov Theorem tells us that OLS is the best linear unbiased estimator but what if we do not mind a biased estimate?
-  + Lasso offers a more flexible framework that allows us to optimize the bias variance tradeoff
+  + Lasso offers a more flexible framework that allows us to optimize the bias variance tradeoff.
   
 # Bias Variance Trade-Off
 
@@ -154,7 +157,7 @@ knitr::include_graphics("./../figures/percomp_pres.pdf")
 
 The following table lists the performance of the applied methods utilizing linear and quadratic loss functions, i.e.,
 
-$$ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} $$
+$$ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} ,$$
 $$  MAE = \frac{1}{n}\sum_{i = 1}^n |\hat{y} - y|. $$
 
 ```{r}
@@ -168,4 +171,18 @@ knitr::kable(kbl,
 
 # Unsupervised Colusion Detection: Post-Selection Inference
 
-# References
+The R package that was used to obtain the test statistics to determine the significance of our estimates is called \textit{selectiveInference} by @selectiveInference. It is based on a paper by the same authors called \textit{Post-selection inference for L1-penalized likelihood models} [@tib2016].
+
+* The CV optimal value for our shrinkage parameter leads us to a model with 17/1085 variables.
+  - 11 of those are firm interaction terms.
+  - 2 are description hit words.
+  - The remaining variables are Contract time, a county and a unique bidder identifier
+* For the 430 auctions at hand no signficant interactions were detected!
+
+# Thesis Repository
+
+If you are interested to learn more about the application of machine learning methods to predict procurement auction award prices you can find my thesis including the data and the code here: \textcolor{teal}{\textit{github.com/Base-R-Best-R/Auction}}.
+
+Also, if you are interested to learn more about post-selection inference. Prof. Loftus held a very insightful and easy to understand presentation which is available on youtube: \textcolor{teal}{\textit{youtube.com/watch?v=bQhEALoxoGE}}.
+
+# References {.allowframebreaks} 
