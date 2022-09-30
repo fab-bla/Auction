@@ -118,7 +118,7 @@ $$
 
 The best performing regularized model is a lasso regression model,i.e., $\alpha = 0$. The lasso penalty shrinks some elements of the parameter vector $\hat\beta$ exactly to zero. 
 
-```{r, out.width = "90%", fig.align = "center", fig.cap = "Regularization Utilizing Different Norms (Toth 2022)"}
+```{r, out.width = "90%", fig.align = "center", fig.cap = "Regularization Utilizing Different Metrics (Toth 2022)"}
 # graph
 knitr::include_graphics("./../figures/lasso_ridge.png")
 ```
@@ -130,9 +130,9 @@ knitr::include_graphics("./../figures/lasso_ridge.png")
 * Gauss Markov Theorem tells us that OLS is the best linear unbiased estimator but what if we do not mind a biased estimate?
   + Lasso offers a more flexible framework that allows us to optimize the bias variance tradeoff.
   
-# Bias Variance Trade-Off
+# Bias Variance Tradeoff
 
-```{r, out.width = "80%", fig.align = "center", fig.cap = "Bias Variance Tradeoff (Fortmann-Roe 2012)"}
+```{r, out.width = "70%", fig.align = "center", fig.cap = "Bias Variance Tradeoff (Fortmann-Roe 2012)"}
 # graph
 knitr::include_graphics("./../figures/Bias_Variance.PNG")
 ```
