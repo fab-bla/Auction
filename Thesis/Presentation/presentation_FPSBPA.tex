@@ -120,10 +120,29 @@
 \title{Predicting the Award Price of First Price Sealed Bid Procurement
 Auctions}
 \author{Fabian Blasch}
-\date{10/06/2022}
+\date{10/07/2022}
 
 \begin{document}
 \frame{\titlepage}
+
+\begin{frame}{Overview}
+\protect\hypertarget{overview}{}
+\begin{itemize}
+\tightlist
+\item
+  Motivation
+\item
+  Data
+\item
+  Best Predictive Model
+\item
+  Elastic Net
+\item
+  Post Selection Inference
+\item
+  Unsupervised Collusion Detection
+\end{itemize}
+\end{frame}
 
 \begin{frame}{Motivation: The Importance of Public Auctions}
 \protect\hypertarget{motivation-the-importance-of-public-auctions}{}
@@ -259,6 +278,42 @@ different preprocessing schedules:
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Results: Out of Sample Performance}
+\protect\hypertarget{results-out-of-sample-performance}{}
+\begin{figure}
+
+{\centering \includegraphics[width=0.9\linewidth]{./../figures/percomp_pres} 
+
+}
+
+\caption{Performance Comparison}\label{fig:unnamed-chunk-3}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Results: Out of Sample Performance}
+\protect\hypertarget{results-out-of-sample-performance-1}{}
+The following table lists the performance of the applied methods
+utilizing linear and quadratic loss functions, i.e.,
+
+\[ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} ,\]
+\[  MAE = \frac{1}{n}\sum_{i = 1}^n |\hat{y} - y|. \]
+
+\begin{table}
+\centering\begingroup\fontsize{7}{9}\selectfont
+
+\begin{tabular}{l|r|r|r|r|r|r}
+\hline
+  & Lasso & Eng. Est. & logPCA\_RF & rfe\_RF & XGB & logPCA\_LM\\
+\hline
+RMSE & 326.1261 & 497.0567 & 509.7934 & 560.7600 & 671.6634 & 609.4673\\
+\hline
+MAE & 241.7894 & 327.9388 & 348.2869 & 373.1132 & 376.3191 & 448.2662\\
+\hline
+\end{tabular}
+\endgroup{}
+\end{table}
+\end{frame}
+
 \begin{frame}{Methods: Elastic Net}
 \protect\hypertarget{methods-elastic-net}{}
 Given the model matrix \(\mathbf{X} \in \mathbb{R}^{n\times p}\) and a
@@ -294,7 +349,7 @@ vector \(\hat\beta\) exactly to zero.
 
 }
 
-\caption{Regularization Utilizing Different Metrics (Toth 2022)}\label{fig:unnamed-chunk-3}
+\caption{Regularization Utilizing Different Metrics (Toth 2022)}\label{fig:unnamed-chunk-5}
 \end{figure}
 \end{frame}
 
@@ -324,7 +379,7 @@ vector \(\hat\beta\) exactly to zero.
 
 }
 
-\caption{Bias Variance Tradeoff (Fortmann-Roe 2012)}\label{fig:unnamed-chunk-4}
+\caption{Bias Variance Tradeoff (Fortmann-Roe 2012)}\label{fig:unnamed-chunk-6}
 \end{figure}
 \end{frame}
 
@@ -344,7 +399,8 @@ variables we need to include.
   \tightlist
   \item
     A pre-selection that minimizes some predictive error, will choose
-    variables that have a relationship with the dependent variable!
+    variables that have a relationship with the dependent variable
+    \(\implies\) Type I error rate increases!
   \item
     Thus we need to correct our inferential procedure for this selection
     event!
@@ -354,42 +410,6 @@ variables we need to include.
   us twice. Once to make it into the model and then another time to
   reject the \(H_0\) of our significance test.
 \end{itemize}
-\end{frame}
-
-\begin{frame}{Results: Out of Sample Performance}
-\protect\hypertarget{results-out-of-sample-performance}{}
-\begin{figure}
-
-{\centering \includegraphics[width=0.9\linewidth]{./../figures/percomp_pres} 
-
-}
-
-\caption{Performance Comparison}\label{fig:unnamed-chunk-5}
-\end{figure}
-\end{frame}
-
-\begin{frame}{Results: Out of Sample Performance}
-\protect\hypertarget{results-out-of-sample-performance-1}{}
-The following table lists the performance of the applied methods
-utilizing linear and quadratic loss functions, i.e.,
-
-\[ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} ,\]
-\[  MAE = \frac{1}{n}\sum_{i = 1}^n |\hat{y} - y|. \]
-
-\begin{table}
-\centering\begingroup\fontsize{7}{9}\selectfont
-
-\begin{tabular}{l|r|r|r|r|r|r}
-\hline
-  & Lasso & Eng. Est. & logPCA\_RF & rfe\_RF & XGB & logPCA\_LM\\
-\hline
-RMSE & 326.1261 & 497.0567 & 509.7934 & 560.7600 & 671.6634 & 609.4673\\
-\hline
-MAE & 241.7894 & 327.9388 & 348.2869 & 373.1132 & 376.3191 & 448.2662\\
-\hline
-\end{tabular}
-\endgroup{}
-\end{table}
 \end{frame}
 
 \begin{frame}{Unsupervised Colusion Detection: Post-Selection Inference}
@@ -422,17 +442,20 @@ called
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Thesis Repository}
-\protect\hypertarget{thesis-repository}{}
+\begin{frame}{Links and Thesis Repository}
+\protect\hypertarget{links-and-thesis-repository}{}
 If you are interested to learn more about the application of machine
 learning methods to predict procurement auction award prices you can
 find my thesis including the data and the code here:
 \textcolor{teal}{\textit{github.com/Base-R-Best-R/Auction}}.
 
-Also, if you are interested to learn more about post-selection
-inference. Prof.~Loftus held a very insightful and easy to understand
-presentation which is available on youtube:
+If you are interested to learn more about post-selection inference.
+Prof.~Loftus held a very insightful and easy to understand presentation
+which is available on youtube:
 \textcolor{teal}{\textit{youtube.com/watch?v=bQhEALoxoGE}}.
+
+The link to the interactive Elastic-Net example may be found here:
+\textcolor{teal}{\textit{desmos.com/calculator/skbksmodhd}}.
 \end{frame}
 
 \begin{frame}[allowframebreaks]{References}

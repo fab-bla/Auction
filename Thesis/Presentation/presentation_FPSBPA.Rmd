@@ -35,6 +35,15 @@ source("./../../Code/Misc/Auxilliary.R")
 get.package(c("ggplot2", "patchwork", "kableExtra"))
 ```
 
+# Overview
+
+* Motivation
+* Data
+* Best Predictive Model
+* Elastic Net
+* Post Selection Inference
+* Unsupervised Collusion Detection
+
 # Motivation:  The Importance of Public Auctions
 
 Auctions are a vital tool for governments to procure contracts. For construction contracts, first price sealed bid auctions are of particular importance.
@@ -97,6 +106,28 @@ For the Prediction Model the following models were applied utilizing different p
 * eXtreme Gradient Boosting
 * OLS estimated linear model 
 
+# Results: Out of Sample Performance
+
+```{r, out.width = "90%", fig.align = "center", fig.cap = "Performance Comparison"}
+# graph
+knitr::include_graphics("./../figures/percomp_pres.pdf")
+```
+
+# Results: Out of Sample Performance
+
+The following table lists the performance of the applied methods utilizing linear and quadratic loss functions, i.e.,
+
+$$ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} ,$$
+$$  MAE = \frac{1}{n}\sum_{i = 1}^n |\hat{y} - y|. $$
+```{r}
+# table
+kbl <- readRDS("./../figures/kbl.RDS")
+kbl <- kbl[, order(kbl[2, ])]
+knitr::kable(kbl, 
+             col.names = c("Lasso", "Eng. Est.", "logPCA_RF", "rfe_RF", "XGB", "logPCA_LM")) |> 
+  kable_styling(font_size = 7)
+```
+
 # Methods: Elastic Net
 Given the model matrix $\mathbf{X} \in \mathbb{R}^{n\times p}$ and a dependent variable $\mathbf{y} \in \mathbb{R}^n$, we may formulate the elastic net as a linear model that utilizes $\ell_1$ and $\ell_2$ regularization. Further, suppose that $\alpha \in [0, 1]$ and $t \in \mathbb{R}^+$, we can then define the elastic net estimator as a constrained minimization problem, 
 
@@ -142,32 +173,9 @@ knitr::include_graphics("./../figures/Bias_Variance.PNG")
 The derivation of a test statistic for a single covariate in our model usually assumes that the model is fixed, as if we knew ex ante which variables we need to include.
 
 * Why is it problematic if we use the Data to choose the variables in our model?
-  - A pre-selection that minimizes some predictive error, will choose variables that have a relationship with the dependent variable!
+  - A pre-selection that minimizes some predictive error, will choose variables that have a relationship with the dependent variable  $\implies$ Type I error rate increases!
   - Thus we need to correct our inferential procedure for this selection event!
 * Very informally speaking, we could say, a predictor needs to suprise us twice. Once to make it into the model and then another time to reject the $H_0$ of our significance test.
-
-# Results: Out of Sample Performance
-
-```{r, out.width = "90%", fig.align = "center", fig.cap = "Performance Comparison"}
-# graph
-knitr::include_graphics("./../figures/percomp_pres.pdf")
-```
-
-# Results: Out of Sample Performance
-
-The following table lists the performance of the applied methods utilizing linear and quadratic loss functions, i.e.,
-
-$$ RMSE = \sqrt{\frac{1}{n}\sum_{i = 1}^n (\hat{y} - y)^2} ,$$
-$$  MAE = \frac{1}{n}\sum_{i = 1}^n |\hat{y} - y|. $$
-
-```{r}
-# table
-kbl <- readRDS("./../figures/kbl.RDS")
-kbl <- kbl[, order(kbl[2, ])]
-knitr::kable(kbl, 
-             col.names = c("Lasso", "Eng. Est.", "logPCA_RF", "rfe_RF", "XGB", "logPCA_LM")) |> 
-  kable_styling(font_size = 7)
-```
 
 # Unsupervised Colusion Detection: Post-Selection Inference
 
@@ -179,10 +187,13 @@ The R package that was used to obtain the test statistics to determine the signi
   - The remaining variables are Contract time, a county and a unique bidder identifier
 * For the 430 auctions at hand no signficant interactions were detected!
 
-# Thesis Repository
+# Links and Thesis Repository
 
 If you are interested to learn more about the application of machine learning methods to predict procurement auction award prices you can find my thesis including the data and the code here: \textcolor{teal}{\textit{github.com/Base-R-Best-R/Auction}}.
 
-Also, if you are interested to learn more about post-selection inference. Prof. Loftus held a very insightful and easy to understand presentation which is available on youtube: \textcolor{teal}{\textit{youtube.com/watch?v=bQhEALoxoGE}}.
+If you are interested to learn more about post-selection inference. Prof. Loftus held a very insightful and easy to understand presentation which is available on youtube: \textcolor{teal}{\textit{youtube.com/watch?v=bQhEALoxoGE}}.
+
+The link to the interactive Elastic-Net example may be found here: \textcolor{teal}{\textit{desmos.com/calculator/skbksmodhd}}.
+
 
 # References {.allowframebreaks} 
