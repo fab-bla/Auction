@@ -43,6 +43,7 @@ get.package(c("ggplot2", "patchwork", "kableExtra"))
 * Elastic Net
 * Post Selection Inference
 * Unsupervised Collusion Detection
+* No literature review?
 
 # Motivation:  The Importance of Public Auctions
 
@@ -145,7 +146,7 @@ $$
 |\boldsymbol{\beta}|_1 = \sum\limits_{i = 1}^{p}|\boldsymbol{\beta}_i|\text{ and } |\boldsymbol{\beta}|^2 = \sum\limits_{i = 1}^{p}\boldsymbol{\beta}_i^2.
 $$
 
-# Regularized Regression: [Intuition](https://www.desmos.com/calculator/59axr4plef) 
+# Regularized Regression: [Intuition](https://www.desmos.com/calculator/59axr4plef)
 
 The best performing regularized model is a lasso regression model,i.e., $\alpha = 0$. The lasso penalty shrinks some elements of the parameter vector $\hat\beta$ exactly to zero. 
 
