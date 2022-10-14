@@ -120,7 +120,7 @@
 \title{Predicting the Award Price of First Price Sealed Bid Procurement
 Auctions}
 \author{Fabian Blasch}
-\date{10/08/2022}
+\date{10/14/2022}
 
 \begin{document}
 \frame{\titlepage}
@@ -171,8 +171,9 @@ particular importance.
 \protect\hypertarget{thesis-overview}{}
 \begin{itemize}
 \item
-  Provide an award price prediction model for the Colorado Department of
-  Transportation.
+  Can machine learning methods be used to provide an improvement over
+  the engineer's estimate in predicting the award price of auctions held
+  by the CDOT?
 
   \begin{itemize}
   \tightlist
@@ -186,17 +187,14 @@ particular importance.
   \begin{itemize}
   \tightlist
   \item
-    Examine whether the interaction of certain bidders has an effect on
-    award prices. A significant interaction effect could allude to the
-    existance of a bid rigging scheme.
+    Does the interaction of certain firms lead to a systematic increase
+    in the award price of auctions?
   \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Data: Source}
 \protect\hypertarget{data-source}{}
-An example of a bid tab, as published on the website of the CDOT.
-
 \begin{figure}
 
 {\centering \includegraphics[width=0.8\linewidth]{./../figures/Bid_Tab_exmpl} 
@@ -205,32 +203,6 @@ An example of a bid tab, as published on the website of the CDOT.
 
 \caption{Bid Tab Example}\label{fig:unnamed-chunk-2}
 \end{figure}
-\end{frame}
-
-\begin{frame}{Data: Extraction}
-\protect\hypertarget{data-extraction}{}
-\begin{itemize}
-\tightlist
-\item
-  The following text based data was extracted utilizing the package
-  \emph{pdftools} and regular expressions (Ooms 2022):
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Contract ID
-  \item
-    County
-  \item
-    Contract Time
-  \item
-    Contract Description
-  \end{itemize}
-\item
-  The table containing the bids, the unique bidder intentifiers and the
-  engineer's estimate was extracted utilizing the R package
-  \emph{tabulizer} (Leeper 2018).
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Data: Final Dataset}
@@ -464,15 +436,6 @@ The link to the interactive Elastic-Net example may be found here:
 \protect\hypertarget{references}{}
 \hypertarget{refs}{}
 \begin{CSLReferences}{1}{0}
-\leavevmode\vadjust pre{\hypertarget{ref-tabulizer}{}}%
-Leeper, Thomas J. 2018. \emph{Tabulizer: Bindings for Tabula PDF Table
-Extractor Library}.
-
-\leavevmode\vadjust pre{\hypertarget{ref-pdftools}{}}%
-Ooms, Jeroen. 2022. \emph{Pdftools: Text Extraction, Rendering and
-Converting of PDF Documents}.
-\url{https://CRAN.R-project.org/package=pdftools}.
-
 \leavevmode\vadjust pre{\hypertarget{ref-GarciaRodriguez2020}{}}%
 Rodríguez, Manuel J. García, Vicente Rodríguez Montequín, Francisco
 Ortega Fernández, and Joaquín M. Villanueva Balsera. 2020. {``Bidders

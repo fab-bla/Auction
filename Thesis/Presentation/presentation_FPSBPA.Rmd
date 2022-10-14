@@ -3,7 +3,7 @@ title: |
         | Predicting the Award Price of First Price Sealed Bid Procurement Auctions 
 
 author: "Fabian Blasch"
-date: "`r format(Sys.Date(), format = '%m/%d/%Y')`"
+date: "10/14/2022"
 fontsize: 11pt
 output: 
   beamer_presentation:
@@ -57,31 +57,29 @@ Auctions are a vital tool for governments to procure contracts. For construction
 
 # Thesis Overview
 
-* Provide an award price prediction model for the Colorado Department of Transportation.
+* Can machine learning methods be used to provide an improvement over the engineer's estimate in predicting the award price of auctions held by the CDOT?
 
   + This model would enable the auctioning entity to plan their budget more accurately.
   
 * Unsupervised Collusion Detection
 
-  + Examine whether the interaction of certain bidders has an effect on award prices. A significant interaction effect could allude to the existance of a bid rigging scheme.
+  + Does the interaction of certain firms lead to a systematic increase in the award price of auctions?
 
 # Data: Source
-
-An example of a bid tab, as published on the website of the CDOT.
-
+  
 ```{r, out.width = "80%", fig.align = "center", fig.cap = "Bid Tab Example"}
 knitr::include_graphics("./../figures/Bid_Tab_exmpl.PNG")
 ```
 
-# Data: Extraction
+<!-- # Data: Extraction -->
 
-* The following text based data was extracted utilizing the package *pdftools* and regular expressions [@pdftools]:
-  + Contract ID
-  + County
-  + Contract Time
-  + Contract Description
+<!-- * The following text based data was extracted utilizing the package *pdftools* and regular expressions [@pdftools]: -->
+<!--   + Contract ID -->
+<!--   + County -->
+<!--   + Contract Time -->
+<!--   + Contract Description -->
 
-* The table containing the bids, the unique bidder intentifiers and the engineer's estimate was extracted utilizing the R package *tabulizer* [@tabulizer].
+<!-- * The table containing the bids, the unique bidder intentifiers and the engineer's estimate was extracted utilizing the R package *tabulizer* [@tabulizer]. -->
 
 # Data: Final Dataset 
 
