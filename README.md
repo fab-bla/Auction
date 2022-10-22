@@ -1,10 +1,9 @@
-First-Price Procurement Auctions
+Procurement Auctions
 ================
 
 This repository contains my [master
 thesis](https://github.com/Base-R-Best-R/Auction/blob/main/Thesis/Thesis_FPSBPA.pdf)
-on first-price sealed-bid procurement auctions, please keep in mind that
-this is still a work in progress. In particular, the aim is to predict
+on first-price sealed-bid procurement auctions. In particular, the aim is to predict
 award prices of auctions held by the [Colorado Department of
 Transportation](https://codot.gov/business/bidding/bid-tab-archives). To
 date, the following models with varying preprocessing schedules have
