@@ -52,7 +52,6 @@ urlcolor = teal
 
 \cfoot{\pagemark}
 
-
 \usepackage{csquotes}
 \usepackage[
 backend=biber,
@@ -134,11 +133,11 @@ The importance of public procurement quickly becomes apparent when looking at th
 
 Given that the contracts awarded through procurement auctions are such a substantial part of the budget, every potential improvement to the process may greatly increase the efficiency of the tax payers money that is spent. Accordingly, a closer examination of the process including a prediction model for the auctions' award prices may support public procurement agencies like the CDOT with budget planning. Additionally, further analysis of the underlying data in respect to the interactions of particular bidders and the associated effect on award prices is also highly relevant for public procurement agencies. This thesis thus provides an analysis of different models, that predict the award price of an auction given input information available through the bid tabs that are published on the official website of the CDOT. In particular, four different model types with varying preprocessing schedules are compared in terms of their predictive power: Standard linear regression, elastic net regression, random forests and an eXtreme gradient boosting model. Those methods were chosen, as they are the most popular machine learning algorithms for tabular data. Additionally, all of the mentioned methods, some of them combined with a preprocessing schedule, are able to deal with a large number of potential explanatory variables. To assess whether the combination of certain bidders leads to higher award prices, recently discovered post-selection inference methods are utilized \citep{selectiveInference}.\\
 The presentation of the theoretical concepts in the methods section is kept concise, whenever advanced concepts need introduction a reference is provided. Additionally, great emphasis is put on keeping the application as simple as possible. All applied illustrations of algorithms are written in the simplest form attainable, while attempting to avoid ambiguity. The idea behind this approach is to simultaneously provide an approachable reading experience for people who have not enjoyed formal mathematical training while retaining some formality in the descriptions of the applied methods.
-The remaining paper is structured as follows, first the data extraction process from the PDFs provided on the CDOT's website is described. Then the general process of procurement is outlined, this also entails a concise description of the auction process utilized by the CDOT. The following section covers the methods that are applied, not only in respect to the different models used for prediction but also for the different preprocessing schedules that are applied and the post-selection inference that is used. The thesis concludes with the results for the best predictive model utilizing linear and quadratic loss functions and the results of the analysis of bidder interactions. All the code that was used to generate the presented results may be found here: \href{https://github.com/Base-R-Best-R/Auction}{\textit{github.com/Base-R-Best-R/Auction}}.
+The remaining paper is structured as follows, first the data extraction process from the PDFs provided on the CDOT's website is described. Then the general process of procurement is outlined, this also entails a concise description of the auction process utilized by the CDOT. The following section covers the methods that are applied, not only in respect to the different models used for prediction but also for the different preprocessing schedules that are applied and the post-selection inference that is used. The thesis concludes with the results for the best predictive model utilizing linear and quadratic loss functions and the results of the analysis of bidder interactions. All the code that was used to generate the presented results may be found here: \href{https://github.com/fab-bla/Auction}{\textit{github.com/fab-bla/Auction}}.
 \newpage
 \section{Data}\label{sec:data}
 
-All the information about the procurement contracts, is obtainable through the bid tab archive on the official website of the Colorado Department of Transportation. The information is provided in PDF documents. In each of those files the following information of the respective auction is provided.
+All the information about the procurement contracts is obtainable through the bid tab archive on the official website of the Colorado Department of Transportation. The information is provided in PDF documents. In each of those files, the following information about the respective auction is provided.
 
 \begin{itemize}
 	\item A table listing all submitted bids, including a unique identifier for each of the participating bidders
@@ -158,10 +157,10 @@ For illustrative purposes, Figure \ref{fig:bidtab} displays an example of a bid 
 \end{figure}
 
 \subsection{Scraping}\label{subsec:scrap}
-In order to obtain all the archived bid tabs, the html code of the website was first examined using a google chrome extension called \textit{SelectorGadget} \citep{selector}. This tool allows one to identify html nodes, that website contents are associated with. In the case of the bid tab archive, the html node carrying the links to the individual bid tabs is \enquote{<td a>}. Once this html node is discovered and the consistency across different years in the archive is ensured, the download is easily achieved by looping over the links and downloading the  respective PDFs. The hyperlink extraction was performed utilizing \textit{rvest}, by \citet{rvest}. For the remaining steps in the data extraction process, a distinction will be made for text based information and tabular data.
+In order to obtain all the archived bid tabs, the HTML code of the website was first examined using a google chrome extension called \textit{SelectorGadget} \citep{selector}. This tool allows one to identify HTML nodes, that website contents are associated with. In the case of the bid tab archive, the HTML node carrying the links to the individual bid tabs is \enquote{<td a>}. Once this HTML node is discovered and the consistency across different years in the archive is ensured, the download is easily achieved by looping over the links and downloading the respective PDFs. The hyperlink extraction was performed utilizing \textit{rvest}, by \citet{rvest}. For the remaining steps in the data extraction process, a distinction will be made between text-based information and tabular data.
 
 \subsubsection{Text Based Information}\label{subsubsec:descr}
- The structure of the text based information allows us to filter the individual parts via regular expressions. Especially, for the letting data, the contract ID, and the county this required no further data cleaning steps. Unfortunately, this is not the case for the contract time and the contract description.\\ 
+ The structure of the text-based information allows us to filter the individual parts via regular expressions. Especially, for the letting data, the contract ID, and the county this required no further data-cleaning steps. Unfortunately, this is not the case for the contract time and the contract description.\\ 
  The contract time was not as straightforward to obtain, since the way it is reported is inconsistent across documents. Most of the time, it is reported as working days until all contractual obligations have to be fulfilled. Seldom, however, the bid tab contains a completion date instead. Accordingly, to achieve consistency across documents all completion dates were converted to contract time. This was achieved by first adding 60 days to the letting date, as this is the number of days that the CDOT reports as the expected time between the letting date and the start of the work on site. Then, the difference in days between the completion date and the starting date were computed. As said difference is only supposed to contain working days the following holidays as well as all weekends were subtracted from the difference between starting date and completion date.
  
  \begin{itemize}
@@ -180,7 +179,7 @@ In order to obtain all the archived bid tabs, the html code of the website was f
  
  The computation was executed utilizing the R package \textit{bizdays} \citep{bizdays}. The package enables the user to generate custom calenders. The difference in starting and completion date was therefore easily calculated by setting up a custom calender with the holidays listed above as well as all Saturdays and Sundays. Then using this calender, the difference between two dates only takes working days into account.\\
  The only remaining text based information is the contract description. So far, none of the text based information required extensive preprocessing to obtain variables that can be represented in a tabular format. In the case of the contract description this is not the case. In order to convert the contract description into a format that may be represented in a table, the descriptions were first tokenized. Tokenization refers to splitting the input text into single unique words, i.e., splitting the sentences on spaces and removing all forms of punctuation. The result is then a vector of tokens. Said tokens were then scanned for spelling mistakes utilizing the R package \textit{hunspell} \citep{hunspell}. Once the misspelled words were corrected, stop words were removed from the list of tokens. Stop words are words that have no inherent signal associated with their use, examples for such words in the English language would be \enquote{a}, \enquote{is} and \enquote{the}. In natural language processing there is not necessarily one list of stop words, depending on the context different libraries of stop words may be used to remove as much noise as possible from textual data while leaving the signal associated with a series of words in tact. In the case of this thesis, a combination of five different libraries of stop words was used. All of those libraries, \enquote{snowball} , \enquote{stopwords-iso}, 
- \enquote{smart}, \enquote{marimo} and \enquote{nltk} are available through the R package \textit{stopwords}, by \citet{stopwords}. After filtering out the stop words, the remaining words were then stemmed. Stemming refers to the process in which a word is reduced to its root. This means, that words that carry an identical signal are reduced to the same shortest common substring. Consider the following three words, replacing, replaced, replacement. All those words carry the information that something needs replacement. The language specific circumstances that determine the affixes are not relevant for the information extraction and thus all the aforementioned words are shortened to \enquote{replac} \citep{textminingR}. After stemming, to remove any remaining misspelled words and also for potential removal of unwanted information, all stemmed words were written to an excel file and checked manually. Given that all stop words were already removed and the remaining words were reduced to their stem, this was a very feasible task, resulting in a file with around 2000 words to check. Below we observe the top 40 most frequent words that result from our text mining endeavours.
+ \enquote{smart}, \enquote{marimo} and \enquote{nltk} are available through the R package \textit{stopwords}, by \citet{stopwords}. After filtering out the stop words, the remaining words were then stemmed. Stemming refers to the process in which a word is reduced to its root. This means, that words that carry an identical signal are reduced to the same shortest common substring. Consider the following three words, replacing, replaced, and replacement. All those words carry the information that something needs replacement. The language-specific circumstances that determine the affixes are not relevant for the information extraction and thus all the aforementioned words are shortened to \enquote{replac} \citep{textminingR}. After stemming, to remove any remaining misspelled words and also for the potential removal of unwanted information, all stemmed words were written to an excel file and checked manually. Given that all stop words were already removed and the remaining words were reduced to their stem, this was a very feasible task, resulting in a file with around 2000 words to check. Below we observe the top 40 most frequent words that result from our text-mining endeavors.
  
 \begin{figure}[H]
 	\includegraphics[width = 9.9cm]{figures/description_words_cloud_cropped2.pdf}
@@ -215,7 +214,7 @@ The interaction terms were generated in order to see whether a combination of ce
 	\caption{Date, Counties and Number of Firms}\label{fig:barplots}
 \end{figure}
 
-We observe, that the sample of auctions in the dataset were held between 2015 and 2019, in which the auction frequency is the highest in January and June. Further we learn, that most contracts are to be completed in El Paso followed by a combination of various counties. In regard to the number of bidders per auction, most of the auctions attract between 1 to 4 bidders, with the maximum being 9 competing firms.
+We observe, that the sample of auctions in the dataset were held between 2015 and 2019, in which the auction frequency is the highest in January and June. Further, we learn, that most contracts are to be completed in El Paso followed by a combination of various counties. Regarding the number of bidders per auction, most of the auctions attract between 1 to 4 bidders, with the maximum being 9 competing firms.
 
 \begin{figure}[H]
 	\includegraphics[width = 14	cm]{figures/vend_plots.pdf}
@@ -229,22 +228,22 @@ The depiction of the top 20 bidders represents the unique identifiers of the fir
 	\caption{Award Price and Engineer's Estimate}\label{fig:aweng}
 \end{figure}
 
-The last two plots, enable us to gain insights about the distribution of the award price and the engineer's estimate. Both variables are right skewed and to the naked eye the engineer's estimate seems to resemble the distribution of the award price quite well. This is a strong indicator for the engineer's estimate as a predictor. The engineer's estimate is also important as it serves as a benchmark for prediction. Every model that can not beat the engineer's estimate in predicting the award price is not particularly useful, this is further discussed in Section \ref{sec:res}.\\
+The last two plots, enable us to gain insights into the distribution of the award price and the engineer's estimate. Both variables are right skewed and to the naked eye, the engineer's estimate seems to resemble the distribution of the award price quite well. This is a strong indicator for the engineer's estimate as a predictor. The engineer's estimate is also important as it serves as a benchmark for prediction. Every model that can not beat the engineer's estimate in predicting the award price is not particularly useful, this is further discussed in Section \ref{sec:res}.\\
 \newpage
 \section{Economic Operationalization}\label{sec:op}
 
-Before presenting the formalization, a quick overview of the auction design of the Colorado Department of Transportation is presented. This renders modelling assumptions more comprehensible. The CDOT provides a document on their website that summarizes the entire auction process including all preregistration processes, that firms have to traverse before they are eligible to submit bids \citep{CDOTRul}.\\
-The auction design created by the CDOT is a standard sealed bid first price auction, i.e., contracts are advertised for bids online, firms that have been prequalified for bidding for a certain contract may submit their bids online or in person. Once a preset date passes, a representative of the CDOT opens all submitted bids and announces the lowest bidder, who is awarded the contract. The prequalification that was mentioned is of vital importance for this thesis. Given that all firms have to be prequalified for bidding, one may utilize bidder identity and bidder interactions when predicting award prices. If there was no prequalification, then the auctioneer would not have knowledge of all potential bidders until no more bids are to be received. At this point there is also no need for a prediction of the award price. Besides a prequalification process, the CDOT also implements a reserve price. Every project is assigned an engineer, who is responsible to calculate an engineer's estimate of the cost of completion. Should the lowest bid that is submitted exceed the engineer's estimate by more than 10\%, then the lowest bidder is only awarded the contract if a secondary assessment of the CDOT ends with the conclusion that the lowest apparent bid is indeed a reasonable price for execution of the contractual obligations. This secondary process to bypass the initial reserve price was necessary for 17\% of the auctions in the dataset that is used in this thesis. In regards to the frequency of bid rejection, for our modelling assumption it is important to know that the secondary assessment process very rarely results in a rejection of the lowest apparent bid \citep{CDOTRul}. 
+Before presenting the formalization, a quick overview of the auction design of the Colorado Department of Transportation is presented. This renders modeling assumptions more comprehensible. The CDOT provides a document on its website that summarizes the entire auction process including all preregistration processes, that firms have to traverse before they are eligible to submit bids \citep{CDOTRul}.\\
+The auction design created by the CDOT is a standard sealed bid first price auction, i.e., contracts are advertised for bids online, and firms that have been prequalified for bidding for a certain contract may submit their bids online or in person. Once a preset date passes, a representative of the CDOT opens all submitted bids and announces the lowest bidder, who is awarded the contract. The prequalification that was mentioned is of vital importance for this thesis. Given that all firms have to be prequalified for bidding, one may utilize bidder identity and bidder interactions when predicting award prices. If there was no prequalification, then the auctioneer would not have knowledge of all potential bidders until no more bids are to be received. At this point, there is also no need for a prediction of the award price. Besides a prequalification process, the CDOT also implements a reserve price. Every project is assigned an engineer, who is responsible to calculate an engineer's estimate of the cost of completion. Should the lowest bid that is submitted exceed the engineer's estimate by more than 10\%, then the lowest bidder is only awarded the contract if a secondary assessment of the CDOT ends with the conclusion that the lowest apparent bid is indeed a reasonable price for the execution of the contractual obligations. This secondary process to bypass the initial reserve price was necessary for 17\% of the auctions in the dataset that is used in this thesis. In regards to the frequency of bid rejection, for our modeling assumption, it is important to know that the secondary assessment process very rarely results in a rejection of the lowest apparent bid \citep{CDOTRul}. 
 
 \subsection{First Price Sealed Bid Auctions}\label{subsec:fpsba}
 
-For the applied nature of this thesis a formalization of the auction process in not a necessary prerequisite 
+For the applied nature of this thesis, a formalization of the auction process is not a necessary prerequisite 
 for a good prediction model, however, a sound understanding of all the economic agents at play might yield insights into the potential benefit of a prediction model for participating firms and it may also provide us with expectations for the post-selection inference that is explored in Section \ref{subsubsec:psi}. Given that this chapter is not strictly necessary for the reader to understand the main findings of this thesis a basic understanding of game theory is assumed. The interested reader is referred to, \citet{tadelis12}, who provides sound definitions and explanations of all the required concepts.\\
-The description of bidding in the first-price sealed-bid procurement auction (FPSBPA) is denoted in accordance with \citet{milgrom82} and \citet{HandbookIndustrialOrga}. For the following formalization let uppercase letters represent random variables and their lowercase counterpart a single realisation. Consider an auction environment with $n$ potential bidding firms, all of them submit bids in hopes to procure a contract from the auctioneer. Each of those firms, which are indexed by $i$ observe a real valued signal $x_i$. One can think of $X_i$ as private information that each firm has about their own cost structure and other private information that a bidder can posses, that influences the value of a contract to a firm. Further, let $V$ represent the characteristics that determine the value of the contract to the firms, that are common knowledge among competing bidders. For illustrative purposes, consider an auction for a contract that involves the repair of a street that leads up a mountain. The information that can be extracted from the contract description is common knowledge, i.e., it influences the value of the contract of every firm. Every bidder is aware that a street, which is steep is more cost intensive to repair. When modelling the bidders behaviour we assume that this is common knowledge, such common values are represented by $V$.\\ In the auction modelling literature, a distinction is made between an auction environment of private values, i.e., each firm knows their own valuation and is only uncertain about how other firms value the contract. The counterpart to this auction environment is one of pure common values. In this case all bidders have the same common value, however, prior to the execution of the contractual obligations they have no accurate ex ante estimate of the value that may be extracted from completing this contract. This common value paradigm is important when modelling because, given that firms have common metrics that make contracts more or less attractive, it renders the private information that firms may posses relevant for rival bidders and will thus influence the ex post value once all bids are revealed.\\ To continue the formalization of the auction environment, let firm $i's$ payoff be represented by $U_i = u_i(V, X_i, X_{-i})$, where $X_{-i}$ represents the private information possessed by firm $i's$ rivals. Most of the time it is assumed that firms are risk neutral, i.e., expected utility of profit is simply equal to the expectation of a linear function of capital gained, and maximizing it is equivalent to maximizing expected profit itself. The payoff or the value of a contract to a firm may then be defined as the expectation of $U_i$ given the private information of firm $i$, i.e., $\mathbb{E}(U_i|X_i = x_i, X_{-i} = x_{-i})$. It is important to point out that in a common values environment the distribution of V conditional on $x_{i}$ is dependent on the realization of $X_{-i}$. This means that from the perspective of firm $i$, other firms may have private information about characteristics of a contract that influence its value to all competing firms and thus also the value in the eyes of firm $i$. Accordingly, let the bidding strategy be a mapping $\beta: X_i \rightarrow \mathbb{R}^+$, that maps the private information of firm $i$ (cost structure, private knowledge about a contract obtained through on site inspections, ...) into the non-negative real numbers. To ensure that this function is invertible, in the literature it is usually assumed that $\beta$ is a bijection that is strictly increasing in the signal $X_i$. Again, assuming that $X_i$ represents the cost structure of firm $i$ and other private information, a ceteris paribus decrease in costs is then associated with a decrease in the price of submitted bids. Now that the basic formalities of the auction environment have been set, we may consider the \enquote{winner's curse}, which assumes the event of winning an auction as an informative event in respect to the value of the contract. The idea is that a firm that manages to procure a contract through an auction must be the lowest bidder, and this also means that no other firm was willing to execute the contractual obligations for the same price. More formally, assume that the realization $v$ is unknown and carries a significant common component. Additionally, we may assume that all firms have varying amounts of private information about the contract. They are aware that other firms have private information but they are uncertain about other firms' valuations of the contract. Further, to simplify the model we assume that the signals $x_i$ are drawn from a common distribution $F$ and that the value of the contract is mainly determined by the common component of bidders' valuations, i.e, w.l.o.g for firm 1, the ex ante valuation of the contract is equal to:
+The description of bidding in the first-price sealed-bid procurement auction (FPSBPA) is denoted in accordance with \citet{milgrom82} and \citet{HandbookIndustrialOrga}. For the following formalization let uppercase letters represent random variables and their lowercase counterpart a single realization. Consider an auction environment with $n$ potential bidding firms, all of them submit bids in hopes to procure a contract from the auctioneer. Each of those firms, which are indexed by $i$ observes a real-valued signal $x_i$. One can think of $X_i$ as private information that each firm has about its own cost structure and other private information that a bidder can possess, that influences the value of a contract to a firm. Further, let $V$ represent the characteristics that determine the value of the contract to the firms, which are common knowledge among competing bidders. For illustrative purposes, consider an auction for a contract that involves the repair of a street that leads up a mountain. The information that can be extracted from the contract description is common knowledge, i.e., it influences the value of the contract of every firm. Every bidder is aware that a street, which is steep is more cost intensive to repair. When modeling the bidders' behavior we assume that this is common knowledge, such common values are represented by $V$.\\ In the auction modeling literature, a distinction is made between an auction environment of private values, i.e., each firm knows its own valuation and is only uncertain about how other firms value the contract. The counterpart to this auction environment is one of pure common values. In this case, all bidders have the same common value, however, prior to the execution of the contractual obligations they have no accurate ex-ante estimate of the value that may be extracted from completing this contract. This common value paradigm is important when modeling because, given that firms have common metrics that make contracts more or less attractive, it renders the private information that firms may possess relevant for rival bidders and will thus influence the ex-post value once all bids are revealed.\\ To continue the formalization of the auction environment, let firm $i's$ payoff be represented by $U_i = u_i(V, X_i, X_{-i})$, where $X_{-i}$ represents the private information possessed by firm $i's$ rivals. Most of the time it is assumed that firms are risk neutral, i.e., the expected utility of profit is simply equal to the expectation of a linear function of capital gained, and maximizing it is equivalent to maximizing the expected profit itself. The payoff or the value of a contract to a firm may then be defined as the expectation of $U_i$ given the private information of firm $i$, i.e., $\mathbb{E}(U_i|X_i = x_i, X_{-i} = x_{-i})$. It is important to point out that in a common values environment, the distribution of V conditional on $x_{i}$ is dependent on the realization of $X_{-i}$. This means that from the perspective of firm $i$, other firms may have private information about characteristics of a contract that influence its value to all competing firms and thus also the value in the eyes of firm $i$. Accordingly, let the bidding strategy be a mapping $\beta: X_i \rightarrow \mathbb{R}^+$, that maps the private information of firm $i$ (cost structure, private knowledge about a contract obtained through on-site inspections, ...) into the non-negative real numbers. To ensure that this function is invertible, in the literature it is usually assumed that $\beta$ is a bijection that is strictly increasing in the signal $X_i$. Again, assuming that $X_i$ represents the cost structure of firm $i$ and other private information, a ceteris paribus decrease in costs is then associated with a decrease in the price of submitted bids. Now that the basic formalities of the auction environment have been set, we may consider the \enquote{winner's curse}, which assumes the event of winning an auction as an informative event with respect to the value of the contract. The idea is that a firm that manages to procure a contract through an auction must be the lowest bidder, and this also means that no other firm was willing to execute the contractual obligations for the same price. More formally, assume that the realization $v$ is unknown and carries a significant common component. Additionally, we may assume that all firms have varying amounts of private information about the contract. They are aware that other firms have private information but they are uncertain about other firms' valuations of the contract. Further, to simplify the model we assume that the signals $x_i$ are drawn from a common distribution $F$ and that the value of the contract is mainly determined by the common component of bidders' valuations, i.e, w.l.o.g for firm 1, the ex-ante valuation of the contract is equal to:
 \[
 v_1(x_1) = \mathbb{E}[V|X_1 = x_1]  = \int vf_{V|X_1}(v|x_1)dv.
 \]
- Then in equilibrium, assuming that the bidding function is increasing in the cost realization, the winner is the firm with the lowest cost draw from the distribution but also influenced by the firms private information about the contract. In the literature this is formalized by stating that the lowest bid is announced by the firm that incurs the lowest signal \citep{HandbookIndustrialOrga}. This intuitively makes sense as the signal is defined on the real numbers and the lowest signal will thus be identical to the lowest contract execution costs and consequently the highest profit to be made. By Jensen's inequality, given that the maximum is a convex function\footnote{A proof is provided in Appendix \ref{App:A1}.}, 
+Then in equilibrium, assuming that the bidding function is increasing in the cost realization, the winner is the firm with the lowest cost draw from the distribution but also influenced by the firm's private information about the contract. In the literature, this is formalized by stating that the lowest bid is announced by the firm that incurs the lowest signal \citep{HandbookIndustrialOrga}. This intuitively makes sense as the signal is defined on the real numbers and the lowest signal will thus be identical to the lowest contract execution costs and consequently the highest profit to be made. By Jensen's inequality, given that the maximum is a convex function\footnote{A proof is provided in Appendix \ref{App:A1}.}, 
 \[
 \mathbb{E}[\text{max}\{V_i|v\}] \leq \text{max}\{{\mathbb{E}[V_i|v]}\} = v.
 \] 
@@ -257,7 +256,7 @@ Now that we have discovered another potential beneficiary of an award price pred
 \[
 \argmaxA_b \text{ } (b - x)\{1 - F[\beta^{-1}(b)]\}^{n-1}.
 \]
-Where $(b - x)$ is the profit that the firm expects if it were to win the contract and the remaining term is the probability that all other competing bidders incur a higher signal realization associated with the execution of the contractual obligation, and thus submit higher bids. Accordingly, by the previously mentioned assumption of the strictly increasing function $\beta$, the lowest signal leads to the lowest bid. From the maximization problem, we obtain the following FOC:
+Where $(b - x)$ is the profit that the firm expects if it were to win the contract and the remaining term is the probability that all other competing bidders incur a higher signal realization associated with the execution of the contractual obligation and thus submit higher bids. Accordingly, by the previously mentioned assumption of the strictly increasing function $\beta$, the lowest signal leads to the lowest bid. From the maximization problem, we obtain the following FOC:
 \begin{gather*}
 \{1-F[\beta^{-1}(b)]\}^{n-1} + (b - x)(n - 		1)\{1-F[\beta^{-1}(b)]\}^{n-2}\frac{d\beta^{-1}}{db}\{(-1)f[\beta^{-1}(b)]\} \overset{!}{=} 0\\
 	\iff \frac{\{1-F[\beta^{-1}(b)]\}^{n-1}}{\{1-F[\beta^{-1}(b)]\}^{n-2}} = (b - x)(n - 1)f[\beta^{-1}(b)]\frac{d\beta^{-1}}{db}\\
@@ -271,7 +270,7 @@ This is a differential equation, from which we may obtain the Bayesian NE bid fu
 \[
 \beta(x) = x + \frac{\int_x^\infty [1 - F(t)]^{(n-1)}dt}{[1-F(x)]^{(n-1)}}.
 \]
-We thus learn that the bid resulting from the cost structure of the firm is a surcharge added to the realization of $X$. Again, we may interpret this as the private information of firm $i$ on the cost of completion of the contractual obligations, e.g., information about the firms cost structure, information about execution costs obtained from on-site inspections, etc. Further, we observe that the surcharge depends on the number of firms in an auction and the joint distribution $F$. We have to keep in mind, however, that this simple result is based on quite restrictive assumptions. Especially, the risk neutrality of firms is not particularly realistic. Nonetheless, given those simplifying assumptions, the results displayed in section \ref{sec:res} will show whether the derived economic intuition of firms' behaviour is observable in the data.
+We thus learn that the bid resulting from the cost structure of the firm is a surcharge added to the realization of $X$. Again, we may interpret this as the private information of firm $i$ on the cost of completion of the contractual obligations, e.g., information about the firm's cost structure, information about execution costs obtained from on-site inspections, etc. Further, we observe that the surcharge depends on the number of firms in an auction and the joint distribution $F$. We have to keep in mind, however, that this simple result is based on quite restrictive assumptions. Especially, the risk neutrality of firms is not particularly realistic. Nonetheless, given those simplifying assumptions, the results displayed in section \ref{sec:res} will show whether the derived economic intuition of firms' behavior is observable in the data.
 \newpage
 \section{Methods}\label{sec:meth}
 
@@ -279,8 +278,8 @@ This section contains precise descriptions of the methods used to generate the r
 
 \subsection{Elastic Nets}\label{subsec:net}
 
-When the number of features in a dataset is significantly larger than the number of observations, elastic net regularization offers a solution to fit linear models using a convex combination of the lasso and ridge penalty. Further, the regularization may be used to better optimize the bias variance trade-off when compared to a linear regression estimated via ordinary least squares.\\
-The description of the elastic net regularization is denoted in accordance with the seminal paper by \citet{hastie03}. Assume that a dataset has $n$ observations and $p$ explanatory variables. As it is the case with the auction dataset, the number of explanatory variables may greatly exceed the number of observations, i.e., $p >> n$. Let $\mathbf{y} = (y_1, ...., y_n)^T$ be the response variable and $\mathbf{X} = [x_1|...|x_p]$ the model matrix, containing the hot encoded explanatory variables. This means that all factor variables have to be converted to individual dummy variables for each level. Subsequently, each column in the model matrix is then centered and standardized. This ensures that the regularization is consistent across variables, since the regularization process is not scale invariant. For any combination of non-negative $\lambda_1$ and $\lambda_2$, \citet{hastie03}, define the elastic net criterion as,
+When the number of features in a dataset is significantly larger than the number of observations, elastic net regularization offers a solution to fit linear models using a convex combination of the lasso and ridge penalty. Further, the regularization may be used to better optimize the bias-variance trade-off when compared to a linear regression estimated via ordinary least squares.\\
+The description of the elastic net regularization is denoted in accordance with the seminal paper by \citet{hastie03}. Assume that a dataset has $n$ observations and $p$ explanatory variables. As is the case with the auction dataset, the number of explanatory variables may greatly exceed the number of observations, i.e., $p >> n$. Let $\mathbf{y} = (y_1, ...., y_n)^T$ be the response variable and $\mathbf{X} = [x_1|...|x_p]$ the model matrix, containing the hot encoded explanatory variables. This means that all factor variables have to be converted to individual dummy variables for each level. Subsequently, each column in the model matrix is then centered and standardized. This ensures that the regularization is consistent across variables since the regularization process is not scale invariant. For any combination of non-negative $\lambda_1$ and $\lambda_2$, \citet{hastie03}, define the elastic net criterion as,
 \[
 l(\lambda_1, \lambda_2, \bm{\beta}) = |\mathbf{y} - \mathbf{X}\bm{\beta}|^2 +\lambda_1|\bm{\beta}|^2 +\lambda_2|\bm{\beta}|_1, 
 \]
@@ -305,7 +304,7 @@ subject to,
 (1 - \alpha)|\bm{\beta}|_1 + \alpha|\bm{\beta}|^2 \leq t.
 \end{gather}
 
-The constraint thus encompasses a convex combination of the lasso penalty and the ridge penalty. Accordingly, both ridge and lasso regression are a special cases of an elastic net, where $\alpha = 1$ results in ridge regression and $\alpha = 0$ leaves us with the $\ell_1$ penalized lasso regression estimator, initially presented by \citet{tibshirani96}. In regard to model selection, lasso regression is particularly powerful as it shrinks some candidate variables \textbf{exactly} to zero, which is not the case when utilizing the ridge penalty. In the case of $\ell_1$ penalized regression, the obtained $\bm{\hat{\beta}}$ carries only non-zero components for the variables that were deemed important enough in the cross-validation process used to determine the optimal value of the shrinkage parameter $t$, assuming $\alpha = 0$. This is troublesome for the frequentist statistician, as it implies that the coefficient vector $\bm{\beta}$ itself is random \citep{Lee2016}. The severity of the implications for frequentist inference is outlined in \citet{benjamini05} and \citet{benjamini09}.
+The constraint thus encompasses a convex combination of the lasso penalty and the ridge penalty. Accordingly, both ridge and lasso regression are special cases of an elastic net, where $\alpha = 1$ results in ridge regression and $\alpha = 0$ leaves us with the $\ell_1$ penalized lasso regression estimator, initially presented by \citet{tibshirani96}. Regarding model selection, lasso regression is particularly powerful as it shrinks some candidate variables \textbf{exactly} to zero, which is not the case when utilizing the ridge penalty. In the case of $\ell_1$ penalized regression, the obtained $\bm{\hat{\beta}}$ carries only non-zero components for the variables that were deemed important enough in the cross-validation process used to determine the optimal value of the shrinkage parameter $t$, assuming $\alpha = 0$. This is troublesome for the frequentist statistician, as it implies that the coefficient vector $\bm{\beta}$ itself is random \citep{Lee2016}. The severity of the implications for frequentist inference is outlined in \citet{benjamini05} and \citet{benjamini09}.
 
 \subsubsection{Post-Selection Inference for $\ell_1$-Penalized Models}\label{subsubsec:psi}
 Having discovered the randomness introduced by shrinkage to exactly zero of some elements in the coefficient vector $\bm{\hat{\beta}}$, it is important to develop a sound understanding of the source of randomness. The randomness introduced by variable selection is one of choice and not inherent to the parameter value itself. Denoted in accordance with \citet{Lee2016}, again we assume $p$ explanatory variables. Further, let $M\subset\{1, ..., p\}$ be the subset of covariates which estimate $\beta_j^M$ has not been set to zero, given the optimal choice of the regularization parameter $t$. Formally we may write,
@@ -316,7 +315,7 @@ Given $t > 0$, we will only draw inference from the coefficients $\hat\beta_j^{\
 \[
 \mathbb{P}(\beta_j^{\hat M} \in C_j^{\hat M}) \geq 1 - \alpha.
 \]
-Unfortunately, this is obviously undefined for all $j \notin \hat M$. Accordingly, to resolve this issue \citet{Lee2016} rely on conditional convergence. Since we construct an interval for $\hat\beta_j^{\hat M}$ if $\hat M$ is selected, we may condition on this event. Thus we obtain,
+Unfortunately, this is undefined for all $j \notin \hat M$. Accordingly, to resolve this issue \citet{Lee2016} rely on conditional convergence. Since we construct an interval for $\hat\beta_j^{\hat M}$ if $\hat M$ is selected, we may condition on this event. Thus we obtain,
 \[
 \mathbb{P}(\beta_j^{\hat M} \in C_j^{\hat M}| \hat M = M) \geq 1 - \alpha.
 \]
@@ -345,7 +344,7 @@ If we choose to minimize the sum of squares,
 \[
 \mathlarger{\sum}\limits_{i = 1}^{n}(y_i - f(x_i))^2,
 \]
-the optimal $\hat c_m$ is the arithmetic mean\footnote{A proof is provided in Appendix \ref{App:A2}.} of the observations in partition $R_m$ \citep{hastie09}. A proof for this statement would be identical to deriving the optimal value of the intercept in a linear model fit via ordinary least squares (OLS), that is only made up of one constant. So far, we have determined how to optimally represent the observations grouped in a partition $R_i$ by a single constant. However, we still need to determine how to choose the optimal splitting variable $x_j$ as well as the optimal splitting point $s$. Suppose that at each node, we consider all possible variables $p$ that may generate the best pair of resulting half planes,
+the optimal $\hat c_m$ is the arithmetic mean\footnote{A proof is provided in Appendix \ref{App:A2}.} of the observations in partition $R_m$ \citep{hastie09}. A proof for this statement would be identical to deriving the optimal value of the intercept in a linear model fit via ordinary least squares (OLS), which is only made up of one constant. So far, we have determined how to optimally represent the observations grouped in a partition $R_i$ by a single constant. However, we still need to determine how to choose the optimal splitting variable $x_j$ as well as the optimal splitting point $s$. Suppose that at each node, we consider all possible variables $p$ that may generate the best pair of resulting half-planes,
 \[
 R_1(j, s) = \{X|X_j \leq s\} \text{ and } R_2(j, s) = \{X|X_j > s\}.
 \]
@@ -353,10 +352,10 @@ We aim to choose the splitting variable $j$ and the corresponding splitting poin
 \[
 \minA_{j, s}\mathlarger{[} \minA_{c_1} \mathlarger{\sum}\limits_{x_i \in R_1(j, s)} (y_i - c_1)^2 + \minA_{c_2} \mathlarger{\sum}\limits_{x_i \in R_2(j, s)} (y_i - c_2)^2 \mathlarger{]}.
 \]
-Note that it is infeasible to choose those sequential partitions that optimize the sum of squares simultaneously for all possible splits. Accordingly, the optimization process is greedy in a sense that it is memoryless and only considers the current available splits, given all splits that have occurred beforehand. To a degree this is quite unsettling as it does not guarantee that the recursive partitioning will lead to a global minimum in RSS. This is also where ensemble algorithms may make quite a difference, as we will discover at a later stage. Coming back to the greedy minimization, we have previously discovered that the inner minimum in regards to the constant that represent the observations in $R_1$ and $R_2$ are optimally represented by the arithmetic mean. The outer minimum in respect to $j$ and $s$ may be discovered by  finding the best splitting point $s$ for every candidate variable $j$ to then assess which combination $(j, s)$ leads to the minimization in RSS. This process may then be repeated in the resulting half-planes. If we were to consider trees as a stand alone learner, at this point, we would have to think about how we choose the complexity of the tree. However, as in this thesis the depth of a tree is a hyper parameter chosen via cross validation, we may skip this part. The interested reader is referred to \citet{hastie09}. Shortly summarized, fixing some threshold for the minimum decrease in RSS to warrant an additional split is not optimal, as a seemingly bad split at the current node  might lead to a significant decrease in RSS at a later split. Accordingly, what is usually applied to determine the optimal tree complexity is cost-complexity pruning. In essence this means the tree is grown until some minimum node size is reached and then the tree is \enquote{cut down} backwards starting from the terminal nodes.
+Note that it is infeasible to choose those sequential partitions that optimize the sum of squares simultaneously for all possible splits. Accordingly, the optimization process is greedy in the sense that it is memoryless and only considers the currently available splits, given all splits that have occurred beforehand. To a degree, this is quite unsettling as it does not guarantee that the recursive partitioning will lead to a global minimum in RSS. This is also where ensemble algorithms may make quite a difference, as we will discover at a later stage. Coming back to the greedy minimization, we have previously discovered that the inner minimum regarding the constant that represents the observations in $R_1$ and $R_2$ is optimally represented by the arithmetic mean. The outer minimum with respect to $j$ and $s$ may be discovered by finding the best splitting point $s$ for every candidate variable $j$ to then assess which combination $(j, s)$ leads to the minimization in RSS. This process may then be repeated in the resulting half-planes. If we were to consider trees as stand-alone learners, at this point, we would have to think about how we choose the complexity of the tree. However, as in this thesis, the depth of a tree is a hyperparameter chosen via cross-validation, we may skip this part. The interested reader is referred to \citet{hastie09}. Shortly summarized, fixing some threshold for the minimum decrease in RSS to warrant an additional split is not optimal, as a seemingly bad split at the current node might lead to a significant decrease in RSS at a later split. Accordingly, what is usually applied to determine the optimal tree complexity is cost-complexity pruning. In essence, this means the tree is grown until some minimum node size is reached and then the tree is \enquote{cut down} backward starting from the terminal nodes.
 
 \subsubsection{Random Forest}\label{subsubsec:rf}
-As previously mentioned, random forests utilize bootstrap aggregation to improve the predictive performance of many noisy but unbiased learners. This is achieved by reducing the variance of the individual simple learning algorithm. The presented regression trees are well suited for this, as they may capture complex non-linear relationships in the data and given that they are grown sufficiently deep, they exhibit low bias. For the sake of simplicity, the notation is slightly changed. Let the dataset be defined as $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $\bm x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. The algorithm used to fit a random forest may be concisely described following \citet{hastie09}:
+As previously mentioned, random forests utilize bootstrap aggregation to improve the predictive performance of many noisy but unbiased learners. This is achieved by reducing the variance of the individual simple learning algorithm. The presented regression trees are well suited for this, as they may capture complex non-linear relationships in the data, and given that they are grown sufficiently deep, they exhibit low bias. For the sake of simplicity, the notation is slightly changed. Let the dataset be defined as $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $\bm x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. The algorithm used to fit a random forest may be concisely described following \citet{hastie09}:
 
 \RestyleAlgo{ruled}
 
@@ -406,8 +405,8 @@ Some trivial rearrangements then lead us to the more easily interpretable expres
 \[
 \mathbb{V}\text{ar}(\hat f_{rf}) = \rho\sigma^2 + \frac{\sigma^2}{B}(1 - \rho).
 \]
-This result simply demonstrates the idea behind the variance reduction achieved via bagging and candidate variable sampling. We observe that the second term approaches zero as the number of trees in the forest approach infinity. Additionally, we also observe that the first term depends on the correlation of the individual trees, thus by sampling different candidate variables at each split for every tree, we aim to reduce the correlation of the individual trees in our forest. This is also of particular importance for the weights that we use to average over our trees. It can be shown that applying an equal weight to the prediction of our simple learners is optimal if the trees are uncorrelated\footnote{A proof is provided in Appendix \ref{App:A5}.}.\\
-Given this discovery, imagine a dataset which is made up of very few variables that have a relationship with the dependant variable in the data generating process. Further, assume that there are numerous noise variables that have no predictive power. Then in order to retain some of the variables that possess predictive power in the cross-validation process the optimal number of candidate variables to sample for each split $m$ will tend towards the number of total predictors in the dataset. This happens because low values of $m$ will result in candidate samples that only contain noise variables. A key takeaway is thus, if we observe that the optimal value for $m$ chosen via cross validation is very close to the total number of explanatory variables $p$, the decorrelation via candidate sampling aiming to reduce $\rho\sigma^2$ might be failing. This is why in Section \ref{subsubsec:rfe} a variable selection method is presented that aims to reduce the number of noise variables via recursive feature elimination. Additionally, instead of variable selection methods, reducing the number of variables before fitting the random forest with dimensionality reduction methods is also a viable approach. This is outlined in Section \ref{subsubsec:logp}.
+This result simply demonstrates the idea behind the variance reduction achieved via bagging and candidate variable sampling. We observe that the second term approaches zero as the number of trees in the forest approach infinity. Additionally, we also observe that the first term depends on the correlation of the individual trees, thus by sampling different candidate variables at each split for every tree, we aim to reduce the correlation of the individual trees in our forest. This is also of particular importance for the weights that we use to average over our trees. It can be shown that applying equal weights to the prediction of our simple learners is optimal if the trees are uncorrelated\footnote{A proof is provided in Appendix \ref{App:A5}.}.\\
+Given this discovery, imagine a dataset that is made up of very few variables that have a relationship with the dependent variable in the data-generating process. Further, assume that there are numerous noise variables that have no predictive power. Then in order to retain some of the variables that possess predictive power in the cross-validation process the optimal number of candidate variables to sample for each split $m$ will tend towards the number of total predictors in the dataset. This happens because low values of $m$ will result in candidate samples that only contain noise variables. A key takeaway is thus, if we observe that the optimal value for $m$ chosen via cross-validation is very close to the total number of explanatory variables $p$, the decorrelation via candidate sampling aiming to reduce $\rho\sigma^2$ might be failing. This is why in Section \ref{subsubsec:rfe} a variable selection method is presented that aims to reduce the number of noise variables via recursive feature elimination. Additionally, instead of variable selection methods, reducing the number of variables before fitting the random forest with dimensionality reduction methods is also a viable approach. This is outlined in Section \ref{subsubsec:logp}.
 
 \subsubsection{eXtreme Gradient Boosting}\label{subsubsec:xgb}
 Instead of averaging over a multitude of trees, the ensemble generated by eXtreme Gradient Boosting (XGBoost) is created by starting with some constant as our initial prediction. Using this constant, residuals for every observation are generated, then trees are sequentially fit to improve on the error of the previous prediction. The formalization is denoted in accordance with the paper that first introduced XGBoost, \citet{chen2016}.\\
@@ -419,7 +418,7 @@ $f_k$ represents a tree structure that, somewhat similarly as previously describ
 \[
 \mathcal{L}^t = \mathlarger{\sum}\limits_{i = 1}^n l( y_i, \hat y_i^{(t - 1)} + f_t(\bm x_i)) + \gamma T + \frac{1}{2}\lambda f_t(\bm x_i)^2.
 \]
-As already mentioned, the initial prediction for $t = 0$ is some constant, which is identical for all observations. Starting from the first iteration $t = 1$, trees are built via optimization of the above objective. Where $l$ represents the loss function, usually of quadratic nature, e.g., $l(y_i, \hat y_i) = \frac{1}{2} (y_i - \hat y_i)^2$. Further, $\gamma T$, where $\gamma \in \mathbb{R}^+$, is used to penalize the complexity of the model where $T$ represents the number of terminal nodes (leafs). The last term , $\frac{1}{2}\lambda|w|^2$ offers additional regularization to avoid over-fitting. It utilizes the $\ell_2$ norm, similar to the ridge penalty described in Section \ref{subsec:net}. Note that we assume the result of the previous iteration to be fixed and thus this is also a greedy optimization procedure. For the sake of computational complexity the presented objective is not minimized directly, XGboost utilizes a second order Taylor polynomial, as an approximation for the loss function, i.e.,
+As already mentioned, the initial prediction for $t = 0$ is some constant, which is identical for all observations. Starting from the first iteration $t = 1$, trees are built via optimization of the above objective. Where $l$ represents the loss function, usually of quadratic nature, e.g., $l(y_i, \hat y_i) = \frac{1}{2} (y_i - \hat y_i)^2$. Further, $\gamma T$, where $\gamma \in \mathbb{R}^+$, is used to penalize the complexity of the model where $T$ represents the number of terminal nodes (leafs). The last term , $\frac{1}{2}\lambda|w|^2$ offers additional regularization to avoid over-fitting. It utilizes the $\ell_2$ norm, similar to the ridge penalty described in Section \ref{subsec:net}. Note that we assume the result of the previous iteration to be fixed and thus this is also a greedy optimization procedure. For the sake of computational complexity the presented objective is not minimized directly, XGboost utilizes a second-order Taylor polynomial, as an approximation for the loss function, i.e.,
 \[
 \mathcal{L}^t \approx \mathlarger{\sum}\limits_{i = 1}^n l( y_i, \hat y_i^{(t - 1)}) + g_i f_t(\bm x_i) + \frac{1}{2}h_i f_t( \bm x_i)^2 + \gamma T + \frac{1}{2}\lambda f_t(\bm x_i)^2.
 \]
@@ -427,13 +426,13 @@ Where
 \[
 g_i = \frac{d l(y_i, \hat y_i^{(t-1)})}{d \hat y_i^{(t-1)}} \text{ and } h_i = \frac{d^2 l(y_i, \hat y_i^{(t-1)})}{d \left[\hat y_i^{(t-1)}\right]^2},
 \]
-represent first and second order derivatives respectively. To reduce the notational burden let $I_j$ be the instance set of node $j$, we may then remove the terms that do not have an influence on the output weight $w_j$ to obtain, 
+represent first and second-order derivatives respectively. To reduce the notational burden let $I_j$ be the instance set of node $j$, we may then remove the terms that do not have an influence on the output weight $w_j$ to obtain, 
 \begin{gather}
-\mathcal{L}^t \approx \mathlarger{\sum}\limits_{i \in I_j} g_i f_t(\bm x_i) + \frac{1}{2}h_i f_t( \bm x_i)^2 + \frac{1}{2}\lambda f_t(\bm x_i)^2.
+	\mathcal{L}^t \approx \mathlarger{\sum}\limits_{i \in I_j} g_i f_t(\bm x_i) + \frac{1}{2}h_i f_t( \bm x_i)^2 + \frac{1}{2}\lambda f_t(\bm x_i)^2.
 \end{gather}
 Now we find the optimum output weight $w_j$ for the leaf j, by finding the derivative with respect to the output weight,
 \begin{gather*}
-\frac{d \mathcal{L}^t}{d w_j} =  \mathlarger{\sum}\limits_{i \in I_j} g_i + h_i w_j + \lambda w_j \overset{!}{=} 0 \\ \iff w^*_j = - \frac{\sum_{i \in I_j} g_i}{\sum_{i \in I_j} h_i + \lambda}
+	\frac{d \mathcal{L}^t}{d w_j} =  \mathlarger{\sum}\limits_{i \in I_j} g_i + h_i w_j + \lambda w_j \overset{!}{=} 0 \\ \iff w^*_j = - \frac{\sum_{i \in I_j} g_i}{\sum_{i \in I_j} h_i + \lambda}
 \end{gather*}
 Considering the previously mentioned loss function, $l(y_i, \hat y_i) = \frac{1}{2} (y_i - \hat  y_i)^2$, we find $g_i \text{ and } h_i$ to be:
 \[
@@ -459,27 +458,27 @@ given that the coefficient is constant for all evaluated splits, it may be omitt
 	\begin{minipage}{.9\linewidth}
 		\begin{algorithm}[H]
 			\caption{\textit{XGboost}}\label{alg:two}
-			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. The structure complexity paremeter $\gamma$, the regularization parameter $\lambda$, the learning rate $\eta$, the maximum depth $d_{max}$ and the number of trees to be fit in succession $n_{iter}$.}
+			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. The structure complexity parameter $\gamma$, the regularization parameter $\lambda$, the learning rate $\eta$, the maximum depth $d_{max}$ and the number of trees to be fit in succession $n_{iter}$.}
 			\begin{enumerate}
 				\item Start with some initial prediction that is identical for all observations.
 				\item For $n_{iter}$ times, repeat:
 				\begin{enumerate}[I.]
 					\item While the number of nodes in the current tree is smaller or equal\\ to $d_ {max}$:
 					\begin{enumerate}[i.]
-						\item Compute the residuals using the predicted values of the\\ previous iteration, and then calculate the current similarity score.
-						\item Find the best splitting point $w^*_j$ for all candidate variables $p$, execute the best split, by choosing the the variable with highest gain at the optimal splitting point. Gain is defined as the sum of the similarity scores of the child nodes minus the similarity score of the root node.
+						\item Compute the residuals using the predicted values of the\\ previous iteration and then calculate the current similarity score.
+						\item Find the best splitting point $w^*_j$ for all candidate variables $p$, and execute the best split, by choosing the variable with the highest gain at the optimal splitting point. Gain is defined as the sum of the similarity scores of the child nodes minus the similarity score of the root node.
 					\end{enumerate}
-					\item Prune the tree of the current iteration backwards by subtracting $\gamma$ from the gain of the respective split in the tree. If the result of the difference is negative, the split is removed.
+					\item Prune the tree of the current iteration backward by subtracting $\gamma$ from the gain of the respective split in the tree. If the result of the difference is negative, the split is removed.
 					\item Multiply the predicted values of the created tree structure by $\eta$ and add it to the existing ensemble.
 				\end{enumerate} 
-			\item Return the ensemble, $\mathlarger{\sum}\limits_{n = 1}^{n} \eta f_{n}(\bm x_i)$.
+				\item Return the ensemble, $\mathlarger{\sum}\limits_{n = 1}^{n} \eta f_{n}(\bm x_i)$.
 			\end{enumerate}
 		\end{algorithm}
 	\end{minipage}
 	\par
 }
 \subsection{Nested Cross Validation}\label{subsec:nest}
-The idea of simple k-fold cross validation for hyperparameter optimization is to split the training data into $K$ equally-sized parts. Suppose the indexing function $\kappa: \{1, ..., n\} \rightarrow \{1, ..., K\}$, it indicates which observation $i$ out of $n$ is allocated to the $K - 1$ training folds and the K'th validation fold, respectively. Further, let $\hat f^{-k}(x)$, be the fitted predictive function computed with the k'th part of the data removed and let $\bm \alpha$ represent a vector of hyper-parameters used to fit $\hat f^{-k}(x, \bm{\alpha})$ \citep{hastie09}. We can then represent the cross validation error as
+The idea of simple k-fold cross-validation for hyperparameter optimization is to split the training data into $K$ equally-sized parts. Suppose the indexing function $\kappa: \{1, ..., n\} \rightarrow \{1, ..., K\}$, it indicates which observation $i$ out of $n$ is allocated to the $K - 1$ training folds and the K'th validation fold, respectively. Further, let $\hat f^{-k}(x)$, be the fitted predictive function computed with the k-th part of the data removed and let $\bm \alpha$ represent a vector of hyper-parameters used to fit $\hat f^{-k}(x, \bm{\alpha})$ \citep{hastie09}. We can then represent the cross-validation error as
 \begin{gather*}
 	CV(\hat f) = \frac{1}{n} \mathlarger{\sum}\limits_{i = 1}^{n} l(y_i, \hat f^{-\kappa(i)}(x, \bm \alpha)),
 \end{gather*}
@@ -518,14 +517,14 @@ Now that we have established the formalities of this approach, an algorithm of t
 	\begin{minipage}{.9\linewidth}
 		\begin{algorithm}[H]
 			\caption{\textit{Nested CV: Logistic PCA}}\label{alg:three}
-			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. A $n \times k$ tuning grid for the random forest hyperparameters, a $l \times p$ tuning grid for the logistic PCA hyperparameters, $K$ cross validation folds and a loss function $l(y_i, \hat y_i)$ to determin the CV error.}
+			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^p$ and $y_i \in \mathbb{R}$. A $n \times k$ tuning grid for the random forest hyperparameters, a $l \times p$ tuning grid for the logistic PCA hyperparameters, $K$ cross-validation folds and a loss function $l(y_i, \hat y_i)$ to determine the CV error.}
 			\begin{enumerate}
-				\item For all $K$ cross validation folds, repeat:
-					\begin{enumerate}
+				\item For all $K$ cross-validation folds, repeat:
+				\begin{enumerate}
 					\item For all $l$ rows in the logPCA tuning grid, repeat:
 					\begin{enumerate}[I.]
 						\item Perform CV for the logPCA parameter $m$, using the\\ number of principle components of the current row in the logPCA tuning grid.
-						\item Perform the logPCA preprosessing procedure on the\\ training folds.
+						\item Perform the logPCA preprocessing procedure on the\\ training folds.
 						\item Apply the transformation that minimizes the Bernoulli deviance of the training data to the validation data.
 						\item For all $n$ rows in the RF tuning grid, repeat:
 						\begin{enumerate}[i.]
@@ -536,58 +535,58 @@ Now that we have established the formalities of this approach, an algorithm of t
 						\end{enumerate}
 					\end{enumerate} 
 				\end{enumerate}
-			  \item Compute the CV error by averaging the error of each model specification across all folds.
-			\end{enumerate}
-		\end{algorithm}
-	\end{minipage}
-	\par
-}
-Note that it is vital that the logPCA process is not directly applied to the validation data in the CV process. This would be considered a severe data leak. Instead the logPCA process is executed on the training data and the resulting transformation is then applied to the test data. This is also where the implementation by \citet{logPCA} shines, as the application of an obtained logPCA transformation to a new dataset is implemented in a computationally efficient way. Further, note that in this thesis the actual implementation of this CV process is slightly more complicated and would require another loop. This is because the logPCA process was not applied to all columns in the data set at once. The columns were grouped into contract description, firm identification and firm interaction columns, which represent all sources of binary dummy variables besides the contract date and the county. Logistic PCA was then applied to these groups of columns separately. This was done to be able to assess variable importance with the source of the input information sustained. Meaning that we may not be able to say which variable in the original form of the data is more influential for the prediction of our model. However, we may tell if a potentially influential principle component was generated by contract description data, firm identification information or firm interaction data.
-
-\subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
-As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise variables, the predictive accuracy of a random forest model might benefit from the removal of some of the variables with little or no predictive power. The idea behind recursive feature elimination is to fit a random forest, identify a share of the $p \in (0, 1)$ most important variables and remove the remaining covariates. This may be repeated for a number of times $k$, where the optimal choice of $k$ and $p$ is to be determined via cross validation. \citet{gregorutti13} present simulation studies that convey that the recursive feature elimination algorithm performs well in reducing the number of unimportant noise variables. They also compare different approaches to asses the importance of a predictor and conclude that permutation importance delivers the best results. Permutation importance may be efficiently computed by using the out of bag  (OOB) sample. When the b-th tree is constructed, OOB samples are predicted using the current tree structure, then the values of one of the covariates is randomly permuted and the OOB samples are predicted again. The decrease in accuracy measured by some loss function $l(y_i, \hat y_i)$ is then averaged over all trees in the forest. The resulting measure may then be thought of as the importance of the variable. This procedure is repeated for all variables. The R package \textit{ranger} by \citet{ranger} enables the user to compute the variable importance as outlined above. The algorithm of recursive feature elimination may be summarized as follows:
-
-{\centering
-	\begin{minipage}{.9\linewidth}
-		\begin{algorithm}[H]
-			\caption{\textit{Nested CV: Recursive Feature Elimination}}\label{alg:four}
-			\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$. A $n \times f$ tuning grid for the random forest hyperparameters, in this case this tuning grid also contains the parameters for recursive feature elimination $p$ and $k$, $K$ cross validation folds and a loss function $l(y_i, \hat y_i)$ to determine the CV error.}
-			\begin{enumerate}
-				\item For all $K$ cross validation folds, repeat:
-				\begin{enumerate}
-					\item For all $n$ rows in the RF tuning grid, repeat:
-					\begin{enumerate}[I.]
-						\item Fit a random forest using the data in the training folds.
-						\item Calculate the permutation importance of each covariate.
-						\item While the number of iterations is smaller or equal to $k$, specified in the current row of the tuning grid:
-						\begin{enumerate}[i.]
-							\item Retain the $\lceil d*p \rceil$ most important variables, in the training and in the validation set.
-							\item Fit the random forest using the remaining variables\\ using the training data.
-							\item Calculate the feature importance.
-						\end{enumerate}
-						\item Predict the response in the validation set.
-						\item Calculate the error using the loss function $l(y_i, \hat y_i)$.
-						\item Save the error as well as the input hyperparameters. 
-					\end{enumerate} 
-				\end{enumerate}
 				\item Compute the CV error by averaging the error of each model specification across all folds.
 			\end{enumerate}
 		\end{algorithm}
 	\end{minipage}
 	\par
 }
+Note that it is vital that the logPCA process is not directly applied to the validation data in the CV process. This would be considered a severe data leak. Instead, the logPCA process is executed on the training data and the resulting transformation is then applied to the test data. This is also where the implementation by \citet{logPCA} shines, as the application of an obtained logPCA transformation to a new dataset is implemented in a computationally efficient way. Further, note that in this thesis the actual implementation of this CV process is slightly more complicated and would require another loop. This is because the logPCA process was not applied to all columns in the data set at once. The columns were grouped into contract description, firm identification, and firm interaction columns, which represent all sources of binary dummy variables besides the contract date and the county. Logistic PCA was then applied to these groups of columns separately. This was done to be able to assess variable importance with the source of the input information sustained. Meaning that we may not be able to say which variable in the original form of the data is more influential for the prediction of our model. However, we may tell if a potentially influential principle component was generated by contract description data, firm identification information, or firm interaction data.
+
+\subsubsection{Recursive Feature Elimination}\label{subsubsec:rfe}
+As outlined in Section \ref{subsubsec:rf}, when a dataset contains many noise variables, the predictive accuracy of a random forest model might benefit from the removal of some of the variables with little or no predictive power. The idea behind recursive feature elimination is to fit a random forest, identify a share of the $p \in (0, 1)$ most important variables and remove the remaining covariates. This may be repeated for a number of times $k$, where the optimal choice of $k$ and $p$ is to be determined via cross-validation. \citet{gregorutti13} present simulation studies that convey that the recursive feature elimination algorithm performs well in reducing the number of unimportant noise variables. They also compare different approaches to assess the importance of a predictor and conclude that permutation importance delivers the best results. Permutation importance may be efficiently computed by using the out-of-bag (OOB) sample. When the b-th tree is constructed, OOB samples are predicted using the current tree structure, then the values of one of the covariates are randomly permuted and the OOB samples are predicted again. The decrease in accuracy measured by some loss function $l(y_i, \hat y_i)$ is then averaged over all trees in the forest. The resulting measure may then be thought of as the importance of the variable. This procedure is repeated for all variables. The R package \textit{ranger} by \citet{ranger} enables the user to compute the variable importance as outlined above. The algorithm of recursive feature elimination may be summarized as follows:
+
+{\centering
+\begin{minipage}{.9\linewidth}
+	\begin{algorithm}[H]
+		\caption{\textit{Nested CV: Recursive Feature Elimination}}\label{alg:four}
+		\KwData{A training dataset $\mathcal{D}\{\{\bm x_i, y_i\}\}$, with $i = 1, ..., n$, $x_i \in \mathbb{R}^d$ and $y_i \in \mathbb{R}$. A $n \times f$ tuning grid for the random forest hyperparameters, in this case, this tuning grid also contains the parameters for recursive feature elimination $p$ and $k$, $K$ cross-validation folds and a loss function $l(y_i, \hat y_i)$ to determine the CV error.}
+		\begin{enumerate}
+			\item For all $K$ cross-validation folds, repeat:
+			\begin{enumerate}
+				\item For all $n$ rows in the RF tuning grid, repeat:
+				\begin{enumerate}[I.]
+					\item Fit a random forest using the data in the training folds.
+					\item Calculate the permutation importance of each covariate.
+					\item While the number of iterations is smaller or equal to $k$, specified in the current row of the tuning grid:
+					\begin{enumerate}[i.]
+						\item Retain the $\lceil d*p \rceil$ most important variables, in the training and in the validation set.
+						\item Fit the random forest using the remaining variables\\ using the training data.
+						\item Calculate the feature importance.
+					\end{enumerate}
+					\item Predict the response in the validation set.
+					\item Calculate the error using the loss function $l(y_i, \hat y_i)$.
+					\item Save the error as well as the input hyperparameters. 
+				\end{enumerate} 
+			\end{enumerate}
+			\item Compute the CV error by averaging the error of each model specification across all folds.
+		\end{enumerate}
+	\end{algorithm}
+\end{minipage}
+	\par
+}
 
 Note that the model that includes all covariates may be included  as the model that is fit if $k = 0$ or $p = 1$. Albeit $p = 1$ is possible, in terms of computational efficiency it is the inferior solution to retaining all variables. Accordingly, if the tuning grid is set up correctly the standard random forest will be fit in the recursive feature elimination CV process. 
 \newpage
 \section{Results}\label{sec:res}
-This section covers the comparison of the predictive accuracy based on the out of sample root mean square error and mean absolute error. For each model type the optimal hyper parameters are displayed. Additionally, the results of the post selection inference are presented.
+This section covers the comparison of the predictive accuracy based on the out-of-sample root mean square error and mean absolute error. For each model type the optimal hyperparameters are displayed. Additionally, the results of the post-selection inference are presented.
 
 \subsection{Performance Evaluation Metrics}\label{subsec:per}
-To asses the error of our predictions, two metrics are used. Let $m$ be the number of observations in the test dataset. Then we may calculate the mean error as:
+To assess the error of our predictions, two metrics are used. Let $m$ be the number of observations in the test dataset. Then we may calculate the mean error as:
 \[
 \text{Err} = \frac{1}{m} \mathlarger{\sum}\limits_{i = 1}^{m} l(y_i, \hat y_i),
 \]
- where $l(y_i, \hat y_i) =( y_i - \hat y_i)^2 \text{, or } l(y_i, \hat y_i) = |y_i - \hat y_i|$. The plot below displays the loss associated with the corresponding prediction error. When using a quadratic loss function, the plot enables us to realize that we interpret large deviations from the actual values as drastically worse when compared to the linear loss function. Depending on the nature of our problem, putting great emphasis on large errors might be desirable. Given that for this thesis the main objective is to ease budget planing of the auctioning entity, the interpretation of using a quadratic loss function is that we want to avoid to allocate drastically more or less capital prior to the bidding process.
+where $l(y_i, \hat y_i) =( y_i - \hat y_i)^2 \text{, or } l(y_i, \hat y_i) = |y_i - \hat y_i|$. The plot below displays the loss associated with the corresponding prediction error. When using a quadratic loss function, the plot enables us to realize that we interpret large deviations from the actual values as drastically worse when compared to the linear loss function. Depending on the nature of our problem, putting great emphasis on large errors might be desirable. Given that for this thesis the main objective is to ease budget planning of the auctioning entity, the interpretation of using a quadratic loss function is that we want to avoid allocating drastically more or less capital prior to the bidding process.
 \begin{figure}[H]
 	\includegraphics[width = 13.5	cm]{figures/Lossfun.pdf}
 	\caption{Loss Functions}\label{fig:lossfun}
@@ -597,9 +596,9 @@ For all models the CV for hyperparameter optimization was written in R \citep{R}
 All cross validation runs were conducted in Google Colaboratory, which allows users to remotely execute Python code. The PRO+ version of their service offers 24h of uninterrupted code execution. Thus the size of the tuning grids is chosen such that execution finishes within 24 hours. To execute the R code in Python the package \textit{rpy2} was utilized \citep{rpy2}.
 
 \subsubsection{Elastic Net}
-As previously described the elastic net offers two tunable parameters. To find the optimal specification, the package \textit{glmnetUtlis}, by \citet{glmnetUtils} was used.This is an R package that extends the original package \textit{glmnet} and enables the user to tune both $t$ and $\alpha$ from Equation 4.1 \citep{glmnet}. Unfortunately, the definition of the regularized objective is defined differently in the package. However, this difference is just of notational nature. The optimal five fold CV root mean square error (RMSE) is achieved for $\alpha = 1$ and $t = 48.7$, where $t$ from Equation 4.1 is called $\lambda$ in \textit{glmnetUtils}. Given the different setup, $\alpha = 1$ implies the optimal elastic net is actually a lasso regression model. This also stems from a difference in the definition in the regularized objective of the package. 
+As previously described the elastic net offers two tunable parameters. To find the optimal specification, the package \textit{glmnetUtlis}, by \citet{glmnetUtils} was used. This is an R package that extends the original package \textit{glmnet} and enables the user to tune both $t$ and $\alpha$ from Equation 4.1 \citep{glmnet}. Unfortunately, the definition of the regularized objective is defined differently in the package. However, this difference is just of notational nature. The optimal five-fold CV root mean square error (RMSE) is achieved for $\alpha = 1$ and $t = 48.7$, where $t$ from Equation 4.1 is called $\lambda$ in \textit{glmnetUtils}. Given the different setup, $\alpha = 1$ implies the optimal elastic net is actually a lasso regression model. This also stems from a difference in the definition of the regularized objective of the package. 
 \subsubsection{Random Forest}
-The random forest is fit incorporating two different preprocessing schedules as previously described. The cross validation process is implemented parallelly using the R package \textit{parallel} and \textit{ranger} was used to fit the forests \citep{ranger, R}. The following table contains the optimal hyperparameters that were found via five fold cross validation.
+The random forest is fit incorporating two different preprocessing schedules as previously described. The cross-validation process is implemented parallelly using the R package \textit{parallel} and \textit{ranger} was used to fit the forests \citep{ranger, R}. The following table contains the optimal hyperparameters that were found via five-fold cross-validation.
 
 \begin{table}[H]
 	\centering
@@ -625,7 +624,7 @@ The random forest is fit incorporating two different preprocessing schedules as 
 Node Feature Share is a wrapper variable for the number of covariates to sample at each node to find another split in the data. Given that the number of explanatory variables is not constant in the recursive feature elimination algorithm, the number of sampled covariates at each new split is passed via a percentage of total variables left in the current iteration. \enquote{Mtry} which is an argument of the random forest function in the \textit{ranger} package represents the absolute number of covariates to sample for a new split. \enquote{Nrounds}, represents the number of feature elimination rounds, while \enquote{Covariate Share} represents the relative number of covariates to retain in each iteration. Accordingly, knowing that we start the first iteration with 1086 explanatory variables and we iteratively remove 25\% in each of the 16 iterations, we find that the forest with the lowest CV error only utilizes roughly $\lceil 0.75^{16} \times 1086\rceil = 11$ covariates. The actual number might be slightly higher since the algorithm retains the ceiling of the share times the current number of remaining covariates in each iteration. The optimal number of principle components for the contract description, the vendor ID and the vendor interaction was discovered using the nested CV process outlined in Section \ref{subsec:nest}. The best model reduces the 169 bidder identities to 10 principle components (PCs), the bidder interactions are reduced to 20 PCs from 652 initial pairwise interaction terms. Lastly, the 258 description words are represented by 20 PCs. All remaining variables in the tuning grid are thoroughly explained in Section \ref{subsubsec:rf}.
 
 \subsubsection{eXtreme Gradient Boosting}
-The XGBoost CV process is implemented using the R package \textit{xgboost}, that was released with the original manuscript \citep{xgboost}. All of the listed hyperparameters are explained in Section \ref{subsubsec:xgb}.
+The XGBoost CV process is implemented using the R package \textit{xgboost}, which was released with the original manuscript \citep{xgboost}. All of the listed hyperparameters are explained in Section \ref{subsubsec:xgb}.
 
 \begin{table}[H]
 	\centering
@@ -648,7 +647,7 @@ The XGBoost CV process is implemented using the R package \textit{xgboost}, that
 \end{table}
 
 \subsubsection{Performance Comparison}
-The following plots aim to assess the out of sample performance of the respective model. Out of the total 430 observations 80\% were used as training data, while 20\% were held back for performance evaluation. In the following plots we observe the actual versus predicted award price in thousands of U.S. dollars. Additionally, Table \ref{tab:percomp} displays the RMSE and MAE values for all models. In Figure \ref{fig:percomp} we can observe that the predicted values provided by the lasso regression are quite close to the actual values for all of the observations in the test set. Further, we observe that for many observations the lasso regression delivers a better prediction when compared to the benchmark of the engineer's estimate. Unfortunately, all other models did not lead to an improvement when compared to the engineer's estimate. Now, one might be tempted to assume that the relationship of the most important predictors in the dataset with the award price might be linear. The reasoning for this assumption would be, that the recursive partitioning associated with tree based models may only approximate a linear relationship. However, even though this hypothesis is not testable, it might be the case that the tree based methods suffer more severely from the small number of observations. Further, especially XGBoost is known to perform poorly in very sparse datasets with few observations in the training data set. Accordingly, the framing of our performance analysis has to include the fact that with  a growing number of observations for model training, it could very well be the case that the more complex models would outperform the lasso regression. 
+The following plots aim to assess the out-of-sample performance of the respective model. Out of the total 430 observations, 80\% were used as training data, while 20\% were held back for performance evaluation. In the following plots, we observe the actual versus predicted award price in thousands of U.S. dollars. Additionally, Table \ref{tab:percomp} displays the RMSE and MAE values for all models. In Figure \ref{fig:percomp} we can observe that the predicted values provided by the lasso regression are quite close to the actual values for all of the observations in the test set. Further, we observe that for many observations the lasso regression delivers a better prediction when compared to the benchmark of the engineer's estimate. Unfortunately, all other models did not lead to an improvement when compared to the engineer's estimate. Now, one might be tempted to assume that the relationship between the most important predictors in the dataset with the award price might be linear. The reasoning for this assumption would be, that the recursive partitioning associated with tree-based models may only approximate a linear relationship. However, even though this hypothesis is not testable, it might be the case that the tree-based methods suffer more severely from the small number of observations. Further, especially XGBoost is known to perform poorly in very sparse datasets with few observations in the training data set. Accordingly, the framing of our performance analysis has to include the fact that with a growing number of observations for model training, it could very well be the case that the more complex models would outperform the lasso regression. 
 \begin{figure}[H]
 	\includegraphics[width = 14	cm]{figures/percomp.pdf}
 	\caption{Actual vs. Predicted Values}\label{fig:percomp}
@@ -668,7 +667,7 @@ The following plots aim to assess the out of sample performance of the respectiv
 	\end{tabular}
 \end{table}
 \subsection{Unsupervised Collusion Detection}\label{subsec:col}
-Besides a good ex ante estimate of the required budget for a contract auctioned by the CDOT, it is of high relevance whether the interaction of certain bidders systematically leads to higher award prices. If this would be the case, the state of Colorado might want to initiate further investigations to discover potential bid rigging schemes. Accordingly, this section provides the post selection inference results for the lasso regression, which has proven itself as the best predictor. The required inference for $\ell_1$-penalized regression models is outlined in Section \ref{subsubsec:psi}. The confidence intervals were obtained using the previously mentioned R package \textit{selectiveInference} \citep{selectiveInference}. To keep the type II error of our inferential endeavours as low as possible, the cross-validation process for $t$ as described in Section \ref{subsec:nest} is repeated for the entire dataset. The resulting optimal value is $t = 69.8$. Utilizing this hyperparameter value, the lasso regression shrinks 1061 out of 1078 variables exactly to zero. The model is made up of the following variables:
+Besides a good ex-ante estimate of the required budget for a contract auctioned by the CDOT, it is of high relevance whether the interaction of certain bidders systematically leads to higher award prices. If this would be the case, the state of Colorado might want to initiate further investigations to discover potential bid-rigging schemes. Accordingly, this section provides the post-selection inference results for the lasso regression, which has proven itself as the best predictor. The required inference for $\ell_1$-penalized regression models is outlined in Section \ref{subsubsec:psi}. The confidence intervals were obtained using the previously mentioned R package \textit{selectiveInference} \citep{selectiveInference}. To keep the type II error of our inferential endeavors as low as possible, the cross-validation process for $t$ as described in Section \ref{subsec:nest} is repeated for the entire dataset. The resulting optimal value is $t = 69.8$. Utilizing this hyperparameter value, the lasso regression shrinks 1061 out of 1078 variables exactly to zero. The model is made up of the following variables:
 \begin{itemize}
 	\item Engineer's estimate
 	\item Contract time
@@ -677,127 +676,127 @@ Besides a good ex ante estimate of the required budget for a contract auctioned 
 	\item One bidder identifier
 	\item 11 bidder interaction terms 
 \end{itemize}
-Fixing the type I error to 5\%, we find that the only confidence interval that does not contain zero is the one for the engineer's estimate. Recalling our initial assumptions from the theoretical discussion in Section \ref{subsec:fpsba}, we expected the number of firms to play a tangible role in determining the award price of an auction, which does not seem to be the case. The fact that only the engineer's estimate's confidence interval does not contain zero may hint at the fact that we might be suffering to a high type II error rate. Accordingly, from the perspective of the CDOT, it is advisable to repeat the process using more auctions as input for the model. The increase in observations might allow the type II error to decrease to a point were significant bidder interactions might be detected. Given that 11 out of 17 variables that were not shrinked to 0 were bidder interactions, this does not seem particularly unlikely.
+Fixing the type I error to 5\%, we find that the only confidence interval that does not contain zero is the one for the engineer's estimate. Recalling our initial assumptions from the theoretical discussion in Section \ref{subsec:fpsba}, we expected the number of firms to play a tangible role in determining the award price of an auction, which does not seem to be the case. The fact that only the engineer's estimate's confidence interval does not contain zero may hint at the fact that we might be suffering from a high type II error rate. Accordingly, from the perspective of the CDOT, it is advisable to repeat the process using more auctions as input for the model. The increase in observations might allow the type II error to decrease to a point where significant bidder interactions might be detected. Given that 11 out of 17 variables that were not shrunk to 0 were bidder interactions, this does not seem particularly unlikely.
 \section{Conclusion}\label{sec:con}
- This thesis offers a concise description of the process that is applied to obtain the data from the website of the CDOT. Further, the auction process of the CDOT is explained and an economic operationalization of bidders' behaviour is provided. After establishing some economic intuition, the methods that are used for the award price prediction are presented. The best performing model, both in terms of RMSE and MAE, is the elastic net. In particular, the realized regression is a lasso regression. The obtained model is then used to provide confidence intervals for the best performing model. For the sample of 430 auctions at hand, no significant effect of bidder interactions is detected.
+ This thesis offers a concise description of the process that is applied to obtain the data from the website of the CDOT. Further, the auction process of the CDOT is explained and an economic operationalization of bidders' behavior is provided. After establishing some economic intuition, the methods that are used for the award price prediction are presented. The best-performing model, both in terms of RMSE and MAE, is the elastic net. In particular, the realized regression is a lasso regression. The obtained model is then used to provide confidence intervals for the best-performing model. For the sample of 430 auctions at hand, no significant effect of bidder interactions is detected.
  \newpage
  \printbibliography[heading=bibintoc]
  \newpage
  \appendix
- \section{Appendix: Proofs}
+  \section{Appendix: Proofs}
  \subsection{The Maximum is Convex on $\mathbb{R}^n$}\label{App:A1}
  By definition provided by \citet{rudin76}, a mapping $f: \mathbb{R}^n \rightarrow \mathbb{R}$ is convex if
  \[
  f(tx+ (1-t)y) \leq (1-t)f(x)+tf(y) \text{ }\forall\text{ } x, y \in \mathbb{R}^n \text{ and } t \in [0, 1].
  \]
  \begin{proof}
- The fact that the maximum fulfils this definition may be shown via straightforward computation. 
- Let $f(\bm{x}) = \maxA_i(x_1, ..., x_n)$, then 
- \[
-  f(tx+ (1-t)y) = \maxA_i(tx_i + (1-t)y_i) \overset{*}{\leq} (1-t)\maxA_i(y_i) + t\maxA_i(x_i) = (1-t)f(x)+tf(y).
- \]
- The inequality marked with * holds because,
- \[
-  \maxA_i(x_i) \geq x_j \text{ and } \maxA_i(y_i) \geq y_j,
- \]
-for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, we find that the initially stated inequality in our proof must hold.
-\end{proof}
+ 	The fact that the maximum fulfills this definition may be shown via straightforward computation. 
+ 	Let $f(\bm{x}) = \maxA_i(x_1, ..., x_n)$, then 
+ 	\[
+ 	f(tx+ (1-t)y) = \maxA_i(tx_i + (1-t)y_i) \overset{*}{\leq} (1-t)\maxA_i(y_i) + t\maxA_i(x_i) = (1-t)f(x)+tf(y).
+ 	\]
+ 	The inequality marked with * holds because,
+ 	\[
+ 	\maxA_i(x_i) \geq x_j \text{ and } \maxA_i(y_i) \geq y_j,
+ 	\]
+ 	for any $j \in \{1, ..., n\}$. Thus, given that $t \geq 0$ and $(1-t) \geq 0$, we find that the initially stated inequality in our proof must hold.
+ \end{proof}
  \subsection{The Optimal Constant $\hat c_m$ in $R_m$}\label{App:A2}
-  \begin{proof}
- We are set out to minimize the squared error within $R_m$, i.e., we want to find:
- \[
- \argminA_{\hat c_m} \mathlarger{\sum}\limits_{i = 1}^{n}(y_i - \hat c_m)^2,
- \]
- assuming that there are $n$ observations in $R_m$. The squared error function at hand is convex and differentiable, thus it has a unique minimum which may be found by setting the derivative with respect to $\hat c_m$ to zero. From the FOC, we obtain:
-\begin{gather*}
-	  -2\mathlarger{\sum}\limits_{i = 1}^{n}(y_i - \hat c_m) \overset{!}{=} 0 
-	 \iff \mathlarger{\sum}\limits_{i = 1}^{n} y_i - \mathlarger{\sum}\limits_{i = 1}^{n} \hat c_m \overset{!}{=} 0
-	 \iff \mathlarger{\sum}\limits_{i = 1}^{n} y_i - n \hat c_m \overset{!}{=} 0
-	 \iff \hat c_m = \frac{1}{n} \mathlarger{\sum}\limits_{i = 1}^{n} y_i.
-\end{gather*}
-\end{proof}
-\newpage
+ \begin{proof}
+ 	We are set out to minimize the squared error within $R_m$, i.e., we want to find:
+ 	\[
+ 	\argminA_{\hat c_m} \mathlarger{\sum}\limits_{i = 1}^{n}(y_i - \hat c_m)^2,
+ 	\]
+ 	assuming that there are $n$ observations in $R_m$. The squared error function at hand is convex and differentiable, thus it has a unique minimum which may be found by setting the derivative with respect to $\hat c_m$ to zero. From the FOC, we obtain:
+ 	\begin{gather*}
+ 		-2\mathlarger{\sum}\limits_{i = 1}^{n}(y_i - \hat c_m) \overset{!}{=} 0 
+ 		\iff \mathlarger{\sum}\limits_{i = 1}^{n} y_i - \mathlarger{\sum}\limits_{i = 1}^{n} \hat c_m \overset{!}{=} 0
+ 		\iff \mathlarger{\sum}\limits_{i = 1}^{n} y_i - n \hat c_m \overset{!}{=} 0
+ 		\iff \hat c_m = \frac{1}{n} \mathlarger{\sum}\limits_{i = 1}^{n} y_i.
+ 	\end{gather*}
+ \end{proof}
+ \newpage
  \subsection{Bias of Individual Trees and the Resulting Forest}\label{App:A3} 
  We want to show that a random forest made up of $B$ identically distributed trees $\{T_b\}_1^B$, exhibits the same bias as an individual tree $T_b$.
  \begin{proof}
  	\[
- 		\mathbb{E}\left[ \hat f_{rf}(\bm x_i)\right] =\mathbb{E}\left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i)\right] = \frac{1}{B}\mathlarger{\sum}\limits_{b = 1}^B \mathbb{E}\left[T_b(\bm x_i)\right]\overset{i.d}{=} B \frac{1}{B}\mathbb{E}\left[T_1(\bm x_i)\right] = \mathbb{E}\left[T_1(\bm x_i)\right].
+ 	\mathbb{E}\left[ \hat f_{rf}(\bm x_i)\right] =\mathbb{E}\left[ \frac{1}{B} \mathlarger{\sum}\limits_{b = 1}^B T_b(\bm x_i)\right] = \frac{1}{B}\mathlarger{\sum}\limits_{b = 1}^B \mathbb{E}\left[T_b(\bm x_i)\right]\overset{i.d}{=} B \frac{1}{B}\mathbb{E}\left[T_1(\bm x_i)\right] = \mathbb{E}\left[T_1(\bm x_i)\right].
  	\]
  \end{proof}
-
+ 
  \subsection{An Identity for the Variance of a Sum}\label{App:A4}
  Suppose we have $B$ identically distributed random variables $\{T_b\}_1^B$ with finite variances. We aim to show, that
  \[
-\mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right]= \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
+ \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right]= \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
  \]
  \begin{proof}
  	By Steiner's displacement theorem,
  	\[
  	\mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] = \mathbb{E}\left[\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)^2\right] - \left[\mathbb{E}\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)\right]^2.
-  	\]
-  	Squaring a sum is identical to multiplying each element of the two multiplicands pairwise, i.e.,
-  	\[
-  	\mathbb{E}\left[\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)^2\right] = 	\mathbb{E}\left[\mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B T_k T_j \right] = \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right], 
-    \]
-    and
-    \[
-    \left[\mathbb{E}\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)\right]^2 = 
-    \left[\mathlarger{\sum}\limits_{b = 1}^B \mathbb{E}\left(T_b\right)\right]^2 = 
-    \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k \right] \mathbb{E}\left[ T_j \right].
-    \]
-    We thus find,
-    \[
-    \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] =
-    \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right] - \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[ T_k \right] \mathbb{E}\left[ T_j \right],
-    \]
-    and hence,
-    \[
-    \mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] =
-    \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right] - \mathbb{E}\left[ T_k \right] \mathbb{E}\left[ T_j \right] = \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
-    \]
+ 	\]
+ 	Squaring a sum is identical to multiplying each element of the two multiplicands pairwise, i.e.,
+ 	\[
+ 	\mathbb{E}\left[\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)^2\right] = 	\mathbb{E}\left[\mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B T_k T_j \right] = \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right], 
+ 	\]
+ 	and
+ 	\[
+ 	\left[\mathbb{E}\left(\mathlarger{\sum}\limits_{b = 1}^B T_b\right)\right]^2 = 
+ 	\left[\mathlarger{\sum}\limits_{b = 1}^B \mathbb{E}\left(T_b\right)\right]^2 = 
+ 	\mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k \right] \mathbb{E}\left[ T_j \right].
+ 	\]
+ 	We thus find,
+ 	\[
+ 	\mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] =
+ 	\mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right] - \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[ T_k \right] \mathbb{E}\left[ T_j \right],
+ 	\]
+ 	and hence,
+ 	\[
+ 	\mathbb{V}\text{ar} \left[ \mathlarger{\sum}\limits_{b = 1}^B T_b \right] =
+ 	\mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{E}\left[T_k T_j\right] - \mathbb{E}\left[ T_k \right] \mathbb{E}\left[ T_j \right] = \mathlarger{\sum}\limits_{k = 1}^B \mathlarger{\sum}\limits_{j = 1}^B \mathbb{C}\text{ov} \left[T_k, T_j \right].
+ 	\]
  \end{proof}
  \subsection{A Lower Bound for the Variance of a Weighted Sum}\label{App:A5}
- A lot of times, the equal weights implied by a standard random forest are taken as given without providing further arguments as to why such a specific weighting is optimal. This proof aims to show, that for $B$ uncorrelated and identically distributed random variables $\{T_b\}_1^B$ with finite variance, there exists a lower bound for the variance of the weighted sum of said random variables. Note that in a random forest, the trees are seldom uncorrelated, and accordingly the correlation structure should be modelled when calculating the weights. This is, however, a very complex endeavour. Alternatively, we may look into the lower bound for uncorrelated random variables to gain further understanding of why a low correlation of trees in a random forest is of such importance.\\ As a prerequisite, the following proof utilizes the Cauchy-Schwarz inequality (CS). In the euclidean space $\mathbb{R}^n$ with the standard inner product, it states that,
+ A lot of times, the equal weights implied by a standard random forest are taken as given without providing further arguments as to why such a specific weighting is optimal. This proof aims to show, that for $B$ uncorrelated and identically distributed random variables $\{T_b\}_1^B$ with finite variance, there exists a lower bound for the variance of the weighted sum of said random variables. Note that in a random forest, the trees are seldom uncorrelated, and accordingly the correlation structure should be modeled when calculating the weights. This is, however, a very complex endeavor. Alternatively, we may look into the lower bound for uncorrelated random variables to gain further understanding of why a low correlation of trees in a random forest is of such importance.\\ As a prerequisite, the following proof utilizes the Cauchy-Schwarz inequality (CS). In the euclidean space $\mathbb{R}^n$ with the standard inner product, it states that,
  \[
  \left[\mathlarger{\sum}\limits_{b = 1}^B X_bY_b \right]^2 \leq \left[\mathlarger{\sum}\limits_{b = 1}^B X_b^2\right] \left[\mathlarger{\sum}\limits_{b = 1}^B Y_b^2\right].
  \]
  \begin{proof}
- The idea for this proof is heavily inspired by \citet{shahar2017}.
- Independent of how we weigh the simple learners in our forest we require that our weights fulfil,
- \[
- \mathlarger{\sum}\limits_{b = 1}^B w_b = 1.
- \]
- Thus we find,
- \begin{gather*}
- 1 = \left[\mathlarger{\sum}\limits_{b = 1}^B w_b\right]^2 = \left[\mathlarger{\sum}\limits_{b = 1}^B w_b\frac{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}}\right]^2 \overset{CS}{\leq} \left\{ \mathlarger{\sum}\limits_{b = 1}^B \left[w_b \sqrt{\mathbb{V}\text{ar}\left( T_b \right)} \right]^2 \right\} \left\{ \mathlarger{\sum}\limits_{b = 1}^B \left[ \frac{1}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}} \right]^2 \right\}.
- \end{gather*}
- Now, some further simplification and a division by,
- \[
- \frac{1}{\sum_{b = 1}^B \mathbb{V}\text{ar}\left( T_b \right)},
- \]
- yields the following expression,
- \[
-\frac{1}{\sum_{b = b}^B \frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}} \leq
-\mathlarger{\sum}\limits_{b = 1}^B w_b^2 \mathbb{V}\text{ar}\left( T_b \right) \overset{*}{=} 
-\mathbb{V}\text{ar}\left[\mathlarger{\sum}\limits_{b = 1}^B w_b T_b \right].
- \]
- Where * signifies the point at which we need the assumption that our random variables $\{T_b\}_1^B$ are uncorrelated. Further, we know that the CS inequality is binding iff there exists a $\lambda \in \mathbb{R}$ such that,
- \[
- w_b \sqrt{\mathbb{V}\text{ar}\left( T_b \right)} = \lambda \frac{1}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}} \text{ } \forall \text{ } b\in \{1, ..., B\}.
- \]
- Since our weights sum up to one we discover that,
- \[
- w_b = \frac{\lambda}{\mathbb{V}\text{ar}\left( T_b \right)} \implies 
- \mathlarger{\sum}\limits_{b = 1}^B \frac{\lambda}{\mathbb{V}\text{ar}\left( T_b \right)} = 1 \iff
- \lambda = \frac{1}{\sum_{b = b}^B\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}.
- \]
- This result directly leads us to the expression that we were set out to show, the weights $w_b$ for which the CS inequality is binding and thus the weights that minimize the variance of our sum are,
- \[
- w_b = \frac{\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}{\sum_{b = b}^B\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}.
- \]
- For our identically distributed variables  $\{T_b\}_1^B$, this simplifies to,
-\[
-w_b = \frac{1}{B}\text{ } \forall \text{ } b\in \{1, ..., B\}.
-\]  
+ 	The idea for this proof is heavily inspired by \citet{shahar2017}.
+ 	Independent of how we weigh the simple learners in our forest we require that our weights fulfill,
+ 	\[
+ 	\mathlarger{\sum}\limits_{b = 1}^B w_b = 1.
+ 	\]
+ 	Thus we find,
+ 	\begin{gather*}
+ 		1 = \left[\mathlarger{\sum}\limits_{b = 1}^B w_b\right]^2 = \left[\mathlarger{\sum}\limits_{b = 1}^B w_b\frac{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}}\right]^2 \overset{CS}{\leq} \left\{ \mathlarger{\sum}\limits_{b = 1}^B \left[w_b \sqrt{\mathbb{V}\text{ar}\left( T_b \right)} \right]^2 \right\} \left\{ \mathlarger{\sum}\limits_{b = 1}^B \left[ \frac{1}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}} \right]^2 \right\}.
+ 	\end{gather*}
+ 	Now, some further simplification and a division by,
+ 	\[
+ 	\frac{1}{\sum_{b = 1}^B \mathbb{V}\text{ar}\left( T_b \right)},
+ 	\]
+ 	yields the following expression,
+ 	\[
+ 	\frac{1}{\sum_{b = b}^B \frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}} \leq
+ 	\mathlarger{\sum}\limits_{b = 1}^B w_b^2 \mathbb{V}\text{ar}\left( T_b \right) \overset{*}{=} 
+ 	\mathbb{V}\text{ar}\left[\mathlarger{\sum}\limits_{b = 1}^B w_b T_b \right].
+ 	\]
+ 	Where * signifies the point at which we need the assumption that our random variables $\{T_b\}_1^B$ are uncorrelated. Further, we know that the CS inequality is binding iff there exists a $\lambda \in \mathbb{R}$ such that,
+ 	\[
+ 	w_b \sqrt{\mathbb{V}\text{ar}\left( T_b \right)} = \lambda \frac{1}{\sqrt{\mathbb{V}\text{ar}\left( T_b \right)}} \text{ } \forall \text{ } b\in \{1, ..., B\}.
+ 	\]
+ 	Since our weights sum up to one we discover that,
+ 	\[
+ 	w_b = \frac{\lambda}{\mathbb{V}\text{ar}\left( T_b \right)} \implies 
+ 	\mathlarger{\sum}\limits_{b = 1}^B \frac{\lambda}{\mathbb{V}\text{ar}\left( T_b \right)} = 1 \iff
+ 	\lambda = \frac{1}{\sum_{b = b}^B\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}.
+ 	\]
+ 	This result directly leads us to the expression that we were set out to show, the weights $w_b$ for which the CS inequality is binding, and thus the weights that minimize the variance of our sum are,
+ 	\[
+ 	w_b = \frac{\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}{\sum_{b = b}^B\frac{1}{\mathbb{V}\text{ar}\left( T_b \right)}}.
+ 	\]
+ 	For our identically distributed variables  $\{T_b\}_1^B$, this simplifies to,
+ 	\[
+ 	w_b = \frac{1}{B}\text{ } \forall \text{ } b\in \{1, ..., B\}.
+ 	\]  
  \end{proof}
 \end{document}
