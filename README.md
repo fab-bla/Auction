@@ -11,7 +11,7 @@ been compared:
 
 -   [Elastic
     Net](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_elastic_net.ipynb)
--   Linear Model (OLS)
+-   Ordinary Least Squares
     -   [with logistic PCA preprocessing (parallel
         CV)](https://github.com/Base-R-Best-R/Auction/blob/main/Code/Models/Colab/CV_PreProcess_LM.ipynb)
 -   Random Forest
